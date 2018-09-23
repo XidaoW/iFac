@@ -59,7 +59,6 @@ class OverView extends Component {
 		this.size = d3.scaleSqrt().domain([0, 1]).range([0, this.halfRadius]);
 
 		data.forEach(function(d) {
-			// petals = max(d.factors.key)
 			d.petals = d3.range(d.dims).map(function(i) { return {size: 1}; });
 			d.circles = {dominance: d.weight, radius: 10};			
 			d.x = (d.tsne_coord.x - d.min_tsne[0]) * 650 / (d.max_tsne[0] - d.min_tsne[0]) + 100 ;
