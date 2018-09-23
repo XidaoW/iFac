@@ -88,14 +88,17 @@ class OverView extends Component {
 							.style("fill", (d, i) => petalFill(d, i, this.petals));
 
 
-		const circles = flowers.selectAll('.circle')
+		const circles = background.selectAll('.circle')
 								.data(data)
 								.enter().append('circle')
 								.attr("class", "node")
-								.attr("r", function(d) { return d.circles.radius; })
-								.attr("fill", "#f46d43")
-								.attr("opacity", function(d) { return d.weight; })
-								.attr("stroke", "black")
+								.attr("r", function(d) { return Math.exp(d.weight)*10; })
+								.attr("fill", "white")
+								.attr("stroke", "red")
+								.attr("stroke-width", 1)
+								.attr("transform", function(d, i) { 
+								    return "translate(" + d.x + "," + d.y + ")"; 
+								  });
 
 
 		function petalPath(d, halfRadius) {
