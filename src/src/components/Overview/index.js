@@ -1,26 +1,26 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
-import _ from 'lodash';
+import Grid from 'd3-v4-grid';
+
 import ReactFauxDOM from 'react-faux-dom';
 
 import styles from './styles.scss';
 import index from '../../index.css';
-import gs from '../../config/_variables.scss'; // gs (=global style)
+// import gs from '../../config/_variables.scss'; // gs (=global style)
 
 /* props: this.props.ranking
   => selected ranking data
 */
 class OverView extends Component {
-    constructor(props) {
-      super(props);
-    }
+    // constructor(props) {
+    //   super(props);
+    // }
     render() {
 		const svgPatternOverview = new ReactFauxDOM.Element('svg');
 
 		var width = 960,
 		    height = 500,
 		    petals = 3,
-		    circles = 1,
 		    halfRadius = 15,
 		    circleRadius = 10,
 		    flowers_cnt = 36;
@@ -30,21 +30,22 @@ class OverView extends Component {
 		const g = d3.select(svgPatternOverview).append('g')
 					.attr("transform", "translate(" + halfRadius * 3 + "," + halfRadius * 3 + ")");
 
-		d3.json("../../data/factors.json", function(data) {
-		  console.log(data[0]);
+		// toy dataset
+		d3.json("../data/factors.json", function(data) {
+		  console.log(data);
 		});
 
-		var size = d3.scaleLinear.sqrt()
-		  .domain([0, 1])
-		  .range([0, halfRadius]);
-		  
-		var grid = d3.layout.grid()
-		  .size([width - halfRadius * 6, height - halfRadius * 6]);
-
-		var pie = d3.layout.pie()
+		var pie = d3.pie()
 		  .sort(null)
 		  .value(function(d) { return d.size; });
 
+
+		var size = d3.scaleSqrt()
+		  .domain([0, 1])
+		  .range([0, halfRadius]);
+		  
+		var grid = Grid()
+		  .size([width - halfRadius * 6, height - halfRadius * 6]);
 
 		var data = d3.range(flowers_cnt).map(function(d) {
 		  return {
@@ -53,19 +54,17 @@ class OverView extends Component {
 		    circles: d3.range(1).map(function(d){ return {dominance: Math.random(), radius: circleRadius}; })
 		  }
 		});
-		console.log(data)
 
-		const flower = svgPatternOverview.selectAll('.flower')
-										 .data(grid(data))
-										 .enter().append('g')
+		const flower = d3.select(svgPatternOverview).selectAll('.flower')
 		  								 .attr("class", "flower")
+										 .data(grid(data))
+										 .enter().append('g')		  								 
 										 .attr("transform", function(d, i) { 
 										     return "translate(" + d.x + "," + d.y + ")"; 
 										   });
 
-
 		  
-		const petal = flower.selectAll(".petal")
+		const petal = d3.select(flower).selectAll(".petal")
 		  .data(function(d) { return pie(d.petals); })
 		.enter().append("path")
 		  .attr("class", "petal")
@@ -74,7 +73,7 @@ class OverView extends Component {
 		  .style("stroke", petalStroke)
 		  .style("fill", petalFill);
 
-		const circle = flower.selectAll(".circle")
+		const circle = d3.select(flower).selectAll(".circle")
 		  .data(function(d) { return pie(d.circles); })
 		  .enter().append("circle")
 		  .attr("class", "node")
@@ -163,3 +162,5 @@ class OverView extends Component {
 
     }
 }
+
+export default OverView;
