@@ -1,0 +1,9 @@
+@import "./_colors.scss";
+@import "./_sizes.scss";
+
+
+:export {
+    groupColor1: $group-color1;
+    groupColor2: $group-color2;
+    betweenGroupColor: $between-group-color;
+}
