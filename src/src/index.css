@@ -20,3 +20,8 @@ body {
     font-weight: 400;
     /* text-transform: uppercase; */
   }
+
+.petal {
+
+  z-index: 1
+}
