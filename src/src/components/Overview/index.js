@@ -32,20 +32,6 @@ class OverView extends Component {
 		this.circleRadius = 10;
 	}
 
-  // componentDidMount() {
-  //   // data file loading here
-  //   fetch('/dataset/file')
-  //     .then( (response) => {
-  //     	console.log(response);
-  //         return response.json() 
-  //       })   
-  //       .then( (file) => {
-  //           let dataset = _.values(JSON.parse(file))
-  //           this.setState({dataset: dataset});
-  //         });
-
-  // }
-
 
 	render() {
 		let self = this;
@@ -64,8 +50,6 @@ class OverView extends Component {
 			d.x = (d.tsne_coord.x - d.min_tsne[0]) * 650 / (d.max_tsne[0] - d.min_tsne[0]) + 100 ;
 			d.y = (d.tsne_coord.y - d.min_tsne[1]) * 400 / (d.max_tsne[1] - d.min_tsne[1]) + 100;
 		});
-
-		console.log(data);
 
 		const background = d3.select(this.svg)
 						.append('g')	
