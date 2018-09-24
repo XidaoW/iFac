@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
-import Grid from 'd3-v4-grid';
 import factors_data from '../../data/factors.json'
+import bar_data from '../../data/data.csv'
 import ReactFauxDOM from 'react-faux-dom';
 
-import _ from 'lodash';
 import styles from './styles.scss';
 import index from '../../index.css';
 // import gs from '../../config/_variables.scss'; // gs (=global style)
@@ -12,11 +11,13 @@ import index from '../../index.css';
 /* props: this.props.ranking
   => selected ranking data
 */
-class OverView extends Component {
+class PatternDetailView extends Component {
 	constructor(props) {
 		super(props);
-		this.state = {dataset: factors_data};
-		this.svg;
+		this.state = {
+			dataset: []
+		};
+		// svg;
 		this.layout = {
 			width: 850,
 			height: 550,
@@ -27,126 +28,132 @@ class OverView extends Component {
 		};
 	}
 
-  // componentDidMount() {
-  //   // data file loading here
-  //   fetch('/dataset/file')
-  //     .then( (response) => {
-  //     	console.log(response);
-  //         return response.json() 
-  //       })   
-  //       .then( (file) => {
-  //           let dataset = _.values(JSON.parse(file))
-  //           this.setState({dataset: dataset});
-  //         });
-
-  // }
-
+	componentDidMount() {
+		const _self = this;
+		d3.csv(bar_data).then(function(data){
+			_self.setState({
+				dataset: data
+			});
+		});
+	}
 
 	render() {
-		let self = this;
-		this.svg = new ReactFauxDOM.Element('svg');
-		this.svg.setAttribute('width', this.layout.svg.width);
-		this.svg.setAttribute('height', this.layout.svg.height);
-		this.svg.setAttribute('transform', "translate(" + this.halfRadius * 3 + "," + this.halfRadius * 3 + ")");
-		
-		let data = this.state.dataset;
+		if (!this.state.dataset || this.state.dataset.length === 0)
+			return <div />
 
-		data.forEach(function(d) {
-			d.petals = d3.range(d.dims).map(function(i) { return {size: 1}; });
-			d.circles = {dominance: d.weight, radius: 10};			
-			d.x = (d.tsne_coord.x - d.min_tsne[0]) * 650 / (d.max_tsne[0] - d.min_tsne[0]) + 100 ;
-			d.y = (d.tsne_coord.y - d.min_tsne[1]) * 400 / (d.max_tsne[1] - d.min_tsne[1]) + 100;
+		const data = this.state.dataset;
+		console.log(data);
+		var svg = new ReactFauxDOM.Element('svg');
+		svg.setAttribute('width', this.layout.svg.width);
+		svg.setAttribute('height', this.layout.svg.height);
+		// let data = this.state.dataset;
+
+		var margin = {top: 20, right: 20, bottom: 30, left: 40},
+		    width = +this.layout.svg.width - margin.left - margin.right,
+		    height = +this.layout.svg.height - margin.top - margin.bottom;
+
+
+		data.forEach(function(d, columns) {
+			for (var i = 1, n = columns.length; i < n; ++i) 
+				d[columns[i]] = +d[columns[i]];		
+			return d
 		});
 
+		var x0 = d3.scaleBand()
+		    .rangeRound([0, width])
+		    .paddingInner(0.1),
 
-		const background = d3.select(this.svg)
-						.append('g')	
-						.attr("class", "background")
+			x1 = d3.scaleBand()
+			    .padding(0.05),
 
-		const flowers = background.selectAll('.flower')
-								.data(data)
-								.enter().append('g')
-								.attr("transform", function(d, i) { 
-								    return "translate(" + d.x + "," + d.y + ")"; 
-								  });
-		const petals = flowers.selectAll(".petal")
-							.data((d) => this.pie(d.petals))
-							.enter().append("path")
-							.attr("class", "petal")
-							.attr("transform", (d) => r((d.startAngle + d.endAngle) / 2))
-							.attr("d", (d) => petalPath(d, this.halfRadius))
-							.style("stroke", (d, i) => petalStroke(d, i))
-							.style("fill", (d, i) => petalFill(d, i, this.petals));
+			y = d3.scaleLinear()
+			    .rangeRound([height, 0]),
 
+			z = d3.scaleOrdinal()
+			    .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+  
+		  var keys = data.columns.slice(1);
 
-		const circles = background.selectAll('.circle')
-								.data(data)
-								.enter().append('circle')
-								.attr("class", "node")
-								.attr("r", function(d) { return Math.exp(d.weight)*10; })
-								.attr("fill", "white")
-								.attr("stroke", "red")
-								.attr("stroke-width", 1)
-								.attr("transform", function(d, i) { 
-								    return "translate(" + d.x + "," + d.y + ")"; 
-								  });
+		  x0.domain(data.map(function(d) { return d.State; }));
+		  x1.domain(keys).rangeRound([0, x0.bandwidth()]);
+		  y.domain([0, d3.max(data, function(d) { return d3.max(keys, function(key) { return d[key]; }); })]).nice();
 
+		  console.log(data);
 
-		function petalPath(d, halfRadius) {
-		  var size = d3.scaleSqrt().domain([0, 1]).range([0, halfRadius]);
+		  const g = d3.select(svg).append("g")
+					.attr("class", "detailView")
+					.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-		  var angle = (d.endAngle - d.startAngle) / 2,
-			  s = polarToCartesian(-angle, halfRadius),
-			  e = polarToCartesian(angle, halfRadius),
-			  r = size(10),     
-			  m = petalRadius(r, halfRadius),
-			  c1 = {x: halfRadius + r / 2, y: s.y},
-			  c2 = {x: halfRadius + r / 2 , y: e.y};
-		  return "M0,0L" + s.x + "," + s.y + "Q" + c1.x + "," + c1.y + " " + m.x + "," + m.y + "L" +  m.x + "," + m.y +
-		   "Q" + c2.x + "," + c2.y + " " + e.x + "," + e.y + "Z";
+		  const rect_plot = g.selectAll(".detailView_col")
+		    .data(data)
+		    .enter().append("g")
+		    .attr("class","detailView_col")
+		    .attr("transform", function(d) { return "translate(" + x0(d.State) + ",0)"; });
+		      
 
-		};
-		function petalRadius(r, halfRadius){
-		  // removing math random can potentially balance the petal
-		  return {x: halfRadius + r + Math.random() * 20, 
-				  y: 0}
-		}
+		  console.log(rect_plot);
 
-		function flowerSum(d) {
-		  return d3.sum(d.petals, function(d) { return d.size; });
-		}
+		  rect_plot.selectAll(".rect")
+		    .data(function(d) { 
+		    	return keys.map(function(key) { 
+		    		console.log({key: key, value: d[key]}); 
+		    		return {key: key, value: d[key]}; 
+		    	}); 
+			})
+		    .enter().append("rect")
+		    .attr("class", "rect")
+		      .attr("x", function(d) { return x1(d.key); })
+		      .attr("y", function(d) { return y(d.value); })
+		      .attr("width", x1.bandwidth())
+		      .attr("height", function(d) { return height - y(d.value); })
+		      .attr("fill", function(d) { return z(d.key); });
 
-		function r(angle) {
-		  return "rotate(" + (angle / Math.PI * 180 ) + ")";
-		}
+		  g.append("g")
+		      .attr("class", "axis")
+		      .attr("transform", "translate(0," + height + ")")
+		      .call(d3.axisBottom(x0));
 
-		function polarToCartesian(angle, radius) {
-		  
-		  return {
-			// start and end of the petal
-			// size of the petal
-			x: Math.cos(angle) * radius* Math.pow(Math.random(),1),
-			// y: Math.sin(angle) * radius * Math.random()
-			y: Math.sin(angle) * radius* Math.pow(Math.random(),1)
-		  };
-		};
+		  g.append("g")
+		      .attr("class", "axis")
+		      .call(d3.axisLeft(y).ticks(null, "s"))
+		    .append("text")
+		      .attr("x", 2)
+		      .attr("y", y(y.ticks().pop()) + 0.5)
+		      .attr("dy", "0.32em")
+		      .attr("fill", "#000")
+		      .attr("font-weight", "bold")
+		      .attr("text-anchor", "start")
+		      .text("Population");
 
-		function petalFill(d, i, petals) {
-		  return d3.hcl(i / petals * 360, 60, 70);
-		};
+		  const legend = g.append("g")
+		      .attr("font-family", "sans-serif")
+		      .attr("font-size", 10)
+		      .attr("text-anchor", "end")
+		    .selectAll("g")
+		    .data(keys.slice().reverse())
+		    .enter().append("g")
+		      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
 
-		function petalStroke(d, i,petals) {
-		  return d3.hcl(i / petals * 360, 60, 40);
-		};
+		  legend.append("rect")
+		      .attr("x", width - 19)
+		      .attr("width", 19)
+		      .attr("height", 19)
+		      .attr("fill", z);
+
+		  legend.append("text")
+		      .attr("x", width - 24)
+		      .attr("y", 9.5)
+		      .attr("dy", "0.32em")
+		      .text(function(d) { return d; });
 
 	  return (
 		<div className={styles.PatternOverview}>
-		  <div className={index.title}>Overview</div>
-		  {this.svg.toReact()}
+		  <div className={index.title}>Pattern Detail View</div>
+		  {svg.toReact()}
 		</div>
 	  );
 
 	}
 }
 
-export default OverView;
+export default PatternDetailView;
