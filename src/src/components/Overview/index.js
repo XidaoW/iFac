@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
 import Grid from 'd3-v4-grid';
-import factors_data from '../../data/factors.json'
 import ReactFauxDOM from 'react-faux-dom';
 
 import _ from 'lodash';
@@ -9,13 +8,10 @@ import styles from './styles.scss';
 import index from '../../index.css';
 // import gs from '../../config/_variables.scss'; // gs (=global style)
 
-/* props: this.props.ranking
-  => selected ranking data
-*/
 class OverView extends Component {
 	constructor(props) {
 		super(props);
-		this.state = {dataset: factors_data};
+
 		this.pie;
 		this.size;
 		this.svg;
@@ -27,40 +23,40 @@ class OverView extends Component {
 				height: 550 // 100% of whole layout
 			},
 		};
+
 		this.petals = 3;
 		this.halfRadius = 15;
 		this.circleRadius = 10;
 	}
 
-
 	render() {
-		let self = this;
+		if (!this.props.data || this.props.data.length === 0)
+			return <div />
+
+		const _self = this;
+		const { data } = this.props;
+
 		this.svg = new ReactFauxDOM.Element('svg');
 		this.svg.setAttribute('width', this.layout.svg.width);
 		this.svg.setAttribute('height', this.layout.svg.height);
 		this.svg.setAttribute('transform', "translate(" + this.halfRadius * 3 + "," + this.halfRadius * 3 + ")");
 		
-		let data = this.state.dataset;
 		this.pie = d3.pie().sort(null).value(function(d) { return d.size; });
-		this.size = d3.scaleSqrt().domain([0, 1]).range([0, this.halfRadius]);
-
-		data.forEach(function(d) {
-			d.petals = d3.range(d.dims).map(function(i) { return {size: 1}; });
-			d.circles = {dominance: d.weight, radius: 10};			
-			d.x = (d.tsne_coord.x - d.min_tsne[0]) * 650 / (d.max_tsne[0] - d.min_tsne[0]) + 100 ;
-			d.y = (d.tsne_coord.y - d.min_tsne[1]) * 400 / (d.max_tsne[1] - d.min_tsne[1]) + 100;
-		});
+		this.size = d3.scaleSqrt()
+					.domain([0, 1])
+					.range([0, this.halfRadius]);
 
 		const background = d3.select(this.svg)
 						.append('g')	
-						.attr("class", "background")
+						.attr("class", "background");
 
 		const flowers = background.selectAll('.flower')
 								.data(data)
 								.enter().append('g')
 								.attr("transform", function(d, i) { 
 								    return "translate(" + d.x + "," + d.y + ")"; 
-								  });
+									});
+									
 		const petals = flowers.selectAll(".petal")
 							.data((d) => this.pie(d.petals))
 							.enter().append("path")
@@ -69,7 +65,6 @@ class OverView extends Component {
 							.attr("d", (d) => petalPath(d, this.halfRadius))
 							.style("stroke", (d, i) => petalStroke(d, i))
 							.style("fill", (d, i) => petalFill(d, i, this.petals));
-
 
 		const circles = background.selectAll('.circle')
 								.data(data)
@@ -82,7 +77,6 @@ class OverView extends Component {
 								.attr("transform", function(d, i) { 
 								    return "translate(" + d.x + "," + d.y + ")"; 
 								  });
-
 
 		function petalPath(d, halfRadius) {
 		  var size = d3.scaleSqrt().domain([0, 1]).range([0, halfRadius]);
@@ -113,7 +107,6 @@ class OverView extends Component {
 		}
 
 		function polarToCartesian(angle, radius) {
-		  
 		  return {
 			// start and end of the petal
 			// size of the petal
@@ -132,10 +125,10 @@ class OverView extends Component {
 		};
 
 	  return (
-		<div className={styles.PatternOverview}>
-		  <div className={index.title}>Overview</div>
-		  {this.svg.toReact()}
-		</div>
+			<div className={styles.PatternOverview}>
+				<div className={index.title}>Overview</div>
+				{this.svg.toReact()}
+			</div>
 	  );
 
 	}
