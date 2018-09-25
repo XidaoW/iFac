@@ -17,7 +17,6 @@ class OverView extends Component {
 		super(props);
 		this.state = {dataset: factors_data};
 		this.pie;
-		this.size;
 		this.svg;
 		this.layout = {
 			width: 850,
@@ -34,18 +33,24 @@ class OverView extends Component {
 
 
 	render() {
+
 		let self = this;
+
 		this.svg = new ReactFauxDOM.Element('svg');
 		this.svg.setAttribute('width', this.layout.svg.width);
 		this.svg.setAttribute('height', this.layout.svg.height);
 		this.svg.setAttribute('transform', "translate(" + this.halfRadius * 3 + "," + this.halfRadius * 3 + ")");
 		
 		let data = this.state.dataset;
-		this.pie = d3.pie().sort(null).value(function(d) { return d.size; });
-		this.size = d3.scaleSqrt().domain([0, 1]).range([0, this.halfRadius]);
+		console.log(data)
+		this.pie = d3.pie().sort(null).value(function(d) { return 1; });
 
 		data.forEach(function(d) {
-			d.petals = d3.range(d.dims).map(function(i) { return {size: 1}; });
+			d.petals = d3.range(d.dims).map(function(i) { 
+				return {length: d.factors[i].entropy,
+						width: d.factors[i].similarity.average}; 
+			});
+			console.log(d.petals)
 			d.circles = {dominance: d.weight, radius: 10};			
 			d.x = (d.tsne_coord.x - d.min_tsne[0]) * 650 / (d.max_tsne[0] - d.min_tsne[0]) + 100 ;
 			d.y = (d.tsne_coord.y - d.min_tsne[1]) * 400 / (d.max_tsne[1] - d.min_tsne[1]) + 100;
@@ -65,8 +70,8 @@ class OverView extends Component {
 							.data((d) => this.pie(d.petals))
 							.enter().append("path")
 							.attr("class", "petal")
-							.attr("transform", (d) => r((d.startAngle + d.endAngle) / 2))
-							.attr("d", (d) => petalPath(d, this.halfRadius))
+							.attr("transform", (d) => rotateAngle((d.startAngle + d.endAngle) / 2))
+							.attr("d", (d) => petalPath(d, this.halfRadius, this.circleRadius))
 							.style("stroke", (d, i) => petalStroke(d, i))
 							.style("fill", (d, i) => petalFill(d, i, this.petals));
 
@@ -79,47 +84,58 @@ class OverView extends Component {
 								.attr("fill", "white")
 								.attr("stroke", "red")
 								.attr("stroke-width", 1)
+								.attr("opacity", 0.6)
 								.attr("transform", function(d, i) { 
 								    return "translate(" + d.x + "," + d.y + ")"; 
 								  });
 
 
-		function petalPath(d, halfRadius) {
-		  var size = d3.scaleSqrt().domain([0, 1]).range([0, halfRadius]);
+		function petalPath(d, halfRadius, circleRadius) {
+		  var size_petal_length = d3.scaleSqrt().domain([0, 1]).range([0, halfRadius]);
 
+		  var max_width = 2*circleRadius*Math.PI / 3.
+		  
+		  // console.log(d);
 		  var angle = (d.endAngle - d.startAngle) / 2,
-			  s = polarToCartesian(-angle, halfRadius),
-			  e = polarToCartesian(angle, halfRadius),
-			  r = size(10),     
+			  s = polarToCartesian(-angle, d.data.width, circleRadius),
+			  e = polarToCartesian(angle, d.data.width, circleRadius),
+			  r = size_petal_length(d.data.length),     
 			  m = petalRadius(r, halfRadius),
 			  c1 = {x: halfRadius + r / 2, y: s.y},
 			  c2 = {x: halfRadius + r / 2 , y: e.y};
-		  return "M0,0L" + s.x + "," + s.y + "Q" + c1.x + "," + c1.y + " " + m.x + "," + m.y + "L" +  m.x + "," + m.y +
+		console.log(r);
+		  return "M" + s.x + "," + s.y + "Q" + c1.x + "," + c1.y + " " + m.x + "," + m.y + "L" +  m.x + "," + m.y +
 		   "Q" + c2.x + "," + c2.y + " " + e.x + "," + e.y + "Z";
 
 		};
 		function petalRadius(r, halfRadius){
 		  // removing math random can potentially balance the petal
-		  return {x: halfRadius + r + Math.random() * 20, 
+		  return {x: halfRadius + r, 
 				  y: 0}
 		}
 
 		function flowerSum(d) {
-		  return d3.sum(d.petals, function(d) { return d.size; });
+		  return d3.sum(d.petals, function(d) { return d.length; });
 		}
 
-		function r(angle) {
+		function rotateAngle(angle) {
 		  return "rotate(" + (angle / Math.PI * 180 ) + ")";
 		}
 
-		function polarToCartesian(angle, radius) {
-		  
+		function polarToCartesian(angle, arc, circleRadius) {
+		  // console.log(radius*0);
+		  var max_arc_length = 2*circleRadius*Math.PI / 3.		  
+		  var size_petal_arc = d3.scaleLinear().domain([0, 2*1*Math.PI / 3.]).range([0, max_arc_length]);
+		  var angle_petal = size_petal_arc(2*radius) / circleRadius * angle
+		  console.log(angle_petal)
+		  console.log(angle)
 		  return {
 			// start and end of the petal
 			// size of the petal
-			x: Math.cos(angle) * radius* Math.pow(Math.random(),1),
+
+			x: Math.cos(angle_petal) * circleRadius,
 			// y: Math.sin(angle) * radius * Math.random()
-			y: Math.sin(angle) * radius* Math.pow(Math.random(),1)
+			y: Math.sin(angle_petal) * circleRadius
 		  };
 		};
 
