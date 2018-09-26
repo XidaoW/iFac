@@ -4,10 +4,8 @@ import * as d3 from 'd3';
 import Overview from 'components/Overview';
 import PatternDetailView from 'components/PatternDetailView';
 
-import './styles.scss';
-
+import styles from './styles.scss';
 import factors_data from '../../data/factors.json';
-import bar_data from '../../data/data.csv';
 
 class App extends Component {
   constructor(props) {
@@ -35,22 +33,19 @@ class App extends Component {
 			d.y = (d.tsne_coord.y - d.min_tsne[1]) * 400 / (d.max_tsne[1] - d.min_tsne[1]) + 100;
     });
 
+    var bar_data = {};
+    for(var i = 0; i < factors_data[0].dims; i++){
+      bar_data[i] = []
+      for(var j = 0; j < factors_data.length; j++) {
+        bar_data[i].push(factors_data[j].factors[i].values); 
+      }      
+    }
+
 		this.setState({
-			factors_data: factors_data
+			factors_data: factors_data,
+      bar_data: bar_data
     });
     
-    // Read bar data
-		d3.csv(bar_data).then(function(data){
-      data.forEach(function(d, columns) {
-        for (var i = 1, n = columns.length; i < n; ++i) 
-          d[columns[i]] = +d[columns[i]];		
-        return d
-      });
-
-			_self.setState({
-				bar_data: data
-			});
-		});
   }
   
   render() {
@@ -64,11 +59,11 @@ class App extends Component {
         <header className="App-header">
           <h1 className="App-title">Tensor Pattern Exploration</h1>
         </header>
-        <p className="App-intro">Overview</p>
-        <Overview data={factors_data}/>
-        <div className="App-chart-container">
-          <PatternDetailView data={factors_data}/>
-        </div>        
+        <div className = {styles.wrapper}>
+            <Overview data={factors_data}/>
+            <PatternDetailView data={bar_data}/>
+        </div>
+        
       </div>
     );
   }
