@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
-import Grid from 'd3-v4-grid';
 import ReactFauxDOM from 'react-faux-dom';
 
 import _ from 'lodash';
@@ -22,7 +21,6 @@ class OverView extends Component {
 				height: 550 // 100% of whole layout
 			},
 		};
-
 		this.petals = 3;
 		this.halfRadius = 15;
 		this.circleRadius = 10;
@@ -38,24 +36,24 @@ class OverView extends Component {
 		this.svg = new ReactFauxDOM.Element('svg');
 		this.svg.setAttribute('width', this.layout.svg.width);
 		this.svg.setAttribute('height', this.layout.svg.height);
-		this.svg.setAttribute('transform', "translate(" + this.halfRadius * 3 + "," + this.halfRadius * 3 + ")");
-		
-		this.pie = d3.pie().sort(null).value(function(d) { return d.size; });
-		this.size = d3.scaleSqrt()
-					.domain([0, 1])
-					.range([0, this.halfRadius]);
+		this.svg.setAttribute('transform', "translate(" + this.halfRadius * 3 + "," + this.halfRadius * 3 + ")");		
+		this.pie = d3.pie().sort(null).value(function(d) { return 1; });
 
-		const background = d3.select(this.svg)
+		// PLOT THE BACKDROP
+		const backdrop = d3.select(this.svg)
 						.append('g')	
 						.attr("class", "background");
 
-		const flowers = background.selectAll('.flower')
+
+		// PLOT THE FLOWERS
+		const flowers = backdrop.selectAll('.flower')
 								.data(data)
 								.enter().append('g')
+								.attr("class", "flower")
 								.attr("transform", function(d, i) { 
 								    return "translate(" + d.x + "," + d.y + ")"; 
 									});
-									
+		// ADD THE FLOWERS									
 		const petals = flowers.selectAll(".petal")
 							.data((d) => this.pie(d.petals))
 							.enter().append("path")
@@ -65,57 +63,75 @@ class OverView extends Component {
 							.style("stroke", (d, i) => petalStroke(d, i))
 							.style("fill", (d, i) => petalFill(d, i, this.petals));
 
-		const circles = background.selectAll('.circle')
+		// ADD THE OUTER CIRCLES TO THE BACKDROP									
+		const circles1 = backdrop.selectAll('.circle')
 								.data(data)
 								.enter().append('circle')
-								.attr("class", "node")
-								.attr("r", function(d) { return Math.exp(d.weight)*10; })
+								.attr("class", "outer_circle")
+								.attr("r", this.halfRadius)
 								.attr("fill", "white")
-								.attr("stroke", "red")
+								.attr("stroke-width", 0)
+								.attr("opacity", 1)
+								.attr("transform", function(d, i) { 
+								    return "translate(" + d.x + "," + d.y + ")"; 
+								  });
+		// ADD THE INNER CIRCLES TO THE BACKDROP
+		const circles = backdrop.selectAll('.circle')
+								.data(data)
+								.enter().append('circle')
+								.attr("class", "inner_circle")
+								.attr("r", function(d) { return 6; })
+								.attr("fill", "yellow")
+								.attr("stroke", "white")
 								.attr("stroke-width", 1)
-								.attr("opacity", 0.6)
+								.attr("opacity", function(d) { return d.weight; })
 								.attr("transform", function(d, i) { 
 								    return "translate(" + d.x + "," + d.y + ")"; 
 								  });
 
-		function petalPath(d, halfRadius) {
-		  var size = d3.scaleSqrt().domain([0, 1]).range([0, halfRadius]);
-		  var angle = (d.endAngle - d.startAngle) / 2,
-			  s = polarToCartesian(-angle, d.data.width, circleRadius),
-			  e = polarToCartesian(angle, d.data.width, circleRadius),
-			  r = size_petal_length(d.data.length),     
-			  m = petalRadius(r, halfRadius),
-			  c1 = {x: halfRadius + r / 2, y: s.y},
-			  c2 = {x: halfRadius + r / 2 , y: e.y};
-		console.log(r);
-		  return "M" + s.x + "," + s.y + "Q" + c1.x + "," + c1.y + " " + m.x + "," + m.y + "L" +  m.x + "," + m.y +
-		   "Q" + c2.x + "," + c2.y + " " + e.x + "," + e.y + "Z";
+
+		function petalPath(d, halfRadius) {		  
+			var size_petal_radius = d3.scaleSqrt().domain([0, 1]).range([0, halfRadius]);		
+			var size_petal_arc = d3.scaleLinear().domain([0, 1]).range([0, 2 * Math.PI * halfRadius / 3]);
+
+			var angle = (d.endAngle - d.startAngle) / 2,
+				s = polarToCartesian(-angle, size_petal_arc(d.data.width), halfRadius),
+				e = polarToCartesian(angle, size_petal_arc(d.data.width), halfRadius),
+				r = size_petal_radius(d.data.length),     
+				m = petalRadius(r, halfRadius),
+				c1 = {x: halfRadius + r / 2, y: s.y},
+				c2 = {x: halfRadius + r / 2, y: e.y};
+
+			return "M" + s.x + "," + s.y + "Q" + c1.x + "," + c1.y + " " + m.x + "," + m.y +
+			"Q" + c2.x + "," + c2.y + " " + e.x + "," + e.y + "Z";
 
 		};
+
 		function petalRadius(r, halfRadius){
-		  // removing math random can potentially balance the petal
-		  return {x: halfRadius + r, 
-				  y: 0}
+			return {
+				x: halfRadius + r, 
+				y: 0
+			}
 		}
 
 		function flowerSum(d) {
 		  return d3.sum(d.petals, function(d) { return d.length; });
 		}
 
+
 		function rotateAngle(angle) {
 		  return "rotate(" + (angle / Math.PI * 180 ) + ")";
 		}
 
-
-		function polarToCartesian(angle, radius) {
-		  return {
-			// start and end of the petal
-			// size of the petal
-
-			x: Math.cos(angle_petal) * circleRadius,
-			// y: Math.sin(angle) * radius * Math.random()
-			y: Math.sin(angle_petal) * circleRadius
-		  };
+		function polarToCartesian(angle, arc_length, halfRadius) {
+			
+			var angle_arc = arc_length / (2 * Math.PI * halfRadius / 3) * angle
+			return {
+				// start and end of the petal
+				// size of the petal
+				x: Math.cos(angle_arc) * halfRadius,
+				y: Math.sin(angle_arc) * halfRadius
+			};
 		};
 
 		function petalFill(d, i, petals) {
