@@ -46,9 +46,6 @@ class PatternDetailView extends Component {
 			  x1 = d3.scaleBand().padding(0.05),
           	  y = d3.scaleLinear().rangeRound([height, 0]),
           	  z = d3.scaleOrdinal().range(d3.schemePaired);
-          	  // .range(["#98abc5", "#8a89a6", "#7b6888", 
-          			// "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
-
 
 		x0.domain(items);
 		x1.domain(pattern_ids).rangeRound([0, x0.bandwidth()]);
