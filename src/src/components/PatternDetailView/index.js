@@ -15,10 +15,10 @@ class PatternDetailView extends Component {
 
 		this.layout = {
 			width: 850,
-			height: 850,
+			height: 1450,
 			svg: {
 				width: 850, // 90% of whole layout
-				height: 150 // 100% of whole layout
+				height: 550 // 100% of whole layout
 			},
 		};
 	}
@@ -28,16 +28,13 @@ class PatternDetailView extends Component {
 		const svg = new ReactFauxDOM.Element('svg');
 		svg.setAttribute('width', this.layout.svg.width);
 		svg.setAttribute('height', this.layout.svg.height);
-		const margin = {top: 20, right: 20, bottom: 100, left: 40},
+		const margin = {top: 10, right: 20, bottom: 200, left: 40},
 	          width = +this.layout.svg.width - margin.left - margin.right,
     	      height = +this.layout.svg.height - margin.top - margin.bottom;    
-    	console.log(Object.keys(data).length);
-    	console.log(data)
-    	for(var i = 0; i < Object.keys(data).length; i++){
-    		draw_bar_plot(svg, data, i, margin, width, height);	
-    	}
-		
-
+    	let descriptor_size = Object.keys(data).length;
+    	for(var i = 0; i < descriptor_size; i++){
+    		draw_bar_plot(svg, data, i, margin, width, height/descriptor_size);	
+    	}		
 
     	function draw_bar_plot(svg, data, i, margin, width, height){
     		var data_ = data[i];
@@ -59,7 +56,7 @@ class PatternDetailView extends Component {
 			  
 			g = d3.select(svg).append("g")
 				.attr("class", "detailView")
-				.attr("transform", "translate(" + margin.left + "," + (margin.top + i*(height + margin.top)) + ")");
+				.attr("transform", "translate(" + margin.left + "," + (i*(height + margin.top)) + ")");
 
 			rect_plot = g.selectAll(".detailView_col")
 				.data(data_)
