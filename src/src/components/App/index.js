@@ -26,7 +26,10 @@ class App extends Component {
 
     // Update factors data
 		factors.forEach(function(d) {
-			d.petals = d3.range(d.dims).map(function(i) { return {size: 1}; });
+      d.petals = d3.range(d.dims).map(function(i) { 
+        return {length: d.factors[i].entropy,
+            width: d.factors[i].similarity.average}; 
+      });
 			d.circles = {dominance: d.weight, radius: 10};			
 			d.x = (d.tsne_coord.x - d.min_tsne[0]) * 650 / (d.max_tsne[0] - d.min_tsne[0]) + 100;
 			d.y = (d.tsne_coord.y - d.min_tsne[1]) * 400 / (d.max_tsne[1] - d.min_tsne[1]) + 100;
@@ -64,7 +67,7 @@ class App extends Component {
         <p className="App-intro">Overview</p>
         <Overview data={factors_data}/>
         <div className="App-chart-container">
-          <PatternDetailView data={bar_data}/>
+          <PatternDetailView data={factors_data}/>
         </div>        
       </div>
     );
