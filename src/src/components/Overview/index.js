@@ -28,7 +28,7 @@ class OverView extends Component {
 	}
 
 	render() {
-		if ((!this.props.data || this.props.data.length === 0) || (!this.props.selectedPatterns))
+		if (!this.props.data || this.props.data.length === 0)
 			return <div />
 
 		const _self = this;
@@ -92,11 +92,10 @@ class OverView extends Component {
 								    return "translate(" + d.x + "," + d.y + ")"; 
 								  })
 								.on("click", (d) => {
-
 									if (d3.select("#pattern_" + d.id).classed("selected")) {
 										_self.props.onUnClickPattern(d.id);
 										d3.select("#pattern_" + d.id).classed("selected", false)
-										// console.log(_self.props.selectedPatterns);
+										console.log('in the overview when click: ', _self.props.selectedPatterns);
 									} else {
 										_self.props.onClickPattern(d.id);
 										d3.select("#pattern_" + d.id).classed("selected", true);
