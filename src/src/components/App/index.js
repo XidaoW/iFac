@@ -66,6 +66,7 @@ class App extends Component {
 			factors_data: factors_data,
       bar_data: bar_data
     });
+    console.log(this.state.selectedPatterns);
     
   }
   
