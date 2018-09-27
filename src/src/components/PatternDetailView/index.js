@@ -29,7 +29,7 @@ class PatternDetailView extends Component {
 		const svg = new ReactFauxDOM.Element('svg'),
 					descriptor_size = Object.keys(data).length;
 		let g;
-
+		console.log(data);
 		svg.setAttribute('width', this.layout.svg.width);
 		svg.setAttribute('height', this.layout.svg.height);
 		
@@ -58,22 +58,32 @@ class PatternDetailView extends Component {
 			g = d3.select(svg).append("g")
 				.attr("class", "detailView")
 				.attr("id", "descriptor"+i)
-				.attr("transform", "translate(" + margin.left + "," + ((i)*(height)) + ")");
+				.attr("transform", "translate(" + margin.left + "," + ((i)*(height+50)) + ")");
 
-			g.append("g")
+			const axis = g.append("g")
 				.attr("class", "axis")
 				.attr("transform", "translate(0," + height + ")")
 				.call(d3.axisBottom(x0))
-				.selectAll("text")
+
+			axis.selectAll("text")
 				.style("text-anchor", "end")
 				.attr("dx", "-.8em")
 				.attr("dy", ".01em")      
 				.attr("transform", (d) => "rotate(-65)");
 
-			return svg, g	
+			axis.selectAll("path")
+				.attr("stroke", axisStroke(i, descriptor_size))							
+			axis.selectAll("line")
+				.attr("stroke", axisStroke(i, descriptor_size))							
+		
 		}
 
-    function draw_bars(data, i, patternIndices, descriptor_size, margin, width, height) {
+		function axisStroke(i, descriptor_size) {
+		  return d3.hcl(i / descriptor_size * 360, 60, 70);
+		};
+
+
+	    function draw_bars(data, i, patternIndices, descriptor_size, margin, width, height) {
 			let patterns, items;
 			patterns = patternIndices.map((pattern_id) => data[i][pattern_id]);
 			items = Object.keys(data[i][0]).filter((d) => d !== "id").sort();
@@ -116,13 +126,15 @@ class PatternDetailView extends Component {
 				.attr("y", function(d) { return y(d.value); })
 				.attr("width", x1.bandwidth())
 				.attr("height", function(d) { return height - y(d.value); })
-				.attr("fill", function(d) { return z(d.id); });
+				.attr("fill", function(d) { return barFill(d.id, data[0].length); });
 		}
+		function barFill(i, patternsCnt) {
+		  return d3.hcl(i / patternsCnt * 360, 20, 70);
+		};			
 
 	  return (
       <div className={styles.PatternOverview}>
-        <div className={index.title}>Pattern Detail View</div>
-				<div>{this.props.selectedPatterns}</div>
+        <div className={index.title}>Pattern Detail View</div>			
 				{svg.toReact()}
       </div>
 	  );
