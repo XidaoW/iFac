@@ -4,7 +4,7 @@ import ReactFauxDOM from 'react-faux-dom';
 
 import styles from './styles.scss';
 import index from '../../index.css';
-// import gs from '../../config/_variables.scss'; // gs (=global style)
+import gs from '../../config/_variables.scss'; // gs (=global style)
 
 /* props: this.props.ranking
   => selected ranking data
