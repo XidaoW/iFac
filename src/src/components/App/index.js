@@ -22,7 +22,6 @@ class App extends Component {
 
 
   handleClickPattern(id) { 
-    console.log('in handleclickpattern: ', id);
     const newSelectedPattern = id;
 
     this.setState(prevState => ({
@@ -66,16 +65,12 @@ class App extends Component {
 		this.setState({
 			factors_data: factors_data,
       bar_data: bar_data
-    });
-    console.log(this.state.selectedPatterns);
-    
+    });    
   }
   
   render() {
     if (!this.state.bar_data || this.state.bar_data.length === 0)
       return <div />
-
-    console.log(this.state.selectedPatterns);
 
     const { factors_data, bar_data, selectedPatterns } = this.state;
 
