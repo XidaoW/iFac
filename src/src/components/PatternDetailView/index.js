@@ -24,9 +24,9 @@ class PatternDetailView extends Component {
 	}
 
 	render() {
-		const data  = this.props.data;
-		let seletedPattern = this.props.seletedPattern;
-		console.log(this.props.seletedPattern);
+		const { data, selectedPatterns } = this.props;
+
+		console.log(this.props.seletedPatterns);
 		const svg = new ReactFauxDOM.Element('svg');
 		svg.setAttribute('width', this.layout.svg.width);
 		svg.setAttribute('height', this.layout.svg.height);
