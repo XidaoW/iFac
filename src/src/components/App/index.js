@@ -6,6 +6,7 @@ import PatternDetailView from 'components/PatternDetailView';
 
 import styles from './styles.scss';
 import factors_data from '../../data/factors.json';
+import gs from '../../config/_variables.scss'; // gs (=global style)
 
 class App extends Component {
   constructor(props) {

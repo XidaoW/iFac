@@ -5,7 +5,8 @@ import ReactFauxDOM from 'react-faux-dom';
 import _ from 'lodash';
 import styles from './styles.scss';
 import index from '../../index.css';
-// import gs from '../../config/_variables.scss'; // gs (=global style)
+import gs from '../../config/_variables.scss'; // gs (=global style)
+
 
 class OverView extends Component {
 	constructor(props) {
@@ -22,8 +23,14 @@ class OverView extends Component {
 			},
 		};
 		this.petals = 3;
-		this.halfRadius = 12;
-		this.circleRadius = 8;
+		this.outerCircleRadius = Number(gs.outerCircleRadius);
+		this.innerCircleRadius = Number(gs.innerCircleRadius);
+		this.innerCircleStrokeWidth = Number(gs.innerCircleStrokeWidth);
+		this.innerCircleStrokeOpacity = Number(gs.innerCircleStrokeOpacity);
+		this.outerCircleStrokeWidth = Number(gs.outerCircleStrokeWidth);
+		this.outerCircleStrokeOpacity = Number(gs.outerCircleStrokeOpacity);
+
+		
 
 	}
 
@@ -31,13 +38,14 @@ class OverView extends Component {
 		if (!this.props.data || this.props.data.length === 0)
 			return <div />
 
+		console.log(gs);
 		const _self = this;
 		const { data, selectedPatterns } = this.props;
 
 		this.svg = new ReactFauxDOM.Element('svg');
 		this.svg.setAttribute('width', this.layout.svg.width);
 		this.svg.setAttribute('height', this.layout.svg.height);
-		this.svg.setAttribute('transform', "translate(" + this.halfRadius * 3 + "," + this.halfRadius * 3 + ")");		
+		this.svg.setAttribute('transform', "translate(" + this.outerCircleRadius * 3 + "," + this.outerCircleRadius * 3 + ")");		
 		this.pie = d3.pie().sort(null).value(function(d) { return 1; });
 
 		// PLOT THE BACKDROP
@@ -63,7 +71,7 @@ class OverView extends Component {
 							.enter().append("path")
 							.attr("class", "petal")
 							.attr("transform", (d) => rotateAngle((d.startAngle + d.endAngle) / 2))
-							.attr("d", (d) => petalPath(d, this.halfRadius, this.circleRadius))
+							.attr("d", (d) => petalPath(d, this.outerCircleRadius))
 							.style("stroke", (d, i) => petalStroke(d, i))
 							.style("fill","#66c2a5")
 							.style("fill", (d, i) => petalFill(d, i, this.petals));
@@ -73,10 +81,10 @@ class OverView extends Component {
 								.data(data)
 								.enter().append('circle')
 								.attr("class", "outer_circle")
-								.attr("r", this.halfRadius)
+								.attr("r", this.outerCircleRadius)
 								.attr("fill", "white")
-								.attr("stroke-width", 4)
-								.attr("stroke-opacity", 1)
+								.attr("stroke-width", gs.outerCircleStrokeWidth)
+								.attr("stroke-opacity", gs.outerCircleStrokeOpacity)
 								.attr("fill-opacity", 1)
 								.attr("id", function(d) { return "pattern_" + d.id; })								
 								.attr("transform", function(d, i) { 
@@ -101,11 +109,11 @@ class OverView extends Component {
 								.data(data)
 								.enter().append('circle')
 								.attr("class", "inner_circle")
-								.attr("r", function(d) { return 4; })
+								.attr("r", gs.innerCircleRadius)
 								.attr("fill", "#fc8d62")
-								.attr("stroke-width", 5)								
+								.attr("stroke-width", gs.innerCircleStrokeWidth)								
 								.attr("fill-opacity", function(d) { return d.weight; })													
-								.attr("stroke-opacity", 1)																													
+								.attr("stroke-opacity", gs.innerCircleStrokeOpacity)																													
 								.attr("transform", function(d, i) { 
 								    return "translate(" + d.x + "," + d.y + ")"; 
 								  })
@@ -114,26 +122,26 @@ class OverView extends Component {
 
 
 
-		function petalPath(d, halfRadius) {		  
-			var size_petal_radius = d3.scaleSqrt().domain([0, 1]).range([0, halfRadius]);		
-			var size_petal_arc = d3.scaleLinear().domain([0, 1]).range([0, 2 * Math.PI * halfRadius / 3]);
+		function petalPath(d, outerCircleRadius) {		  
+			var size_petal_radius = d3.scaleSqrt().domain([0, 1]).range([0, outerCircleRadius]);		
+			var size_petal_arc = d3.scaleLinear().domain([0, 1]).range([0, 2 * Math.PI * outerCircleRadius / 3]);
 
 			var angle = (d.endAngle - d.startAngle) / 2,
-				s = polarToCartesian(-angle, size_petal_arc(d.data.width), halfRadius),
-				e = polarToCartesian(angle, size_petal_arc(d.data.width), halfRadius),
+				s = polarToCartesian(-angle, size_petal_arc(d.data.width), outerCircleRadius),
+				e = polarToCartesian(angle, size_petal_arc(d.data.width), outerCircleRadius),
 				r = size_petal_radius(d.data.length),     
-				m = petalRadius(r, halfRadius),
-				c1 = {x: halfRadius + r / 2, y: s.y},
-				c2 = {x: halfRadius + r / 2, y: e.y};
+				m = petalRadius(r, outerCircleRadius),
+				c1 = {x: outerCircleRadius + r / 2, y: s.y},
+				c2 = {x: outerCircleRadius + r / 2, y: e.y};
 
 			return "M" + s.x + "," + s.y + "Q" + c1.x + "," + c1.y + " " + m.x + "," + m.y +
 			"Q" + c2.x + "," + c2.y + " " + e.x + "," + e.y + "Z";
 
 		};
 
-		function petalRadius(r, halfRadius){
+		function petalRadius(r, outerCircleRadius){
 			return {
-				x: halfRadius + r, 
+				x: outerCircleRadius + r, 
 				y: 0
 			}
 		}
@@ -147,14 +155,14 @@ class OverView extends Component {
 		  return "rotate(" + (angle / Math.PI * 180 ) + ")";
 		}
 
-		function polarToCartesian(angle, arc_length, halfRadius) {
+		function polarToCartesian(angle, arc_length, outerCircleRadius) {
 			
-			var angle_arc = arc_length / (2 * Math.PI * halfRadius / 3) * angle
+			var angle_arc = arc_length / (2 * Math.PI * outerCircleRadius / 3) * angle
 			return {
 				// start and end of the petal
 				// size of the petal
-				x: Math.cos(angle_arc) * halfRadius,
-				y: Math.sin(angle_arc) * halfRadius
+				x: Math.cos(angle_arc) * outerCircleRadius,
+				y: Math.sin(angle_arc) * outerCircleRadius
 			};
 		};
 
