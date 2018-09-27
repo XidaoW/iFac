@@ -22,8 +22,8 @@ class OverView extends Component {
 			},
 		};
 		this.petals = 3;
-		this.halfRadius = 15;
-		this.circleRadius = 10;
+		this.halfRadius = 12;
+		this.circleRadius = 8;
 
 	}
 
@@ -32,7 +32,7 @@ class OverView extends Component {
 			return <div />
 
 		const _self = this;
-		const { data } = this.props;
+		const { data, selectedPatterns } = this.props;
 
 		this.svg = new ReactFauxDOM.Element('svg');
 		this.svg.setAttribute('width', this.layout.svg.width);
@@ -45,6 +45,10 @@ class OverView extends Component {
 						.append('g')
 						.attr("class", "background");
 
+		backdrop.selectAll('.button')
+				.append('g')
+				.attr('class', 'button')
+				.attr("text", "TEST");
 		// PLOT THE FLOWERS
 		const flowers = backdrop.selectAll('.flower')
 								.data(data)
@@ -62,7 +66,7 @@ class OverView extends Component {
 							.attr("d", (d) => petalPath(d, this.halfRadius, this.circleRadius))
 							.style("stroke", (d, i) => petalStroke(d, i))
 							.style("fill","#66c2a5")
-							// .style("fill", (d, i) => petalFill(d, i, this.petals));
+							.style("fill", (d, i) => petalFill(d, i, this.petals));
 
 		// ADD THE OUTER CIRCLES TO THE BACKDROP									
 		const circles1 = backdrop.selectAll('.circle')
@@ -71,37 +75,41 @@ class OverView extends Component {
 								.attr("class", "outer_circle")
 								.attr("r", this.halfRadius)
 								.attr("fill", "white")
-								.attr("stroke-width", 0)
-								.attr("opacity", 1)
+								.attr("stroke-width", 4)
+								.attr("stroke-opacity", 1)
+								.attr("fill-opacity", 1)
+								.attr("id", function(d) { return "pattern_" + d.id; })								
 								.attr("transform", function(d, i) { 
 									return "translate(" + d.x + "," + d.y + ")"; 
+								})
+								.on("click", (d) => {
+									if (d3.select("#pattern_" + d.id).classed("selected")) {
+										_self.props.onUnClickPattern(d.id);
+										d3.select("#pattern_" + d.id).classed("selected", false);																				
+										d3.select("#pattern_" + d.id).attr("stroke", "white");
+									} else {
+										_self.props.onClickPattern(d.id);
+										d3.select("#pattern_" + d.id).classed("selected", true);
+										console.log("overview  UN-clicking " + d.id);										
+										d3.select("#pattern_" + d.id).attr("stroke", circleStrokeFill(d.id, data.length));
+										// console.log(_self.props.selectedPatterns);
+									}
 								});
+
 		// ADD THE INNER CIRCLES TO THE BACKDROP
 		const circles = backdrop.selectAll('.circle')
 								.data(data)
 								.enter().append('circle')
 								.attr("class", "inner_circle")
-								.attr("r", function(d) { return 6; })
+								.attr("r", function(d) { return 4; })
 								.attr("fill", "#fc8d62")
-								.attr("stroke", "red")
-								.attr("stroke-width", 1)
-								.attr("id", function(d) { return "pattern_" + d.id; })
-								.attr("opacity", function(d) { return d.weight; })													
-								.attr("stroke-opacity", 0)																													
+								.attr("stroke-width", 5)								
+								.attr("fill-opacity", function(d) { return d.weight; })													
+								.attr("stroke-opacity", 1)																													
 								.attr("transform", function(d, i) { 
 								    return "translate(" + d.x + "," + d.y + ")"; 
 								  })
-								.on("click", (d) => {
-									if (d3.select("#pattern_" + d.id).classed("selected")) {
-										_self.props.onUnClickPattern(d.id);
-										d3.select("#pattern_" + d.id).classed("selected", false)
-										console.log('in the overview when click: ', _self.props.selectedPatterns);
-									} else {
-										_self.props.onClickPattern(d.id);
-										d3.select("#pattern_" + d.id).classed("selected", true);
-										// console.log(_self.props.selectedPatterns);
-									}
-								});
+
 
 
 
@@ -154,8 +162,15 @@ class OverView extends Component {
 		  return d3.hcl(i / petals * 360, 60, 70);
 		};
 
+		function circleStrokeFill(i, patternsCnt) {
+			console.log(patternsCnt)
+			console.log(i)
+
+		  return d3.hcl(i / patternsCnt * 360, 20, 70);
+		};		
+
 		function petalStroke(d, i,petals) {
-		  return d3.hcl(i / petals * 360, 60, 40);
+		  return d3.hcl(i / petals * 360, 60, 70);
 		};
 
 	  return (
