@@ -47,7 +47,7 @@ class App extends Component {
         return {length: d.factors[i].entropy,
             width: d.factors[i].similarity.average}; 
       });
-			d.circles = {dominance: d.weight, radius: 10};			
+			d.circles = {dominance: d.weight, radius: 6};			
 			d.x = (d.tsne_coord.x - d.min_tsne[0]) * 450 / (d.max_tsne[0] - d.min_tsne[0]) + 100;
 			d.y = (d.tsne_coord.y - d.min_tsne[1]) * 300 / (d.max_tsne[1] - d.min_tsne[1]) + 100;
     });
