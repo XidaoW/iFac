@@ -46,6 +46,11 @@ class PatternDetailView extends Component {
 
 		}
 
+		function axisStroke(i, descriptor_size) {
+		  return d3.hcl(i / descriptor_size * 360, 60, 70);
+		};
+
+
 		function draw_axis(svg, g, i, width, height, descriptor_size, data){
 			height = height/descriptor_size
 			let x0 = d3.scaleBand().rangeRound([0, width]).paddingInner(0.1);
@@ -58,17 +63,22 @@ class PatternDetailView extends Component {
 				.attr("id", "descriptor"+i)
 				.attr("transform", "translate(" + margin.left + "," + ((i)*(height)) + ")");
 
-			g.append("g")
-				.attr("class", "axis")
+			const axis = g.append("g")
+				.attr("class", "axis")				
 				.attr("transform", "translate(0," + height + ")")
 				.call(d3.axisBottom(x0))
-				.selectAll("text")
+			axis.selectAll("text")
 				.style("text-anchor", "end")
 				.attr("dx", "-.8em")
-				.attr("dy", ".01em")      
+				.attr("dy", ".01em")  
 				.attr("transform", function(d) {
 					return "rotate(-65)" 
 				});
+			axis.selectAll("path")
+				.attr("stroke", axisStroke(i, descriptor_size))							
+			axis.selectAll("line")
+				.attr("stroke", axisStroke(i, descriptor_size))							
+
 			return svg, g	
 		}
 

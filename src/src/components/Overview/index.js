@@ -61,8 +61,8 @@ class OverView extends Component {
 							.attr("transform", (d) => rotateAngle((d.startAngle + d.endAngle) / 2))
 							.attr("d", (d) => petalPath(d, this.halfRadius, this.circleRadius))
 							.style("stroke", (d, i) => petalStroke(d, i))
-							.style("fill","#66c2a5")
-							// .style("fill", (d, i) => petalFill(d, i, this.petals));
+							// .style("fill","#66c2a5")
+							.style("fill", (d, i) => petalFill(d, i, this.petals));
 
 		// ADD THE OUTER CIRCLES TO THE BACKDROP									
 		const circles1 = backdrop.selectAll('.circle')
