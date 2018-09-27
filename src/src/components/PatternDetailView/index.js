@@ -24,10 +24,13 @@ class PatternDetailView extends Component {
 	}
 
 	render() {
-		const { data } = this.props;
+		const data  = this.props.data;
+		let seletedPattern = this.props.seletedPattern;
+		console.log(this.props.seletedPattern);
 		const svg = new ReactFauxDOM.Element('svg');
 		svg.setAttribute('width', this.layout.svg.width);
 		svg.setAttribute('height', this.layout.svg.height);
+		
 		const margin = {top: 10, right: 20, bottom: 200, left: 40},
 	          width = +this.layout.svg.width - margin.left - margin.right,
     	      height = +this.layout.svg.height - margin.top - margin.bottom;    
@@ -37,11 +40,14 @@ class PatternDetailView extends Component {
     	}		
 
     	function draw_bar_plot(svg, data, i, margin, width, height){
-    		var data_ = data[i];
+    		// temporarily showing 3 patterns
+    		var data_ = data[i].slice(0,3);
 			const x0 = d3.scaleBand().rangeRound([0, width]).paddingInner(0.1),
 				  x1 = d3.scaleBand().padding(0.05),
 	          	  y = d3.scaleLinear().rangeRound([height, 0]),
-	          	  z = d3.scaleOrdinal().range(d3.schemePaired);
+	          	  // z = d3.scaleOrdinal().range(d3.schemePaired);
+	          	  z = d3.scaleOrdinal().range(['#8da0cb','#e78ac3','#a6d854']);
+	          	  // ['#66c2a5','#fc8d62',]
 	        let pattern_ids, items;
 	        let g, rect_plot, legend;
 
@@ -49,7 +55,6 @@ class PatternDetailView extends Component {
 			// remove pattern_id
 			items = Object.keys(data_[0]).sort();
 			items.pop("id");
-			console.log(items);
 			x0.domain(items);
 			x1.domain(pattern_ids).rangeRound([0, x0.bandwidth()]);
 			y.domain([0, d3.max(data_, function(d) { return d3.max(items, function(key) { return d[key]; }); })]).nice();
