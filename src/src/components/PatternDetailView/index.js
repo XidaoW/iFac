@@ -23,9 +23,21 @@ class PatternDetailView extends Component {
 		};
 	}
 
-	render() {
-		const { data, selectedPatterns } = this.props;
+	shouldComponentUpdate(nextProps, nextState) {
+		console.log(this.props.selectedPatterns);
+		console.log(nextProps.selectedPatterns);
+        const differencePatterns = this.props.selectedPatterns !== nextProps.selectedPatterns;
+        return differencePatterns;
+    }
 
+	render() {
+		console.log(this.props);
+		console.log(this.state);		
+
+	    if (!this.props.selectedPatterns || this.props.selectedPatterns.length === 0 )
+	      return <div />
+	  	console.log(this.props);
+		const { data } = this.props;
 		console.log(this.props.seletedPatterns);
 		const svg = new ReactFauxDOM.Element('svg');
 		svg.setAttribute('width', this.layout.svg.width);

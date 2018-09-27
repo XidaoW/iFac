@@ -96,11 +96,11 @@ class OverView extends Component {
 									if (d3.select("#pattern_" + d.id).classed("selected")) {
 										_self.props.onUnClickPattern(d.id);
 										d3.select("#pattern_" + d.id).classed("selected", false)
-										console.log(_self.props.selectedPatterns);
+										// console.log(_self.props.selectedPatterns);
 									} else {
 										_self.props.onClickPattern(d.id);
 										d3.select("#pattern_" + d.id).classed("selected", true);
-										console.log(_self.props.selectedPatterns);
+										// console.log(_self.props.selectedPatterns);
 									}
 								});
 
