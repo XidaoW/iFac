@@ -10,7 +10,7 @@ import index from '../../index.css';
 class OverView extends Component {
 	constructor(props) {
 		super(props);
-
+		// console.log(props);
 		this.pie;
 		this.svg;
 		this.layout = {
@@ -24,6 +24,7 @@ class OverView extends Component {
 		this.petals = 3;
 		this.halfRadius = 15;
 		this.circleRadius = 10;
+
 	}
 
 	render() {
@@ -61,7 +62,8 @@ class OverView extends Component {
 							.attr("transform", (d) => rotateAngle((d.startAngle + d.endAngle) / 2))
 							.attr("d", (d) => petalPath(d, this.halfRadius, this.circleRadius))
 							.style("stroke", (d, i) => petalStroke(d, i))
-							.style("fill", (d, i) => petalFill(d, i, this.petals));
+							.style("fill","#66c2a5")
+							// .style("fill", (d, i) => petalFill(d, i, this.petals));
 
 		// ADD THE OUTER CIRCLES TO THE BACKDROP									
 		const circles1 = backdrop.selectAll('.circle')
@@ -81,13 +83,30 @@ class OverView extends Component {
 								.enter().append('circle')
 								.attr("class", "inner_circle")
 								.attr("r", function(d) { return 6; })
-								.attr("fill", "yellow")
-								.attr("stroke", "white")
+								.attr("fill", "#fc8d62")
+								.attr("stroke", "red")
 								.attr("stroke-width", 1)
-								.attr("opacity", function(d) { return d.weight; })
+								.attr("id", function(d) { return "pattern_" + d.id; })
+								.attr("opacity", function(d) { return d.weight; })													
+								.attr("stroke-opacity", 0)																													
 								.attr("transform", function(d, i) { 
 								    return "translate(" + d.x + "," + d.y + ")"; 
-								  });
+								  })
+								.on("click", (d) => {
+									
+									console.log(d3.select("#pattern_" + d.id).classed("selected"));
+									if (d3.select("#pattern_" + d.id).classed("selected") ){
+										_self.props.onUnClickPattern(d.id);
+										console.log(_self.props.selectedPattern);
+										d3.select("#pattern_" + d.id).classed("selected", false)
+									}else{
+										console.log(d.id);
+										_self.props.onClickPattern(d.id);
+										d3.select("#pattern_" + d.id).classed("selected", true);										
+									}
+								});
+
+
 
 
 		function petalPath(d, halfRadius) {		  
