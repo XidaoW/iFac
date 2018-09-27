@@ -14,28 +14,26 @@ class App extends Component {
 		this.state = {
       factors_data: factors_data,
       bar_data: [],
-      selectedPattern: []
+      selectedPatterns: []
 		};
     this.handleClickPattern = this.handleClickPattern.bind(this);
     this.handleUnClickPattern = this.handleUnClickPattern.bind(this);
 	}
 
 
-  handleClickPattern(id) {    
-    
-    if (!typeof(this.state.selectedPattern) === "number"){      
-      this.setState({
-        selectedPattern: this.state.selectedPattern.concat([id])
-      });      
-    }else{
-      this.setState({
-        selectedPattern: [this.state.selectedPattern].concat([id])
-      });
-    }
+  handleClickPattern(id) { 
+    const newSelectedPattern = id;
+
+    this.setState(prevState => {
+      selectedPatterns: prevState.selectedPatterns.push(newSelectedPattern)
+    });
   }
+
   handleUnClickPattern(id) {
-    this.setState({
-      selectedPattern: this.state.selectedPattern.pop(id)
+    const newSelectedPattern = id;
+
+    this.setState(prevState => {
+      selectedPatterns: prevState.selectedPatterns.pop(newSelectedPattern)
     });
   }
 
@@ -86,10 +84,10 @@ class App extends Component {
             <Overview data={factors_data}
                       onClickPattern={this.handleClickPattern}
                       onUnClickPattern={this.handleUnClickPattern}
-                      selectedPattern={this.state.selectedPattern}
+                      selectedPatterns={this.state.selectedPatterns}
                       />
             <PatternDetailView data={bar_data}                                 
-                                selectedPattern={this.state.selectedPattern}
+                                selectedPatterns={this.state.selectedPatterns}
                                 />
         </div>
         

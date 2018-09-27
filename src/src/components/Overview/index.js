@@ -28,7 +28,7 @@ class OverView extends Component {
 	}
 
 	render() {
-		if (!this.props.data || this.props.data.length === 0)
+		if ((!this.props.data || this.props.data.length === 0) || (!this.props.selectedPatterns))
 			return <div />
 
 		const _self = this;
@@ -42,9 +42,8 @@ class OverView extends Component {
 
 		// PLOT THE BACKDROP
 		const backdrop = d3.select(this.svg)
-						.append('g')	
+						.append('g')
 						.attr("class", "background");
-
 
 		// PLOT THE FLOWERS
 		const flowers = backdrop.selectAll('.flower')
@@ -75,8 +74,8 @@ class OverView extends Component {
 								.attr("stroke-width", 0)
 								.attr("opacity", 1)
 								.attr("transform", function(d, i) { 
-								    return "translate(" + d.x + "," + d.y + ")"; 
-								  });
+									return "translate(" + d.x + "," + d.y + ")"; 
+								});
 		// ADD THE INNER CIRCLES TO THE BACKDROP
 		const circles = backdrop.selectAll('.circle')
 								.data(data)
@@ -93,16 +92,15 @@ class OverView extends Component {
 								    return "translate(" + d.x + "," + d.y + ")"; 
 								  })
 								.on("click", (d) => {
-									
-									console.log(d3.select("#pattern_" + d.id).classed("selected"));
-									if (d3.select("#pattern_" + d.id).classed("selected") ){
+
+									if (d3.select("#pattern_" + d.id).classed("selected")) {
 										_self.props.onUnClickPattern(d.id);
-										console.log(_self.props.selectedPattern);
 										d3.select("#pattern_" + d.id).classed("selected", false)
-									}else{
-										console.log(d.id);
+										console.log(_self.props.selectedPatterns);
+									} else {
 										_self.props.onClickPattern(d.id);
-										d3.select("#pattern_" + d.id).classed("selected", true);										
+										d3.select("#pattern_" + d.id).classed("selected", true);
+										console.log(_self.props.selectedPatterns);
 									}
 								});
 
