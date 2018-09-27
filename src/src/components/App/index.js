@@ -22,19 +22,20 @@ class App extends Component {
 
 
   handleClickPattern(id) { 
+    console.log('in handleclickpattern: ', id);
     const newSelectedPattern = id;
 
-    this.setState(prevState => {
-      selectedPatterns: prevState.selectedPatterns.push(newSelectedPattern)
-    });
+    this.setState(prevState => ({
+      selectedPatterns: [...prevState.selectedPatterns, newSelectedPattern]
+    }));
   }
 
   handleUnClickPattern(id) {
     const newSelectedPattern = id;
 
-    this.setState(prevState => {
-      selectedPatterns: prevState.selectedPatterns.pop(newSelectedPattern)
-    });
+    this.setState(prevState => ({
+      selectedPatterns: prevState.selectedPatterns.filter((d) => d !== newSelectedPattern)
+    }));
   }
 
   // Being called before rendering (preparing data to pass it to children)
@@ -71,25 +72,29 @@ class App extends Component {
   }
   
   render() {
-    if (!this.state.bar_data || this.state.bar_data.length === 0 )
+    if (!this.state.bar_data || this.state.bar_data.length === 0)
       return <div />
 
-    const { factors_data, bar_data } = this.state;
+    console.log(this.state.selectedPatterns);
+
+    const { factors_data, bar_data, selectedPatterns } = this.state;
 
     return (
       <div className="App">
         <header className="App-header">
           <h1 className="App-title">Tensor Pattern Exploration</h1>
         </header>
-        <div className = {styles.wrapper}>
-            <Overview data={factors_data}
-                      onClickPattern={this.handleClickPattern}
-                      onUnClickPattern={this.handleUnClickPattern}
-                      selectedPatterns={this.state.selectedPatterns}
-                      />
-            <PatternDetailView data={bar_data}                                 
-                                selectedPatterns={this.state.selectedPatterns}
-                                />
+        <div className={styles.wrapper}>
+          <Overview 
+            data={factors_data}
+            onClickPattern={this.handleClickPattern}
+            onUnClickPattern={this.handleUnClickPattern}
+            selectedPatterns={selectedPatterns}
+          />
+          <PatternDetailView 
+            data={bar_data}                                 
+            selectedPatterns={selectedPatterns}
+          />
         </div>
         
       </div>
