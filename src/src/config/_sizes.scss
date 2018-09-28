@@ -20,14 +20,19 @@ $layout-fourth-column: 20%;
 $processView-individualFairness-width: 20%;
 $processView-individualFairness-height: 80%;
 
+
 $innerCircleRadius: 5;
 $outerCircleRadius: 12;
 
 $innerCircleStroke-width: 3;
 $innerCircleStroke-opacity: 1;
-
 $outerCircleStroke-width: 4;
 $outerCircleStroke-opacity: 1;
+
+$detailView-margin-top: 10;
+$detailView-margin-bottom: 200;
+$detailView-margin-left: 40;
+$detailView-margin-right: 20;
 
 /*
     Component layouts bound to css-grid layouts
