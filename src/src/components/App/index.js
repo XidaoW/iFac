@@ -41,19 +41,20 @@ class App extends Component {
   // Being called before rendering (preparing data to pass it to children)
 	componentWillMount() {
     const _self = this;
-		const factors = factors_data;
-
-		factors.forEach(function(d) {
+    const factors = factors_data;
+    var bar_data = {};
+    
+    factors.forEach(function(d) {
       d.petals = d3.range(d.dims).map(function(i) { 
         return {length: d.factors[i].entropy,
             width: d.factors[i].similarity.average}; 
       });
-			d.circles = {dominance: d.weight, radius: 6};			
-			d.x = (d.tsne_coord.x - d.min_tsne[0]) * 450 / (d.max_tsne[0] - d.min_tsne[0]) + 100;
-			d.y = (d.tsne_coord.y - d.min_tsne[1]) * 300 / (d.max_tsne[1] - d.min_tsne[1]) + 100;
+      d.circles = {dominance: d.weight, radius: 6};     
+      d.x = (d.tsne_coord.x - d.min_tsne[0]) * 450 / (d.max_tsne[0] - d.min_tsne[0]) + 100;
+      d.y = (d.tsne_coord.y - d.min_tsne[1]) * 300 / (d.max_tsne[1] - d.min_tsne[1]) + 100;
     });
 
-    var bar_data = {};
+    
     for(var i = 0; i < factors_data[0].dims; i++){
       bar_data[i] = []
       var pattern_cnt = factors_data.length;
@@ -63,8 +64,8 @@ class App extends Component {
       }      
     }
 
-		this.setState({
-			factors_data: factors_data,
+    this.setState({
+      factors_data: factors_data,
       bar_data: bar_data
     });    
   }

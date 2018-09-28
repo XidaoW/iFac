@@ -21,7 +21,13 @@ class PatternDetailView extends Component {
 				height: 550 // 100% of whole layout
 			},
 		};
+	    this.detailViewMarginTop = gs.detailViewMarginTop;
+		this.detailViewMarginBottom = gs.detailViewMarginBottom;
+	    this.detailViewMarginLeft = gs.detailViewMarginLeft;
+		this.detailViewMarginRight = gs.detailViewMarginRight;
+
 	}
+
 
 	render() {
 		// console.log(this.props.selectedPatterns);
@@ -33,9 +39,10 @@ class PatternDetailView extends Component {
 		svg.setAttribute('width', this.layout.svg.width);
 		svg.setAttribute('height', this.layout.svg.height);
 		
-		const margin = {top: 10, right: 20, bottom: 200, left: 40},
-	        width = +this.layout.svg.width - margin.left - margin.right,
-    	    height = +this.layout.svg.height - margin.top - margin.bottom;
+		const margin = {top: this.detailViewMarginTop, right: this.detailViewMarginRight, 
+						bottom: this.detailViewMarginBottom, left: this.detailViewMarginLeft},
+			width = +this.layout.svg.width - margin.left - margin.right,
+			height = +this.layout.svg.height - margin.top - margin.bottom;
 		
 		// draw the axis for each descriptor
 		for(var i = 0; i < descriptor_size; i++){
