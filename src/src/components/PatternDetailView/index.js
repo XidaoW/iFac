@@ -76,7 +76,22 @@ class PatternDetailView extends Component {
 				.style("text-anchor", "end")
 				.attr("dx", "-.8em")
 				.attr("dy", ".01em")      
-				.attr("transform", (d) => "rotate(-65)");
+				.attr("transform", (d) => "rotate(-65)")
+				.on('mouseover', function(d,i) {
+					// console.log(d3.select(this));
+					// d3.select(this).transition()
+					// .ease('easeCubic')
+					// .duration('200')
+					// .attr('font-size', 32)
+					// .attr('fill', 'springgreen');
+				})
+				.on('mouseout', function(d,i) {
+					// d3.select(this).transition()
+					// .ease('easeCubic')
+					// .duration('200')
+					// .attr('font-size', 20)
+					// .attr('fill', '#333');
+				});				
 
 			axis.selectAll("path")
 				.attr("stroke", axisStroke(i, descriptor_size))							
