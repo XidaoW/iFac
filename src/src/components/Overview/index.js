@@ -140,8 +140,6 @@ class OverView extends Component {
 									div_tooltip.transition()
 										.duration(200)
 										.style("opacity", .9);
-
-
 									div_tooltip
 										.html("Dominance: " + d.weight)
 										.style("left", d.x + "px")
@@ -151,7 +149,16 @@ class OverView extends Component {
 									div_tooltip.transition()
 										.duration(500)
 										.style("opacity", 0);
-								})							
+								})
+								.on("click", (d) => {
+									if (d3.select("#pattern_" + d.id).classed("selected")) {
+										_self.props.onMouseOverPattern(d.id);
+										d3.select("#pattern_" + d.id).classed("selected", false);																				
+									} else {
+										_self.props.onMouseOutPattern(d.id);
+										d3.select("#pattern_" + d.id).classed("selected", true);
+									}
+								});
 
 
 

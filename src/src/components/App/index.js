@@ -15,12 +15,31 @@ class App extends Component {
       factors_data: factors_data.data,
       descriptors: factors_data.descriptors,
       bar_data: [],
+      mouseOverPattern: '',
       selectedPatterns: []
 		};
     this.handleClickPattern = this.handleClickPattern.bind(this);
     this.handleUnClickPattern = this.handleUnClickPattern.bind(this);
+    this.handleMouseOverPattern = this.handleMouseOverPattern.bind(this);
+    this.handleMouseOutPattern = this.handleMouseOutPattern.bind(this);
+
 	}
 
+  handleMouseOverPattern(id){
+    const newMouseOverPattern = id;
+
+    this.setState(prevState => ({
+      mouseOverPattern: newMouseOverPattern
+    }));
+
+  }
+  handleMouseOutPattern(id){
+
+    this.setState(prevState => ({
+      mouseOverPattern: ''
+    }));
+    
+  }
 
   handleClickPattern(id) { 
     const newSelectedPattern = id;
@@ -53,7 +72,7 @@ class App extends Component {
       d.x = (d.tsne_coord.x - d.min_tsne[0]) * 450 / (d.max_tsne[0] - d.min_tsne[0]) + 100;
       d.y = (d.tsne_coord.y - d.min_tsne[1]) * 300 / (d.max_tsne[1] - d.min_tsne[1]) + 100;
     });
-
+    console.log(this.state.mouseOverPattern);
     
     for(var i = 0; i < factors_data.data[0].dims; i++){
       bar_data[i] = []
@@ -87,6 +106,8 @@ class App extends Component {
             data={factors_data}
             onClickPattern={this.handleClickPattern}
             onUnClickPattern={this.handleUnClickPattern}
+            onMouseOverPattern={this.handleMouseOverPattern}
+            onMouseOutPattern={this.handleMouseOutPattern}            
             selectedPatterns={selectedPatterns}
           />
           <PatternDetailView 
