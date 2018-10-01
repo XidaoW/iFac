@@ -76,7 +76,7 @@ class OverView extends Component {
 							.attr("class", "petal")
 							.attr("transform", (d) => rotateAngle((d.startAngle + d.endAngle) / 2))
 							.attr("d", (d) => petalPath(d, this.outerCircleRadius))
-							.style("stroke", (d, i) => petalStroke(d, i, this.petals))
+							.style("stroke", (d, i) => 'gray')
 							.on("mouseover", function(d) {
 								div_tooltip.transition()
 									.duration(200)
@@ -95,7 +95,8 @@ class OverView extends Component {
 									.duration(500)
 									.style("opacity", 0);
 							})							
-							.style("fill", (d, i) => petalFill(d, i, this.petals));
+							.style("fill", (d, i) => petalFill(d, i, this.petals))
+							.style('fill-opacity', 0.8);
 
 		// ADD THE OUTER CIRCLES TO THE BACKDROP								
 		const circles1 = backdrop.selectAll('.circle')
