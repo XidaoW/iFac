@@ -11,9 +11,9 @@ import gs from '../../config/_variables.scss'; // gs (=global style)
 class App extends Component {
   constructor(props) {
 		super(props);
-
 		this.state = {
-      factors_data: factors_data,
+      factors_data: factors_data.data,
+      descriptors: factors_data.descriptors,
       bar_data: [],
       selectedPatterns: []
 		};
@@ -41,7 +41,7 @@ class App extends Component {
   // Being called before rendering (preparing data to pass it to children)
 	componentWillMount() {
     const _self = this;
-    const factors = factors_data;
+    const factors = factors_data.data;
     var bar_data = {};
     
     factors.forEach(function(d) {
@@ -55,18 +55,19 @@ class App extends Component {
     });
 
     
-    for(var i = 0; i < factors_data[0].dims; i++){
+    for(var i = 0; i < factors_data.data[0].dims; i++){
       bar_data[i] = []
-      var pattern_cnt = factors_data.length;
+      var pattern_cnt = factors_data.data.length;
       // var pattern_cnt = 3;
       for(var j = 0; j < pattern_cnt; j++) {
-        bar_data[i].push(factors_data[j].factors[i].values); 
+        bar_data[i].push(factors_data.data[j].factors[i].values); 
       }      
     }
 
     this.setState({
-      factors_data: factors_data,
-      bar_data: bar_data
+      factors_data: factors_data.data,
+      bar_data: bar_data,
+      descriptors: factors_data.descriptors
     });    
   }
   
