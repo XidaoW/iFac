@@ -11,7 +11,6 @@ import gs from '../../config/_variables.scss'; // gs (=global style)
 class OverView extends Component {
 	constructor(props) {
 		super(props);
-		// console.log(props);
 		this.pie;
 		this.svg;
 		this.layout = {
@@ -29,18 +28,16 @@ class OverView extends Component {
 		this.innerCircleStrokeOpacity = Number(gs.innerCircleStrokeOpacity);
 		this.outerCircleStrokeWidth = Number(gs.outerCircleStrokeWidth);
 		this.outerCircleStrokeOpacity = Number(gs.outerCircleStrokeOpacity);
-
 		
-
 	}
 
 	render() {
 		if (!this.props.data || this.props.data.length === 0)
 			return <div />
 
-		console.log(gs);
 		const _self = this;
 		const { data, selectedPatterns } = this.props;
+		this.petals = data[0].dims;
 
 		this.svg = new ReactFauxDOM.Element('svg');
 		this.svg.setAttribute('width', this.layout.svg.width);
@@ -57,7 +54,14 @@ class OverView extends Component {
 				.append('g')
 				.attr('class', 'button')
 				.attr("text", "TEST");
-		// PLOT THE FLOWERS
+
+		// ADD TOOLTIP
+		const div_tooltip = d3.select("body").append("div")
+								.attr("id", "tooltip")
+								.attr("class", "tooltip")
+								.style("opacity", 0);		
+
+		// PLOT THE FLOWERS ==> PATTERNS
 		const flowers = backdrop.selectAll('.flower')
 								.data(data)
 								.enter().append('g')
@@ -65,18 +69,35 @@ class OverView extends Component {
 								.attr("transform", function(d, i) { 
 								    return "translate(" + d.x + "," + d.y + ")"; 
 									});
-		// ADD THE FLOWERS									
+		// ADD THE PETALS TO FLOWERS ==> DESCRIPTORS								
 		const petals = flowers.selectAll(".petal")
 							.data((d) => this.pie(d.petals))
 							.enter().append("path")
 							.attr("class", "petal")
 							.attr("transform", (d) => rotateAngle((d.startAngle + d.endAngle) / 2))
 							.attr("d", (d) => petalPath(d, this.outerCircleRadius))
-							.style("stroke", (d, i) => petalStroke(d, i))
-							.style("fill","#66c2a5")
+							.style("stroke", (d, i) => petalStroke(d, i, this.petals))
+							.on("mouseover", function(d) {
+								div_tooltip.transition()
+									.duration(200)
+									.style("opacity", .9);
+
+								var t = d3.select(this.parentNode).attr("transform");
+								var translate = t.substring(t.indexOf("(")+1, t.indexOf(")")).split(",");
+
+								div_tooltip
+									.html("Entropy: " + d.data.length + "</br>" + "Similarity: " + d.data.width)
+									.style("left", translate[0] + "px")
+									.style("top", translate[1] + "px");
+						   })
+							.on("mouseout", function(d) {
+								div_tooltip.transition()
+									.duration(500)
+									.style("opacity", 0);
+							})							
 							.style("fill", (d, i) => petalFill(d, i, this.petals));
 
-		// ADD THE OUTER CIRCLES TO THE BACKDROP									
+		// ADD THE OUTER CIRCLES TO THE BACKDROP								
 		const circles1 = backdrop.selectAll('.circle')
 								.data(data)
 								.enter().append('circle')
@@ -85,7 +106,7 @@ class OverView extends Component {
 								.attr("fill", "white")
 								.attr("stroke-width", gs.outerCircleStrokeWidth)
 								.attr("stroke-opacity", gs.outerCircleStrokeOpacity)
-								.attr("fill-opacity", 1)
+								.attr("fill-opacity", 0)
 								.attr("id", function(d) { return "pattern_" + d.id; })								
 								.attr("transform", function(d, i) { 
 									return "translate(" + d.x + "," + d.y + ")"; 
@@ -98,9 +119,7 @@ class OverView extends Component {
 									} else {
 										_self.props.onClickPattern(d.id);
 										d3.select("#pattern_" + d.id).classed("selected", true);
-										console.log("overview  UN-clicking " + d.id);										
 										d3.select("#pattern_" + d.id).attr("stroke", circleStrokeFill(d.id, data.length));
-										// console.log(_self.props.selectedPatterns);
 									}
 								});
 
@@ -117,6 +136,23 @@ class OverView extends Component {
 								.attr("transform", function(d, i) { 
 								    return "translate(" + d.x + "," + d.y + ")"; 
 								  })
+								.on("mouseover", function(d) {
+									div_tooltip.transition()
+										.duration(200)
+										.style("opacity", .9);
+
+
+									div_tooltip
+										.html("Dominance: " + d.weight)
+										.style("left", d.x + "px")
+										.style("top", d.y + "px");
+							   })
+								.on("mouseout", function(d) {
+									div_tooltip.transition()
+										.duration(500)
+										.style("opacity", 0);
+								})							
+
 
 
 
@@ -129,13 +165,14 @@ class OverView extends Component {
 			var angle = (d.endAngle - d.startAngle) / 2,
 				s = polarToCartesian(-angle, size_petal_arc(d.data.width), outerCircleRadius),
 				e = polarToCartesian(angle, size_petal_arc(d.data.width), outerCircleRadius),
+				c = polarToCartesian(0, size_petal_arc(d.data.width), outerCircleRadius),
 				r = size_petal_radius(d.data.length),     
 				m = petalRadius(r, outerCircleRadius),
 				c1 = {x: outerCircleRadius + r / 2, y: s.y},
 				c2 = {x: outerCircleRadius + r / 2, y: e.y};
 
 			return "M" + s.x + "," + s.y + "Q" + c1.x + "," + c1.y + " " + m.x + "," + m.y +
-			"Q" + c2.x + "," + c2.y + " " + e.x + "," + e.y + "Z";
+			"Q" + c2.x + "," + c2.y + " " + e.x + "," + e.y + "Q" + c.x + "," +  c.y +" " + s.x + "," + s.y + "Z";
 
 		};
 
@@ -171,9 +208,6 @@ class OverView extends Component {
 		};
 
 		function circleStrokeFill(i, patternsCnt) {
-			console.log(patternsCnt)
-			console.log(i)
-
 		  return d3.hcl(i / patternsCnt * 360, 20, 70);
 		};		
 
@@ -185,6 +219,7 @@ class OverView extends Component {
 			<div className={styles.PatternOverview}>
 				<div className={index.title}>Overview</div>
 				{this.svg.toReact()}
+				<div className={styles.tooltop}></div>				
 			</div>
 	  );
 
