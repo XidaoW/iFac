@@ -6,5 +6,19 @@
         border-left: 1px solid lightgray;
         border-bottom: 1px solid lightgray;    
     }
+	.tooltip{
+	  background: white;
+	  border: 0;
+	  border-radius: 8px;
+	  font-size: 12px;
+	  font-weight: bold;
+	  height: 20px;
+	  padding: 2px;
+	  pointer-events: none;
+	  position: absolute;
+	  text-align: center;
+	  width: 120px;
+	}
+
 
 }
