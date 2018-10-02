@@ -153,10 +153,10 @@ class OverView extends Component {
 								})
 								.on("click", (d) => {
 									if (d3.select("#pattern_" + d.id).classed("selected")) {
-										_self.props.onMouseOverPattern(d.id);
+										_self.props.onMouseOutPattern(d.id);
 										d3.select("#pattern_" + d.id).classed("selected", false);																				
 									} else {
-										_self.props.onMouseOutPattern(d.id);
+										_self.props.onMouseOverPattern(d.id);
 										d3.select("#pattern_" + d.id).classed("selected", true);
 									}
 								});
