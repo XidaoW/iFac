@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-// import Vis1 from 'components/Vis1';
 import * as d3 from 'd3';
 import Overview from 'components/Overview';
 import PatternDetailView from 'components/PatternDetailView';
+import InspectionView from 'components/InspectionView';
 
 import styles from './styles.scss';
 import factors_data from '../../data/factors.json';
@@ -15,7 +15,8 @@ class App extends Component {
       factors_data: factors_data.data,
       descriptors: factors_data.descriptors,
       bar_data: [],
-      mouseOverPattern: '',
+      mouseOveredPatternIdx: '',
+      mouseOveredPatternData: {},
       selectedPatterns: []
 		};
     this.handleClickPattern = this.handleClickPattern.bind(this);
@@ -25,24 +26,27 @@ class App extends Component {
 
 	}
 
-  handleMouseOverPattern(id){
-    const newMouseOverPattern = id;
+  handleMouseOverPattern(idx){
+    const { factors_data } = this.state;
+    const newMouseOverPatternIdx = idx;
+    console.log('mouseovered id: ', factors_data);
+    console.log('mouseovered id: ', idx);
 
     this.setState(prevState => ({
-      mouseOverPattern: newMouseOverPattern
+      mouseOverPattern: newMouseOverPatternIdx,
+      mouseOveredPatternData: factors_data[idx]
     }));
 
   }
   handleMouseOutPattern(id){
-
     this.setState(prevState => ({
       mouseOverPattern: ''
     }));
-    
   }
 
-  handleClickPattern(id) { 
-    const newSelectedPattern = id;
+  handleClickPattern(idx) { 
+    const newSelectedPattern = idx;
+    console.log('clicked id: ', idx);
 
     this.setState(prevState => ({
       selectedPatterns: [...prevState.selectedPatterns, newSelectedPattern]
@@ -72,7 +76,7 @@ class App extends Component {
       d.x = (d.tsne_coord.x - d.min_tsne[0]) * 450 / (d.max_tsne[0] - d.min_tsne[0]) + 100;
       d.y = (d.tsne_coord.y - d.min_tsne[1]) * 300 / (d.max_tsne[1] - d.min_tsne[1]) + 100;
     });
-    console.log(this.state.mouseOverPattern);
+    console.log(this.state.mouseOveredPatternIdx);
     
     for(var i = 0; i < factors_data.data[0].dims; i++){
       bar_data[i] = []
@@ -102,14 +106,19 @@ class App extends Component {
           <h1 className="App-title">Tensor Pattern Exploration</h1>
         </header>
         <div className={styles.wrapper}>
-          <Overview 
-            data={factors_data}
-            onClickPattern={this.handleClickPattern}
-            onUnClickPattern={this.handleUnClickPattern}
-            onMouseOverPattern={this.handleMouseOverPattern}
-            onMouseOutPattern={this.handleMouseOutPattern}            
-            selectedPatterns={selectedPatterns}
-          />
+          <div>
+            <Overview 
+              data={factors_data}
+              onClickPattern={this.handleClickPattern}
+              onUnClickPattern={this.handleUnClickPattern}
+              onMouseOverPattern={this.handleMouseOverPattern}
+              onMouseOutPattern={this.handleMouseOutPattern}            
+              selectedPatterns={selectedPatterns}
+            />
+            <InspectionView 
+              mouseOveredPattern={this.state.mouseOveredPatternData} 
+            />
+          </div>
           <PatternDetailView 
             data={bar_data}                                 
             selectedPatterns={selectedPatterns}
