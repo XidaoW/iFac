@@ -5,7 +5,7 @@ import PatternDetailView from 'components/PatternDetailView';
 import InspectionView from 'components/InspectionView';
 
 import styles from './styles.scss';
-import factors_data from '../../data/factors.json';
+import factors_data from '../../data/factors_3.json';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 
 class App extends Component {
@@ -69,7 +69,9 @@ class App extends Component {
     
     factors.forEach(function(d) {
       d.petals = d3.range(d.dims).map(function(i) { 
-        return {length: d.factors[i].entropy,
+        // larger entropy, less concentrated descritors
+        // close to 0, more concentrated descriptors
+        return {length: 1 - d.factors[i].entropy,
             width: d.factors[i].similarity.average}; 
       });
       d.circles = {dominance: d.weight, radius: 6};     
@@ -98,7 +100,7 @@ class App extends Component {
     if (!this.state.bar_data || this.state.bar_data.length === 0)
       return <div />
 
-    const { factors_data, bar_data, selectedPatterns } = this.state;
+    const { factors_data, bar_data, selectedPatterns, mouseOveredPattern } = this.state;
 
     return (
       <div className="App">
@@ -117,6 +119,8 @@ class App extends Component {
             />
             <InspectionView 
               mouseOveredPattern={this.state.mouseOveredPatternData} 
+              data = {factors_data}
+              mouseOveredPatternIdx={this.state.mouseOverPattern}
             />
           </div>
           <PatternDetailView 
