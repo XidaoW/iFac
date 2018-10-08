@@ -23,14 +23,14 @@ export function petalPath(d, outerCircleRadius) {
 	// c defines the root curve of the petal => controlled by centropy
 	// r -> petal length => controlled by similarity
 
-	// var angle = (d.endAngle - d.startAngle) / 2,
-	// 	s = polarToCartesian(-angle, size_petal_arc(d.data.length), outerCircleRadius),
-	// 	e = polarToCartesian(angle, size_petal_arc(d.data.length), outerCircleRadius),
-	// 	c = polarToCartesian(0, size_petal_arc(d.data.length), outerCircleRadius),
-	// 	r = size_petal_radius(d.data.width),
-	// 	m = petalRadius(r, outerCircleRadius),
-	// 	c1 = {x: outerCircleRadius + r / 2, y: s.y},
-	// 	c2 = {x: outerCircleRadius + r / 2, y: e.y};
+	var angle = (d.endAngle - d.startAngle) / 2,
+		s = polarToCartesian(-angle, size_petal_arc(d.data.length), outerCircleRadius),
+		e = polarToCartesian(angle, size_petal_arc(d.data.length), outerCircleRadius),
+		c = polarToCartesian(0, size_petal_arc(d.data.length), outerCircleRadius),
+		r = size_petal_radius(d.data.width),
+		m = petalRadius(r, outerCircleRadius),
+		c1 = {x: outerCircleRadius + r / 2, y: s.y},
+		c2 = {x: outerCircleRadius + r / 2, y: e.y};
 
 
 	// s - e defines the root length of the petal => default size
@@ -38,14 +38,14 @@ export function petalPath(d, outerCircleRadius) {
 	// r -> petal length => controlled by similarity
 	// c1, c2 curve shape = controlled by entropy
 
-	// var angle = (d.endAngle - d.startAngle) / 2,
-	// 	s = polarToCartesian(-angle, size_petal_arc(0.8), outerCircleRadius),
-	// 	e = polarToCartesian(angle, size_petal_arc(0.8), outerCircleRadius),
-	// 	c = polarToCartesian(0, size_petal_arc(0.9), outerCircleRadius),
-	// 	r = size_petal_radius(d.data.width),
-	// 	m = petalRadius(r, outerCircleRadius),
-	// 	c1 = {x: outerCircleRadius + r / 2, y: s.y + size_petal_curve(d.data.length)},
-	// 	c2 = {x: outerCircleRadius + r / 2, y: e.y - size_petal_curve(d.data.length)};
+	var angle = (d.endAngle - d.startAngle) / 2,
+		s = polarToCartesian(-angle, size_petal_arc(0.8), outerCircleRadius),
+		e = polarToCartesian(angle, size_petal_arc(0.8), outerCircleRadius),
+		c = polarToCartesian(0, size_petal_arc(0.9), outerCircleRadius),
+		r = size_petal_radius(d.data.width),
+		m = petalRadius(r, outerCircleRadius),
+		c1 = {x: outerCircleRadius + r / 2, y: s.y + size_petal_curve(d.data.length)},
+		c2 = {x: outerCircleRadius + r / 2, y: e.y - size_petal_curve(d.data.length)};
 
 	return "M" + s.x + "," + s.y + "Q" + c1.x + "," + c1.y + " " + m.x + "," + m.y +
 	"Q" + c2.x + "," + c2.y + " " + e.x + "," + e.y + "Q" + c.x + "," +  c.y +" " + s.x + "," + s.y + "Z";
