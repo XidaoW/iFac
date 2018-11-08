@@ -5,7 +5,7 @@ import PatternDetailView from 'components/PatternDetailView';
 import InspectionView from 'components/InspectionView';
 
 import styles from './styles.scss';
-import factors_data from '../../data/factors_3_20.json';
+import factors_data from '../../data/factors_4_20.json';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 
 class App extends Component {
@@ -16,6 +16,7 @@ class App extends Component {
       descriptors: factors_data.descriptors,
       descriptors_mean: factors_data.average,
       components_cnt:factors_data.data.length,
+      modes:factors_data.modes,
       bar_data: [],
       mouseOveredPatternIdx: '',
       mouseOveredPatternData: {},
@@ -97,7 +98,8 @@ class App extends Component {
       bar_data: bar_data,
       descriptors: factors_data.descriptors,
       descriptors_mean: factors_data.average,
-      components_cnt:factors_data.data.length
+      components_cnt:factors_data.data.length,
+      modes: factors_data.modes
     });    
   }
   
@@ -105,7 +107,7 @@ class App extends Component {
     if (!this.state.bar_data || this.state.bar_data.length === 0)
       return <div />
 
-    const { factors_data, bar_data, descriptors_mean, components_cnt,selectedPatterns, mouseOveredPattern, } = this.state;
+    const { factors_data, bar_data, descriptors_mean, components_cnt,selectedPatterns, mouseOveredPattern, modes } = this.state;
 
     return (
       <div className="App">
@@ -132,6 +134,7 @@ class App extends Component {
             data={bar_data}                  
             selectedPatterns={selectedPatterns}
             components_cnt={components_cnt}
+            modes={modes}
           />
         </div>
         
