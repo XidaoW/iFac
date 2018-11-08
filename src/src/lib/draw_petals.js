@@ -87,8 +87,16 @@ export function circleStrokeFill(i, patternsCnt) {
   return d3.hcl(i / patternsCnt * 360, 20, 70);
 };		
 
+export function circleStrokeFillLimited(i, patternsCnt) {
+	console.log(patternsCnt);
+	var color_list = ["#ffff99", "#fdc086", "#beaed4"];
+  return d3.hcl(i / patternsCnt * 360, 20, 70);
+};		
+
+
 export function petalStroke(d, i,petals) {
   return d3.hcl(i / petals * 360, 60, 70);
 };
+
 
 // export petalStroke = arg => fetch(arg);

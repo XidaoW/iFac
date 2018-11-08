@@ -78,7 +78,6 @@ class App extends Component {
       d.x = (d.tsne_coord.x - d.min_tsne[0]) * 450 / (d.max_tsne[0] - d.min_tsne[0]) + 100;
       d.y = (d.tsne_coord.y - d.min_tsne[1]) * 300 / (d.max_tsne[1] - d.min_tsne[1]) + 100;
     });
-    console.log(this.state.mouseOveredPatternIdx);
     
     for(var i = 0; i < factors_data.data[0].dims; i++){
       bar_data[i] = []
