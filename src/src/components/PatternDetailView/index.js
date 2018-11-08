@@ -34,11 +34,12 @@ class PatternDetailView extends Component {
 
 
 	render() {
-		const { data, selectedPatterns,components_cnt } = this.props;
+		const { data, selectedPatterns,components_cnt,modes } = this.props;
 		const svg = new ReactFauxDOM.Element('svg'),
 					descriptor_size = Object.keys(data).length;
 		let g;
-		console.log(components_cnt);
+		console.log(data);
+
 
 		svg.setAttribute('width', this.layout.svg.width);
 		svg.setAttribute('height', this.layout.svg.height);
@@ -50,15 +51,16 @@ class PatternDetailView extends Component {
 		
 		// draw the axis for each descriptor
 		for(var i = 0; i < descriptor_size; i++){
-			draw_axis(i, width, height, descriptor_size, data);
-			draw_bars(data, i, [20], descriptor_size, margin, width, height);
+			draw_axis(i, width, height, descriptor_size, data, modes);
+			draw_bars(data, i, [20], descriptor_size, margin, width, height,modes);
 			if (selectedPatterns.length > 0) {
 				draw_bars(data, i, selectedPatterns, descriptor_size, margin, width, height);
 			}
 		}
 
-		function draw_axis(i, width, height, descriptor_size, data){
+		function draw_axis(i, width, height, descriptor_size, data, modes){
 			let items;
+			console.log(data);
 			items = Object.keys(data[i][0]).filter((d) => d !== "id").sort();
 			height = height / descriptor_size;
 
@@ -96,7 +98,16 @@ class PatternDetailView extends Component {
 					.duration('200')
 					.attr('font-size', 20)
 					.attr('fill', '#333');
-				});				
+				});			
+
+			g.append("text")
+		    .attr("transform", "rotate(0)")
+		    .attr("x", 1)
+		    .attr("dx", "-0.2em")
+		    .attr("dy", "2em")
+		    .attr("font-size", 20)
+		    .attr("text-anchor", "middle")
+		    .text(modes[i]);
 
 			axis.selectAll("path")
 				.attr("stroke", axisStroke(i, descriptor_size))	
@@ -112,7 +123,7 @@ class PatternDetailView extends Component {
 		  return d3.hcl(i / descriptor_size * 360, 60, 70);
 		};
 
-		console.log(data);
+
 
 	    function draw_bars(data, i, patternIndices, descriptor_size, margin, width, height) {
 			let patterns, items;
