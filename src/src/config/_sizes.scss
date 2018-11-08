@@ -22,17 +22,20 @@ $processView-individualFairness-height: 80%;
 
 
 $innerCircleRadius: 5;
-$outerCircleRadius: 15;
+$outerCircleRadius: 10;
 
 $innerCircleStroke-width: 3;
 $innerCircleStroke-opacity: 1;
-$outerCircleStroke-width: 4;
+$outerCircleStroke-width: 2;
 $outerCircleStroke-opacity: 1;
 
 $detailView-margin-top: 10;
 $detailView-margin-bottom: 200;
 $detailView-margin-left: 40;
 $detailView-margin-right: 20;
+$detailView-bkbar-opacity: 0.1;
+$detailView-fgbar-opacity: 0.8;
+
 
 /*
     Component layouts bound to css-grid layouts
