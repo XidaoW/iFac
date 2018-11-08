@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
 import ReactFauxDOM from 'react-faux-dom';
+// import * as fisheye from '../../lib/fisheye.js'
+
 
 import styles from './styles.scss';
 import index from '../../index.css';
@@ -30,7 +32,6 @@ class PatternDetailView extends Component {
 
 
 	render() {
-		// console.log(this.props.selectedPatterns);
 		const { data, selectedPatterns } = this.props;
 		const svg = new ReactFauxDOM.Element('svg'),
 					descriptor_size = Object.keys(data).length;
@@ -78,25 +79,28 @@ class PatternDetailView extends Component {
 				.attr("dy", ".01em")      
 				.attr("transform", (d) => "rotate(-65)")
 				.on('mouseover', function(d,i) {
-					// console.log(d3.select(this));
-					// d3.select(this).transition()
-					// .ease('easeCubic')
-					// .duration('200')
-					// .attr('font-size', 32)
-					// .attr('fill', 'springgreen');
+					console.log(d3.select(this));
+					d3.select(this).transition()
+					.ease(d3.easeCubic)
+					.duration('200')
+					.attr('font-size', 100)
+					.attr('fill', 'springgreen');
 				})
 				.on('mouseout', function(d,i) {
-					// d3.select(this).transition()
-					// .ease('easeCubic')
-					// .duration('200')
-					// .attr('font-size', 20)
-					// .attr('fill', '#333');
+					d3.select(this).transition()
+					.ease(d3.easeCubic)
+					.duration('200')
+					.attr('font-size', 20)
+					.attr('fill', '#333');
 				});				
 
 			axis.selectAll("path")
-				.attr("stroke", axisStroke(i, descriptor_size))							
+				.attr("stroke", axisStroke(i, descriptor_size))	
+				.attr("stroke-width", 3);						
 			axis.selectAll("line")
-				.attr("stroke", axisStroke(i, descriptor_size))							
+				.attr("stroke", axisStroke(i, descriptor_size))
+				.attr("stroke-width", 2);
+
 		
 		}
 
@@ -147,12 +151,13 @@ class PatternDetailView extends Component {
 				.attr("x", function(d) { return x0(d.key); })
 				.attr("y", function(d) { return y(d.value); })
 				.attr("width", x1.bandwidth())
-				.attr("height", function(d) { return height - y(d.value); })
-				.attr("fill", function(d) { return barFill(d.id, data[0].length); });
+				.attr("height", function(d) { return height - y(d.value); })				
+				.attr("fill", function(d) { return barFill(d.id); });
 		}
-		function barFill(i, patternsCnt) {
-		  return d3.hcl(i / patternsCnt * 360, 20, 70);
-		};			
+		function barFill(i) {
+			return d3.select("#pattern_" + i).attr("stroke");
+		  // return d3.hcl(i / patternsCnt * 360, 20, 70);
+		};					
 
 	  return (
       <div className={styles.PatternOverview}>

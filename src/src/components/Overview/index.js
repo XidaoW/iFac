@@ -29,6 +29,7 @@ class OverView extends Component {
 		this.innerCircleStrokeOpacity = Number(gs.innerCircleStrokeOpacity);
 		this.outerCircleStrokeWidth = Number(gs.outerCircleStrokeWidth);
 		this.outerCircleStrokeOpacity = Number(gs.outerCircleStrokeOpacity);
+		this.compare_N = 3;
 		
 	}
 
@@ -39,13 +40,20 @@ class OverView extends Component {
 		const _self = this;
 		const { data, selectedPatterns } = this.props;
 		this.petals = data[0].dims;
-
+		console.log(selectedPatterns);
 		this.svg = new ReactFauxDOM.Element('svg');
 		this.svg.setAttribute('width', this.layout.svg.width);
 		this.svg.setAttribute('height', this.layout.svg.height);
 		this.svg.setAttribute('transform', "translate(" + this.outerCircleRadius * 3 + "," + this.outerCircleRadius * 3 + ")");		
 		this.pie = d3.pie().sort(null).value(function(d) { return 1; });
+		
 
+		// remove used colors for patterns
+		var color_list = ["#ffff99", "#fdc086", "#beaed4"];
+		for(var i = 0; i < selectedPatterns.length; i++){
+			var used_color = d3.select("#pattern_" + selectedPatterns[i]).attr("stroke");		
+			color_list.splice( color_list.indexOf(used_color), 1 );
+		}
 		// PLOT THE BACKDROP
 		const backdrop = d3.select(this.svg)
 						.append('g')
@@ -116,14 +124,19 @@ class OverView extends Component {
 								.on("click", (d) => {
 									if (d3.select("#pattern_" + d.id).classed("selected")) {
 										_self.props.onUnClickPattern(d.id);
+										var cancel_color = d3.select("#pattern_" + d.id).attr("stroke");
 										d3.select("#pattern_" + d.id).classed("selected", false);																				
 										d3.select("#pattern_" + d.id).attr("stroke", "none");
 									} else {
-										_self.props.onClickPattern(d.id);
-										d3.select("#pattern_" + d.id).classed("selected", true);
-										d3.select("#pattern_" + d.id).attr("stroke", petal.circleStrokeFill(d.id, data.length));
+										if(selectedPatterns.length < this.compare_N){
+											_self.props.onClickPattern(d.id);
+											d3.select("#pattern_" + d.id).classed("selected", true);
+											d3.select("#pattern_" + d.id).attr("stroke", color_list[0]);										
+											color_list.splice(0, 1);
+										}
 									}
 								});
+
 
 		// ADD THE INNER CIRCLES TO THE BACKDROP
 		const circles = backdrop.selectAll('.circle')
