@@ -27,16 +27,19 @@ class PatternDetailView extends Component {
 		this.detailViewMarginBottom = gs.detailViewMarginBottom;
 	    this.detailViewMarginLeft = gs.detailViewMarginLeft;
 		this.detailViewMarginRight = gs.detailViewMarginRight;
+		this.backgroundBarOpacity = gs.detailViewBKBarOpacity;
+		this.foregroundBarOpacity = gs.detailViewFGBarOpacity;
 
 	}
 
 
 	render() {
-		const { data, selectedPatterns } = this.props;
+		const { data, selectedPatterns,components_cnt } = this.props;
 		const svg = new ReactFauxDOM.Element('svg'),
 					descriptor_size = Object.keys(data).length;
 		let g;
-		console.log(data);
+		console.log(components_cnt);
+
 		svg.setAttribute('width', this.layout.svg.width);
 		svg.setAttribute('height', this.layout.svg.height);
 		
@@ -48,6 +51,7 @@ class PatternDetailView extends Component {
 		// draw the axis for each descriptor
 		for(var i = 0; i < descriptor_size; i++){
 			draw_axis(i, width, height, descriptor_size, data);
+			draw_bars(data, i, [20], descriptor_size, margin, width, height);
 			if (selectedPatterns.length > 0) {
 				draw_bars(data, i, selectedPatterns, descriptor_size, margin, width, height);
 			}
@@ -108,9 +112,11 @@ class PatternDetailView extends Component {
 		  return d3.hcl(i / descriptor_size * 360, 60, 70);
 		};
 
+		console.log(data);
 
 	    function draw_bars(data, i, patternIndices, descriptor_size, margin, width, height) {
 			let patterns, items;
+
 			patterns = patternIndices.map((pattern_id) => data[i][pattern_id]);
 			items = Object.keys(data[i][0]).filter((d) => d !== "id").sort();
 			
@@ -151,14 +157,27 @@ class PatternDetailView extends Component {
 				.attr("x", function(d) { return x0(d.key); })
 				.attr("y", function(d) { return y(d.value); })
 				.attr("width", x1.bandwidth())
-				.attr("height", function(d) { return height - y(d.value); })				
-				.attr("fill", function(d) { return barFill(d.id); });
+				.attr("height", function(d) { return height - y(d.value); })
+				.attr("opacity", function(d) { return barFillOpacity(d.id, i, descriptor_size,this.foregroundBarOpacity, this.backgroundBarOpacity); })
+				.attr("fill", function(d) { return barFill(d.id, i, descriptor_size); });
 		}
-		function barFill(i) {
-			return d3.select("#pattern_" + i).attr("stroke");
-		  // return d3.hcl(i / patternsCnt * 360, 20, 70);
-		};					
+		function barFill(id, descriptor_index, descriptor_size) {
+			if(id >= components_cnt){
+				return axisStroke(descriptor_index, descriptor_size);
+			}else{
+				return d3.select("#pattern_" + id).attr("stroke");
+			}
+		}
+		function barFillOpacity(id, descriptor_index, descriptor_size, foregroundBarOpacity, backgroundBarOpacity) {
 
+			if(id >= components_cnt){
+				// return backgroundBarOpacity;
+				return 0.1;
+			}else{
+				// return foregroundBarOpacity;
+				return 0.8
+			}			
+		};
 	  return (
       <div className={styles.PatternOverview}>
         <div className={index.title}>Pattern Detail View</div>			

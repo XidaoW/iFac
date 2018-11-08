@@ -5,7 +5,7 @@ import PatternDetailView from 'components/PatternDetailView';
 import InspectionView from 'components/InspectionView';
 
 import styles from './styles.scss';
-import factors_data from '../../data/factors_3.json';
+import factors_data from '../../data/factors_3_20.json';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 
 class App extends Component {
@@ -14,6 +14,8 @@ class App extends Component {
 		this.state = {
       factors_data: factors_data.data,
       descriptors: factors_data.descriptors,
+      descriptors_mean: factors_data.average,
+      components_cnt:factors_data.data.length,
       bar_data: [],
       mouseOveredPatternIdx: '',
       mouseOveredPatternData: {},
@@ -86,12 +88,16 @@ class App extends Component {
       for(var j = 0; j < pattern_cnt; j++) {
         bar_data[i].push(factors_data.data[j].factors[i].values); 
       }      
+      // console.log(factors_data.average);
+      bar_data[i].push(factors_data.average[i]); 
     }
 
     this.setState({
       factors_data: factors_data.data,
       bar_data: bar_data,
-      descriptors: factors_data.descriptors
+      descriptors: factors_data.descriptors,
+      descriptors_mean: factors_data.average,
+      components_cnt:factors_data.data.length
     });    
   }
   
@@ -99,7 +105,7 @@ class App extends Component {
     if (!this.state.bar_data || this.state.bar_data.length === 0)
       return <div />
 
-    const { factors_data, bar_data, selectedPatterns, mouseOveredPattern } = this.state;
+    const { factors_data, bar_data, descriptors_mean, components_cnt,selectedPatterns, mouseOveredPattern, } = this.state;
 
     return (
       <div className="App">
@@ -118,13 +124,14 @@ class App extends Component {
             />
             <InspectionView 
               mouseOveredPattern={this.state.mouseOveredPatternData} 
-              data = {factors_data}
+              data = {factors_data}              
               mouseOveredPatternIdx={this.state.mouseOverPattern}
             />
           </div>
           <PatternDetailView 
-            data={bar_data}                                 
+            data={bar_data}                  
             selectedPatterns={selectedPatterns}
+            components_cnt={components_cnt}
           />
         </div>
         
