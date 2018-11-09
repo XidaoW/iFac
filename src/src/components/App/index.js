@@ -5,7 +5,7 @@ import PatternDetailView from 'components/PatternDetailView';
 import InspectionView from 'components/InspectionView';
 
 import styles from './styles.scss';
-import factors_data from '../../data/factors_4_20.json';
+import factors_data from '../../data/sports_factors_3_20.json';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 
 class App extends Component {
