@@ -15,10 +15,10 @@ class OverView extends Component {
 		this.pie;
 		this.svg;
 		this.layout = {
-			width: 850,
+			width: 650,
 			height: 550,
 			svg: {
-				width: 850, // 90% of whole layout
+				width: 650, // 90% of whole layout
 				height: 550 // 100% of whole layout
 			},
 		};
@@ -151,29 +151,45 @@ class OverView extends Component {
 								.attr("transform", function(d, i) { 
 								    return "translate(" + d.x + "," + d.y + ")"; 
 								  })
-								.on("mouseover", function(d) {
-									div_tooltip.transition()
-										.duration(200)
-										.style("opacity", .9);
-									div_tooltip
-										.html("Dominance: " + d.weight)
-										.style("left", d.x + "px")
-										.style("top", d.y + "px");
-							   })
-								.on("mouseout", function(d) {
-									div_tooltip.transition()
-										.duration(500)
-										.style("opacity", 0);
-								})
 								.on("click", (d) => {
 									if (d3.select("#pattern_" + d.id).classed("selected")) {
-										_self.props.onMouseOutPattern(d.id);
+										_self.props.onUnClickPattern(d.id);
+										var cancel_color = d3.select("#pattern_" + d.id).attr("stroke");
 										d3.select("#pattern_" + d.id).classed("selected", false);																				
+										d3.select("#pattern_" + d.id).attr("stroke", "none");
 									} else {
-										_self.props.onMouseOverPattern(d.id);
-										d3.select("#pattern_" + d.id).classed("selected", true);
+										if(selectedPatterns.length < this.compare_N){
+											_self.props.onClickPattern(d.id);
+											d3.select("#pattern_" + d.id).classed("selected", true);
+											d3.select("#pattern_" + d.id).attr("stroke", color_list[0]);										
+											color_list.splice(0, 1);
+										}
 									}
 								});
+								
+								// .on("mouseover", function(d) {
+								// 	div_tooltip.transition()
+								// 		.duration(200)
+								// 		.style("opacity", .9);
+								// 	div_tooltip
+								// 		.html("Dominance: " + d.weight)
+								// 		.style("left", d.x + "px")
+								// 		.style("top", d.y + "px");
+							 //   })
+								// .on("mouseout", function(d) {
+								// 	div_tooltip.transition()
+								// 		.duration(500)
+								// 		.style("opacity", 0);
+								// })
+								// .on("click", (d) => {
+								// 	if (d3.select("#pattern_" + d.id).classed("selected")) {
+								// 		_self.props.onMouseOutPattern(d.id);
+								// 		d3.select("#pattern_" + d.id).classed("selected", false);																				
+								// 	} else {
+								// 		_self.props.onMouseOverPattern(d.id);
+								// 		d3.select("#pattern_" + d.id).classed("selected", true);
+								// 	}
+								// });
 
 
 

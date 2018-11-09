@@ -16,10 +16,10 @@ class PatternDetailView extends Component {
 		super(props);
 
 		this.layout = {
-			width: 850,
-			height: 1450,
+			width: 650,
+			height: 550,
 			svg: {
-				width: 850, // 90% of whole layout
+				width: 650, // 90% of whole layout
 				height: 550 // 100% of whole layout
 			},
 		};
