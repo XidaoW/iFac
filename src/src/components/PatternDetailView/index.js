@@ -38,7 +38,6 @@ class PatternDetailView extends Component {
 		const svg = new ReactFauxDOM.Element('svg'),
 					descriptor_size = Object.keys(data).length;
 		let g;
-		console.log(data);
 
 
 		svg.setAttribute('width', this.layout.svg.width);
@@ -52,7 +51,7 @@ class PatternDetailView extends Component {
 		// draw the axis for each descriptor
 		for(var i = 0; i < descriptor_size; i++){
 			draw_axis(i, width, height, descriptor_size, data, modes);
-			draw_bars(data, i, [20], descriptor_size, margin, width, height,modes);
+			draw_bars(data, i, [components_cnt], descriptor_size, margin, width, height,modes);
 			if (selectedPatterns.length > 0) {
 				draw_bars(data, i, selectedPatterns, descriptor_size, margin, width, height);
 			}
@@ -60,7 +59,6 @@ class PatternDetailView extends Component {
 
 		function draw_axis(i, width, height, descriptor_size, data, modes){
 			let items;
-			console.log(data);
 			items = Object.keys(data[i][0]).filter((d) => d !== "id").sort();
 			height = height / descriptor_size;
 
@@ -103,8 +101,8 @@ class PatternDetailView extends Component {
 			g.append("text")
 		    .attr("transform", "rotate(0)")
 		    .attr("x", 1)
-		    .attr("dx", "-0.2em")
-		    .attr("dy", "2em")
+		    .attr("dx", "1em")
+		    .attr("dy", "1em")
 		    .attr("font-size", 20)
 		    .attr("text-anchor", "middle")
 		    .text(modes[i]);
@@ -143,20 +141,17 @@ class PatternDetailView extends Component {
 						y = d3.scaleLinear()
 							.rangeRound([height, 0]),
 						z = d3.scaleOrdinal().range(d3.schemePaired);
-						// z = d3.scaleOrdinal().range(['#8da0cb','#e78ac3','#a6d854']);
 
 			y.domain([0, d3.max(patterns, (d) =>
 					d3.max(items, (key) => d[key])) ]
 				).nice();
-
+			console.log(patterns);
 			g.selectAll(".detailView_col")
 				.select("#descriptor" + i)
 				.data(patterns)
 				.enter().append("g")
 				.attr("class","detailView_col")
-				.attr("transform", function(d) { 
-					return "translate(" + x1(d.id) + ",0)"; 
-				})
+				.attr("transform", (d) => "translate(" + x1(d.id) + ",0)")
 				.selectAll(".rect")
 				.data(function(d) { 
 					return items.map(function(key) { 
@@ -165,12 +160,14 @@ class PatternDetailView extends Component {
 				})
 				.enter().append("rect")
 				.attr("class", "rect")
-				.attr("x", function(d) { return x0(d.key); })
-				.attr("y", function(d) { return y(d.value); })
+				.attr("x", (d) => x0(d.key))
+				.attr("y", (d) => y(d.value))
 				.attr("width", x1.bandwidth())
-				.attr("height", function(d) { return height - y(d.value); })
+				.attr("height", (d) => height - y(d.value))
+	            .attr("stroke", function(d) { return "black"})
 				.attr("opacity", function(d) { return barFillOpacity(d.id, i, descriptor_size,this.foregroundBarOpacity, this.backgroundBarOpacity); })
 				.attr("fill", function(d) { return barFill(d.id, i, descriptor_size); });
+
 		}
 		function barFill(id, descriptor_index, descriptor_size) {
 			if(id >= components_cnt){
