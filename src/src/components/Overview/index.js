@@ -38,9 +38,9 @@ class OverView extends Component {
 			return <div />
 
 		const _self = this;
-		const { data, selectedPatterns } = this.props;
+		const { data, selectedPatterns,mostSimilarPatternToSelectedPatternIdx,leastSimilarPatternToSelectedPatternIdx } = this.props;
 		this.petals = data[0].dims;
-		console.log(selectedPatterns);
+		console.log(leastSimilarPatternToSelectedPatternIdx);
 		this.svg = new ReactFauxDOM.Element('svg');
 		this.svg.setAttribute('width', this.layout.svg.width);
 		this.svg.setAttribute('height', this.layout.svg.height);
@@ -75,6 +75,7 @@ class OverView extends Component {
 								.data(data)
 								.enter().append('g')
 								.attr("class", "flower")
+								.attr("id", (d) => "flower_"+d.id)
 								.attr("transform", function(d, i) { 
 								    return "translate(" + d.x + "," + d.y + ")"; 
 									});
@@ -83,6 +84,7 @@ class OverView extends Component {
 							.data((d) => this.pie(d.petals))
 							.enter().append("path")
 							.attr("class", "petal")
+							// .attr("class", "petal")
 							.attr("transform", (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
 							.attr("d", (d) => petal.petalPath(d, this.outerCircleRadius))
 							.style("stroke", (d, i) => 'gray')
@@ -106,6 +108,17 @@ class OverView extends Component {
 							})							
 							.style("fill", (d, i) => petal.petalFill(d, i, this.petals))
 							.style('fill-opacity', 0.8);
+
+
+		// console.log(mostSimilarPatternToSelectedPatternIdx);
+	 //    for(var p_idx = 0; p_idx < mostSimilarPatternToSelectedPatternIdx.length; i++){
+	 //    	petals.style("stroke", function(d,i,p_idx){
+	 //    		if(i == p_idx && d.data.id == mostSimilarPatternToSelectedPatternIdx[p_idx]){
+	 //    			return "black";
+	 //    		}
+
+	 //    	});
+	 //    }
 
 		// ADD THE OUTER CIRCLES TO THE BACKDROP								
 		const circles1 = backdrop.selectAll('.circle')
