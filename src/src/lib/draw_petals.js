@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
 
-export function petalPath(d, outerCircleRadius) {		  
+export function petalPath(d, outerCircleRadius) {	
+	  
 	var size_petal_radius = d3.scalePow().domain([0, 1]).range([0, outerCircleRadius]);		
 	var size_petal_arc = d3.scaleLinear().domain([0, 1]).range([0, 2 * Math.PI * outerCircleRadius / 3]);
 	var size_petal_curve = d3.scaleSqrt().domain([0, 1]).range([0, outerCircleRadius]);		
