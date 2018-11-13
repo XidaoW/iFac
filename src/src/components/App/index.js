@@ -167,19 +167,24 @@ class App extends Component {
       return <div />
 
     const { factors_data, bar_data, descriptors_mean, components_cnt,
-      selectedPatterns, mouseOveredPattern, modes,
-      mostSimilarPatternToSelectedPatternIdx,leastSimilarPatternToSelectedPatternIdx,
-      descriptors,descriptors_text
-       } = this.state;
+            selectedPatterns, mouseOveredPattern, modes,
+            mostSimilarPatternToSelectedPatternIdx,leastSimilarPatternToSelectedPatternIdx,
+            descriptors, descriptors_text } = this.state;
     console.log(factors_data);
+
     return (
       <div className="App">
-        <header className="App-header">
-          <h1 className="App-title">Tensor Pattern Exploration</h1>
+        <header className="header">
+          <h1 className="title">Tensor Pattern Exploration</h1>
         </header>
         <div className={styles.wrapper}>
+          <div className={styles.infoPanel}>
+            <div>#Patterns: {this.state.factors_data.length}</div>
+            <div>#Descriptors: {descriptors_text.join(", ")}</div>
+          </div>
           <div>
             <Overview 
+              className={styles.Overview}
               data={factors_data}
               onClickPattern={this.handleClickPattern}
               onUnClickPattern={this.handleUnClickPattern}
@@ -189,10 +194,8 @@ class App extends Component {
               leastSimilarPatternToSelectedPatternIdx={leastSimilarPatternToSelectedPatternIdx}              
               mostSimilarPatternToSelectedPatternIdx={mostSimilarPatternToSelectedPatternIdx}
             />
-            <div>#Patterns: {this.state.factors_data.length}</div>
-            <div>#Descriptors: {descriptors_text.join(", ")}</div>
-
             <InspectionView 
+              className={styles.InspectionView}
               mouseOveredPattern={this.state.mouseOveredPatternData} 
               data = {factors_data}              
               mouseOveredPatternIdx={this.state.mouseOverPattern}
