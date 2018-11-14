@@ -34,11 +34,11 @@ class PatternDetailView extends Component {
 
 
 	render() {
-		const { data, selectedPatterns,components_cnt,modes } = this.props;
+		const { data, max_pattern_item, selectedPatterns,components_cnt,modes } = this.props;
 		const svg = new ReactFauxDOM.Element('svg'),
 					descriptor_size = Object.keys(data).length;
 		let g;
-
+		console.log(max_pattern_item);
 
 		svg.setAttribute('width', this.layout.svg.width);
 		svg.setAttribute('height', this.layout.svg.height);
@@ -51,9 +51,9 @@ class PatternDetailView extends Component {
 		// draw the axis for each descriptor
 		for(var i = 0; i < descriptor_size; i++){
 			draw_axis(i, width, height, descriptor_size, data, modes);
-			draw_bars(data, i, [components_cnt], descriptor_size, margin, width, height,modes);
+			draw_bars(data, i, max_pattern_item,[components_cnt], descriptor_size, margin, width, height,modes);
 			if (selectedPatterns.length > 0) {
-				draw_bars(data, i, selectedPatterns, descriptor_size, margin, width, height);
+				draw_bars(data, i, max_pattern_item, selectedPatterns, descriptor_size, margin, width, height);
 			}
 		}
 
@@ -123,7 +123,7 @@ class PatternDetailView extends Component {
 
 
 
-	    function draw_bars(data, i, patternIndices, descriptor_size, margin, width, height) {
+	    function draw_bars(data, i, max_pattern_item, patternIndices, descriptor_size, margin, width, height) {
 			let patterns, items;
 
 			patterns = patternIndices.map((pattern_id) => data[i][pattern_id]);
@@ -164,7 +164,32 @@ class PatternDetailView extends Component {
 				.attr("y", (d) => y(d.value))
 				.attr("width", x1.bandwidth())
 				.attr("height", (d) => height - y(d.value))
-	            .attr("stroke", function(d) { return "black"})
+	            .attr("stroke", function(d) { 
+	            		return "black";
+	            })
+	            .attr("stroke-width", function(d) { 
+	            	if (typeof max_pattern_item[i][d.id] != 'undefined'){
+	            		if(d.key == max_pattern_item[i][d.id]){
+	            			return '2px';	
+	            		}else{
+	            			return '1px';	
+	            		}	            		
+	            	}else{
+	            		return '1px';
+	            	}	
+	            })
+	            .attr("stroke-dasharray", function(d) { 
+	            	if (typeof max_pattern_item[i][d.id] != 'undefined'){
+	            		if(d.key == max_pattern_item[i][d.id]){
+	            			return '6,4';	
+	            		}else{
+	            			return '0,0';	
+	            		}	            		
+	            	}else{
+	            		return '0,0';
+	            	}	
+	            })
+			    .attr("shape-rendering", "crispEdges")	            
 				.attr("opacity", function(d) { return barFillOpacity(d.id, i, descriptor_size,this.foregroundBarOpacity, this.backgroundBarOpacity); })
 				.attr("fill", function(d) { return barFill(d.id, i, descriptor_size); });
 
