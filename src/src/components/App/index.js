@@ -3,6 +3,7 @@ import * as d3 from 'd3';
 import Overview from 'components/Overview';
 import PatternDetailView from 'components/PatternDetailView';
 import InspectionView from 'components/InspectionView';
+import ControlView from 'components/ControlView';
 
 import styles from './styles.scss';
 import factors_data from '../../data/sports_factors_3_20.json';
@@ -12,13 +13,15 @@ class App extends Component {
   constructor(props) {
 		super(props);
 		this.state = {
+      screeData: factors_data.scree,
       factors_data: factors_data.data,
       descriptors: factors_data.descriptors,
       descriptors_mean: factors_data.average,
       descriptors_text: [],
       components_cnt:factors_data.data.length,
       modes:factors_data.modes,
-      bar_data: [],
+      bar_data: {},
+      max_pattern_item:{},
       mouseOveredPatternIdx: '',
       mouseOveredPatternData: {},
       selectedPatterns: [],
@@ -121,6 +124,7 @@ class App extends Component {
     const _self = this;
     const factors = factors_data.data;
     var bar_data = {};
+    var max_pattern_item = {};
     factors.forEach(function(d, id) {
       d.petals = d3.range(d.dims).map(function(i) { 
         // larger entropy, less concentrated descritors
@@ -134,13 +138,17 @@ class App extends Component {
     });
     
     for(var i = 0; i < factors_data.data[0].dims; i++){
-      bar_data[i] = []
+      bar_data[i] = [];
+      max_pattern_item[i] = [];
       var pattern_cnt = factors_data.data.length;
       for(var j = 0; j < pattern_cnt; j++) {
         bar_data[i].push(factors_data.data[j].factors[i].values); 
+        max_pattern_item[i].push(factors_data.data[j].factors[i].max_item);         
       }      
       bar_data[i].push(factors_data.average[i]); 
     }
+
+    console.log(max_pattern_item);
     
     var descriptors_text = [];
     for (var key in factors_data.descriptors) {
@@ -148,12 +156,13 @@ class App extends Component {
             descriptors_text.push(key + "(" + factors_data.descriptors[key].length + ")");
         }
     }
-
     this.setState({
-      descriptors: factors_data.descriptors,
+      screeData: factors_data.scree,
+      descriptors: factors_data.descriptors,      
       factors_data: factors_data.data,
       descriptors_text: descriptors_text,
       bar_data: bar_data,      
+      max_pattern_item: max_pattern_item,
       descriptors_mean: factors_data.average,
       components_cnt:factors_data.data.length,
       modes: factors_data.modes
@@ -169,8 +178,7 @@ class App extends Component {
     const { factors_data, bar_data, descriptors_mean, components_cnt,
             selectedPatterns, mouseOveredPattern, modes,
             mostSimilarPatternToSelectedPatternIdx,leastSimilarPatternToSelectedPatternIdx,
-            descriptors, descriptors_text } = this.state;
-    console.log(factors_data);
+            descriptors, descriptors_text,screeData,max_pattern_item} = this.state;
 
     return (
       <div className="App">
@@ -181,6 +189,9 @@ class App extends Component {
           <div className={styles.infoPanel}>
             <div>#Patterns: {this.state.factors_data.length}</div>
             <div>#Descriptors: {descriptors_text.join(", ")}</div>
+            <ControlView
+              screeData={screeData}
+            />
           </div>
           <div>
             <Overview 
@@ -202,7 +213,8 @@ class App extends Component {
             />
           </div>
           <PatternDetailView 
-            data={bar_data}                  
+            data={bar_data}     
+            max_pattern_item={max_pattern_item}             
             selectedPatterns={selectedPatterns}
             components_cnt={components_cnt}
             modes={modes}
