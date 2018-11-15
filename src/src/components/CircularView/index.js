@@ -89,8 +89,12 @@ class CircularView extends Component {
 	}
 	// PLOT THE BACKDROP
 	const backdrop = d3.select(svg)
-				.append('g')
-				.attr("class", "background");
+					.append('g')
+					.attr("class", "background"),
+				gFlowers = backdrop
+					.append('g')
+					.attr('transform', 'translate(150,250)')
+					.attr('class', 'g_flowers');
 
 	// ADD TOOLTIP
 	const div_tooltip = d3.select("body").append("div")
@@ -99,7 +103,7 @@ class CircularView extends Component {
 				.style("opacity", 0);   
 
 	// ADD THE OUTER CIRCLES TO THE BACKDROP
-	const circles = backdrop.selectAll('.circle')
+	const circles = gFlowers.selectAll('.circle')
 				.data(data)
 				.enter().append('circle')
 				.attr("class", "outer_circle")
@@ -116,7 +120,7 @@ class CircularView extends Component {
 				// .attr("stroke-width", (d) => this.circle_width(d.weight))
 				.attr("id", function(d) { return "pattern_" + d.id; })                
 				.attr("transform", function(d, i) { 
-					return "translate(" + d.x + "," + d.y + ")"; 
+					return "translate(" + (d.x*0.8) + "," + (d.y*0.8) + ")"; 
 				  })
 				.on("click", (d) => {
 					if (d3.select("#pattern_" + d.id).classed("selected")) {
@@ -135,16 +139,14 @@ class CircularView extends Component {
 				  }
 				});
 				
-
-
 	// PLOT THE FLOWERS ==> PATTERNS
-	const flowers = backdrop.selectAll('.flower')
+	const flowers = gFlowers.selectAll('.flower')
 				.data(data)
 				.enter().append('g')
 				.attr("class", "flower")
 				.attr("id", (d) => "flower_"+d.id)
 				.attr("transform", function(d, i) { 
-					return "translate(" + d.x + "," + d.y + ")"; 
+					return "translate(" + (d.x*0.8) + "," + (d.y*0.8) + ")"; 
 				});
 	// ADD THE PETALS TO FLOWERS ==> DESCRIPTORS                
 	const petals = flowers.selectAll(".petal")
