@@ -148,7 +148,6 @@ class App extends Component {
       bar_data[i].push(factors_data.average[i]); 
     }
 
-    console.log(max_pattern_item);
     
     var descriptors_text = [];
     for (var key in factors_data.descriptors) {
