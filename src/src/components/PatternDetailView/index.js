@@ -10,6 +10,7 @@ import gs from '../../config/_variables.scss'; // gs (=global style)
 
 
 class PatternDetailView extends Component {
+	
 	constructor(props) {
 		super(props);
 
