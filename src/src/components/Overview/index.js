@@ -14,6 +14,8 @@ class OverView extends Component {
 		super(props);
 		this.pie;
 		this.svg;
+		this.circle_color;
+		this.circle_width;
 		this.layout = {
 			width: 650,
 			height: 550,
@@ -40,13 +42,15 @@ class OverView extends Component {
 		const _self = this;
 		const { data, selectedPatterns,mostSimilarPatternToSelectedPatternIdx,leastSimilarPatternToSelectedPatternIdx } = this.props;
 		this.petals = data[0].dims;
-		console.log(leastSimilarPatternToSelectedPatternIdx);
+		// console.log(leastSimilarPatternToSelectedPatternIdx);
 		this.svg = new ReactFauxDOM.Element('svg');
 		this.svg.setAttribute('width', this.layout.svg.width);
 		this.svg.setAttribute('height', this.layout.svg.height);
 		this.svg.setAttribute('transform', "translate(" + this.outerCircleRadius * 3 + "," + this.outerCircleRadius * 3 + ")");		
 		this.pie = d3.pie().sort(null).value(function(d) { return 1; });
-		
+		this.circle_color = d3.scaleLinear().domain([0, 1]).range(["#bf5b17","#e31a1c"]).interpolate(d3.interpolateHcl);
+		this.circle_width = d3.scaleLinear().domain([0, 1]).range([1,2]);
+		// console.log(mostSimilarPatternToSelectedPatternIdx);
 
 		// remove used colors for patterns
 		var color_list = ["#ffff99", "#fdc086", "#beaed4"];
@@ -59,16 +63,81 @@ class OverView extends Component {
 						.append('g')
 						.attr("class", "background");
 
-		backdrop.selectAll('.button')
-				.append('g')
-				.attr('class', 'button')
-				.attr("text", "TEST");
-
 		// ADD TOOLTIP
 		const div_tooltip = d3.select("body").append("div")
 								.attr("id", "tooltip")
 								.attr("class", "tooltip")
 								.style("opacity", 0);		
+
+
+		// ADD THE OUTER CIRCLES TO THE BACKDROP
+		const circles = backdrop.selectAll('.circle')
+								.data(data)
+								.enter().append('circle')
+								.attr("class", "outer_circle")
+								.attr("r", gs.innerCircleRadius)
+								.attr("fill", "#fc8d12")
+								// .attr("fill", (d) => this.circle_color(d.weight))
+								.attr("stroke-width", gs.innerCircleStrokeWidth)								
+								// need to double check if dominance score makes sense
+								// .attr("fill-opacity",  0.01)													
+								.attr("fill-opacity", function(d) { return d.weight; })													
+								.attr("stroke-opacity", gs.innerCircleStrokeOpacity)
+								// .attr("stroke-opacity", 0.5)
+								// .attr("stroke", "black")
+								// .attr("stroke-width", (d) => this.circle_width(d.weight))
+								.attr("id", function(d) { return "pattern_" + d.id; })								
+								.attr("transform", function(d, i) { 
+								    return "translate(" + d.x + "," + d.y + ")"; 
+								  })
+								.on("click", (d) => {
+									if (d3.select("#pattern_" + d.id).classed("selected")) {
+										_self.props.onUnClickPattern(d.id);
+										var cancel_color = d3.select("#pattern_" + d.id).attr("stroke");
+										d3.select("#pattern_" + d.id).classed("selected", false);																				
+										d3.select("#pattern_" + d.id).attr("stroke", "none");
+									} else {
+										if(selectedPatterns.length < this.compare_N){
+											_self.props.onClickPattern(d.id);
+											d3.select("#pattern_" + d.id).classed("selected", true);
+											d3.select("#pattern_" + d.id).attr("stroke", color_list[0]);		
+											// d3.selectAll(".petal").attr("stroke-width","1px");								
+											color_list.splice(0, 1);
+										}
+									}
+								});
+								
+
+		// // ADD THE INNER CIRCLES TO THE BACKDROP								
+		// const circles1 = backdrop.selectAll('.circle')
+		// 						.data(data)
+		// 						.enter().append('circle')
+		// 						.attr("class", "inner_circle")
+		// 						.attr("r", this.outerCircleRadius)
+		// 						.attr("fill", "white")
+		// 						.attr("stroke-width", gs.outerCircleStrokeWidth)
+		// 						.attr("stroke-opacity", gs.outerCircleStrokeOpacity)
+		// 						.attr("fill-opacity", 0)								
+		// 						.attr("transform", function(d, i) { 
+		// 							return "translate(" + d.x + "," + d.y + ")"; 
+		// 						})
+		// 						.on("click", (d) => {
+		// 							if (d3.select("#pattern_" + d.id).classed("selected")) {
+		// 								_self.props.onUnClickPattern(d.id);
+		// 								var cancel_color = d3.select("#pattern_" + d.id).attr("stroke");
+		// 								d3.select("#pattern_" + d.id).classed("selected", false);																				
+		// 								d3.select("#pattern_" + d.id).attr("stroke", "none");
+		// 							} else {
+		// 								if(selectedPatterns.length < this.compare_N){
+		// 									_self.props.onClickPattern(d.id);
+		// 									d3.select("#pattern_" + d.id).classed("selected", true);
+		// 									d3.select("#pattern_" + d.id).attr("stroke", color_list[0]);										
+		// 									// d3.selectAll(".petal").attr("stroke-width","1px");	
+		// 									console.log(mostSimilarPatternToSelectedPatternIdx);							
+		// 									color_list.splice(0, 1);
+		// 								}
+		// 							}
+		// 						});
 
 		// PLOT THE FLOWERS ==> PATTERNS
 		const flowers = backdrop.selectAll('.flower')
@@ -88,6 +157,20 @@ class OverView extends Component {
 							.attr("transform", (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
 							.attr("d", (d) => petal.petalPath(d, this.outerCircleRadius))
 							.style("stroke", (d, i) => 'gray')
+				            .attr("stroke-width", function(d) { 	
+				            	// console.log(d);
+				            // console.log(d3.select("#pattern_" + d.data.id).attr("stroke"))			            	
+				            	// if (mostSimilarPatternToSelectedPatternIdx.length > 0){				            		
+				            	// 	if(d.data.id == mostSimilarPatternToSelectedPatternIdx[d.index]){
+				            	// 		return '2px';	
+				            	// 	}else{
+				            	// 		return '1px';	
+				            	// 	}	            		
+				            	// }else{
+				            	// 	return '1px';
+				            	// }	
+				            })
+
 							.on("mouseover", function(d) {
 								div_tooltip.transition()
 									.duration(200)
@@ -120,66 +203,8 @@ class OverView extends Component {
 	 //    	});
 	 //    }
 
-		// ADD THE OUTER CIRCLES TO THE BACKDROP								
-		const circles1 = backdrop.selectAll('.circle')
-								.data(data)
-								.enter().append('circle')
-								.attr("class", "outer_circle")
-								.attr("r", this.outerCircleRadius)
-								.attr("fill", "white")
-								.attr("stroke-width", gs.outerCircleStrokeWidth)
-								.attr("stroke-opacity", gs.outerCircleStrokeOpacity)
-								.attr("fill-opacity", 0)
-								.attr("id", function(d) { return "pattern_" + d.id; })								
-								.attr("transform", function(d, i) { 
-									return "translate(" + d.x + "," + d.y + ")"; 
-								})
-								.on("click", (d) => {
-									if (d3.select("#pattern_" + d.id).classed("selected")) {
-										_self.props.onUnClickPattern(d.id);
-										var cancel_color = d3.select("#pattern_" + d.id).attr("stroke");
-										d3.select("#pattern_" + d.id).classed("selected", false);																				
-										d3.select("#pattern_" + d.id).attr("stroke", "none");
-									} else {
-										if(selectedPatterns.length < this.compare_N){
-											_self.props.onClickPattern(d.id);
-											d3.select("#pattern_" + d.id).classed("selected", true);
-											d3.select("#pattern_" + d.id).attr("stroke", color_list[0]);										
-											color_list.splice(0, 1);
-										}
-									}
-								});
 
 
-		// ADD THE INNER CIRCLES TO THE BACKDROP
-		const circles = backdrop.selectAll('.circle')
-								.data(data)
-								.enter().append('circle')
-								.attr("class", "inner_circle")
-								.attr("r", gs.innerCircleRadius)
-								.attr("fill", "#fc8d62")
-								.attr("stroke-width", gs.innerCircleStrokeWidth)								
-								.attr("fill-opacity", function(d) { return d.weight; })													
-								.attr("stroke-opacity", gs.innerCircleStrokeOpacity)																													
-								.attr("transform", function(d, i) { 
-								    return "translate(" + d.x + "," + d.y + ")"; 
-								  })
-								.on("click", (d) => {
-									if (d3.select("#pattern_" + d.id).classed("selected")) {
-										_self.props.onUnClickPattern(d.id);
-										var cancel_color = d3.select("#pattern_" + d.id).attr("stroke");
-										d3.select("#pattern_" + d.id).classed("selected", false);																				
-										d3.select("#pattern_" + d.id).attr("stroke", "none");
-									} else {
-										if(selectedPatterns.length < this.compare_N){
-											_self.props.onClickPattern(d.id);
-											d3.select("#pattern_" + d.id).classed("selected", true);
-											d3.select("#pattern_" + d.id).attr("stroke", color_list[0]);										
-											color_list.splice(0, 1);
-										}
-									}
-								});
-								
 								// .on("mouseover", function(d) {
 								// 	div_tooltip.transition()
 								// 		.duration(200)
