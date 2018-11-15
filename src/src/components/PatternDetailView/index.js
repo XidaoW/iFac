@@ -38,7 +38,6 @@ class PatternDetailView extends Component {
 		const svg = new ReactFauxDOM.Element('svg'),
 					descriptor_size = Object.keys(data).length;
 		let g;
-		console.log(max_pattern_item);
 
 		svg.setAttribute('width', this.layout.svg.width);
 		svg.setAttribute('height', this.layout.svg.height);
@@ -83,7 +82,6 @@ class PatternDetailView extends Component {
 				.attr("dy", ".01em")      
 				.attr("transform", (d) => "rotate(-65)")
 				.on('mouseover', function(d,i) {
-					console.log(d3.select(this));
 					d3.select(this).transition()
 					.ease(d3.easeCubic)
 					.duration('200')
@@ -120,15 +118,12 @@ class PatternDetailView extends Component {
 		function axisStroke(i, descriptor_size) {
 		  return d3.hcl(i / descriptor_size * 360, 60, 70);
 		};
-
-
-
 	    function draw_bars(data, i, max_pattern_item, patternIndices, descriptor_size, margin, width, height) {
 			let patterns, items;
 
 			patterns = patternIndices.map((pattern_id) => data[i][pattern_id]);
 			items = Object.keys(data[i][0]).filter((d) => d !== "id").sort();
-			
+
 			height = height / descriptor_size;
 			const x0 = d3.scaleBand()
 							.domain(items)
@@ -140,12 +135,17 @@ class PatternDetailView extends Component {
 							.padding(0.05),
 						y = d3.scaleLinear()
 							.rangeRound([height, 0]),
+						bar_opacity = d3.scaleLinear()
+							.range([0, 1]),							
 						z = d3.scaleOrdinal().range(d3.schemePaired);
 
 			y.domain([0, d3.max(patterns, (d) =>
 					d3.max(items, (key) => d[key])) ]
 				).nice();
-			console.log(patterns);
+			bar_opacity.domain([0, d3.max(patterns, (d) =>
+					d3.max(items, (key) => d[key])) ]
+				);
+
 			g.selectAll(".detailView_col")
 				.select("#descriptor" + i)
 				.data(patterns)
@@ -168,9 +168,10 @@ class PatternDetailView extends Component {
 	            		return "black";
 	            })
 	            .attr("stroke-width", function(d) { 
+	            	// bold the stroke for max_items for each descriptor
 	            	if (typeof max_pattern_item[i][d.id] != 'undefined'){
 	            		if(d.key == max_pattern_item[i][d.id]){
-	            			return '2px';	
+	            			return '3px';	
 	            		}else{
 	            			return '1px';	
 	            		}	            		
@@ -178,37 +179,32 @@ class PatternDetailView extends Component {
 	            		return '1px';
 	            	}	
 	            })
-	            .attr("stroke-dasharray", function(d) { 
-	            	if (typeof max_pattern_item[i][d.id] != 'undefined'){
-	            		if(d.key == max_pattern_item[i][d.id]){
-	            			return '6,4';	
-	            		}else{
-	            			return '0,0';	
-	            		}	            		
-	            	}else{
-	            		return '0,0';
-	            	}	
-	            })
 			    .attr("shape-rendering", "crispEdges")	            
-				.attr("opacity", function(d) { return barFillOpacity(d.id, i, descriptor_size,this.foregroundBarOpacity, this.backgroundBarOpacity); })
-				.attr("fill", function(d) { return barFill(d.id, i, descriptor_size); });
+				.attr("opacity", function(d) { return barFillOpacity(d, i, descriptor_size,this.foregroundBarOpacity, this.backgroundBarOpacity,bar_opacity); })
+				.attr("fill", function(d) { 
+					return barFill(d, i, descriptor_size, bar_opacity); 
+				});
 
 		}
-		function barFill(id, descriptor_index, descriptor_size) {
-			if(id >= components_cnt){
+		function barFill(d, descriptor_index, descriptor_size,bar_opacity) {
+			if(d.id >= components_cnt){
 				return axisStroke(descriptor_index, descriptor_size);
 			}else{
-				return d3.select("#pattern_" + id).attr("stroke");
+				var cur_color  = d3.select("#pattern_" + d.id).attr("stroke")				
+				var color_dark = d3.rgb(cur_color).darker(0.5);
+				var color_light = d3.rgb(cur_color).brighter(0.5);
+				var color_pick = d3.scaleLinear().domain([0, 1]).range([color_light,color_dark])
+				// return d3.select("#pattern_" + d.id).attr("stroke");
+				return color_pick(bar_opacity(d.value));
 			}
 		}
-		function barFillOpacity(id, descriptor_index, descriptor_size, foregroundBarOpacity, backgroundBarOpacity) {
+		function barFillOpacity(d, descriptor_index, descriptor_size, foregroundBarOpacity, backgroundBarOpacity,bar_opacity) {
 
-			if(id >= components_cnt){
-				// return backgroundBarOpacity;
+			if(d.id >= components_cnt){
 				return 0.1;
 			}else{
-				// return foregroundBarOpacity;
-				return 0.8
+				return 1;
+				// return bar_opacity(d.value);
 			}			
 		};
 	  return (
