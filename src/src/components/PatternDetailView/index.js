@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
 import ReactFauxDOM from 'react-faux-dom';
-// import * as fisheye from '../../lib/fisheye.js'
+import {scaleRadial} from '../../lib/draw_radial.js'
 
 
 import styles from './styles.scss';
@@ -47,14 +47,78 @@ class PatternDetailView extends Component {
 			width = +this.layout.svg.width - margin.left - margin.right,
 			height = +this.layout.svg.height - margin.top - margin.bottom;
 		
+		g = d3.select(svg).append("g")
 		// draw the axis for each descriptor
 		for(var i = 0; i < descriptor_size; i++){
-			draw_axis(i, width, height, descriptor_size, data, modes);
-			draw_bars(data, i, max_pattern_item,[components_cnt], descriptor_size, margin, width, height,modes);
-			if (selectedPatterns.length > 0) {
-				draw_bars(data, i, max_pattern_item, selectedPatterns, descriptor_size, margin, width, height);
-			}
+			// draw_axis(i, width, height, descriptor_size, data, modes);
+			// draw_bars(data, i, max_pattern_item,[components_cnt], descriptor_size, margin, width, height,modes);
+			// if (selectedPatterns.length > 0) {
+			// 	draw_bars(data, i, max_pattern_item, selectedPatterns, descriptor_size, margin, width, height);
+			// }
+			draw_bars_circular(data, i, max_pattern_item, [components_cnt], descriptor_size, margin, width, height)
 		}
+
+
+
+		function draw_bars_circular(data, i, max_pattern_item, patternIndices, descriptor_size, margin, width, height){
+	        let patterns, items, descriptor_arcs;
+	        patterns = patternIndices.map((pattern_id) => data[i][pattern_id]);
+	        items = Object.keys(data[i][0]).filter((d) => d !== "id").sort();
+	        var innerRadius = 50;
+	        var outerRadius = 60;
+	        var x = d3.scaleBand()
+	                  .range([2*Math.PI*(i)/descriptor_size,  2*Math.PI*(i+1)/descriptor_size])    // X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
+	                  .align(0)                  // This does nothing
+	                  .domain(items); // The domain of the X axis is the list of states.
+
+	        // Y scale outer variable
+	        var y = scaleRadial()
+	                  .range([innerRadius, outerRadius])   // Domain will be define later.
+	                  .domain([0, 1]); // Domain of Y is from 0 to the max seen in the data
+	    	console.log(patterns);  
+	          // Add the bars
+	        descriptor_arcs = g.append("g")
+	            .selectAll("path")
+	            .data(patterns)
+	            .enter()	            	       
+	            .append("path")
+	            .attr("class", "descriptor")
+
+	        descriptor_arcs.selectAll("path")
+	            .data(function(d,cur_index) {
+	                return items.map(function(key) { 
+	                    return {key: key, value: d[key], id: d.id, index: cur_index}; 
+	                }); 
+	            })
+	            .enter()
+	            .append("path")
+	              .attr("fill", "#69b3a2")
+	              .attr("id", function(d){console.log((d.index))})	              
+	              .attr("class", "yo")
+	              .attr("d", d3.arc()     // imagine your doing a part of a donut plot
+	                  .innerRadius(innerRadius)
+	                  .outerRadius(function(d) { return y(d.value); })
+	                  .startAngle(function(d) { return x(d.key) + x.bandwidth()*(d.index)/descriptor_size; })
+	                  .endAngle(function(d) { return x(d.key) + x.bandwidth()*(d.index+1)/descriptor_size; })
+	                  .padAngle(0.01)
+	                  .padRadius(innerRadius));
+
+
+	          // // Add the labels
+	          // g.append("g")
+	          //     .selectAll("g")
+	          //     .data(data)
+	          //     .enter()
+	          //     .append("g")
+	          //       .attr("text-anchor", function(d) { return (x(d.Country) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "end" : "start"; })
+	          //       .attr("transform", function(d) { return "rotate(" + ((x(d.Country) + x.bandwidth() / 2) * 180 / Math.PI - 90) + ")"+"translate(" + (y(d['Value'])+10) + ",0)"; })
+	          //     .append("text")
+	          //       .text(function(d){return(d.Country)})
+	          //       .attr("transform", function(d) { return (x(d.Country) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI) < Math.PI ? "rotate(180)" : "rotate(0)"; })
+	          //       .style("font-size", "11px")
+	          //       .attr("alignment-baseline", "middle")
+
+  		}
 
 		function draw_axis(i, width, height, descriptor_size, data, modes){
 			let items;
@@ -207,6 +271,7 @@ class PatternDetailView extends Component {
 				// return bar_opacity(d.value);
 			}			
 		};
+
 	  return (
       <div className={styles.PatternOverview}>
         <div className={index.title}>Pattern Detail View</div>			
