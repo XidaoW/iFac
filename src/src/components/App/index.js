@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
 import Overview from 'components/Overview';
-import PatternDetailView from 'components/PatternDetailView';
+import CircularView from 'components/CircularView';
 import InspectionView from 'components/InspectionView';
 import ControlView from 'components/ControlView';
 
@@ -192,18 +192,22 @@ class App extends Component {
               screeData={screeData}
             />
           </div>
+          <CircularView 
+            className={styles.Overview}
+            data={factors_data}
+            onClickPattern={this.handleClickPattern}
+            onUnClickPattern={this.handleUnClickPattern}
+            onMouseOverPattern={this.handleMouseOverPattern}
+            onMouseOutPattern={this.handleMouseOutPattern}                        
+            leastSimilarPatternToSelectedPatternIdx={leastSimilarPatternToSelectedPatternIdx}              
+            mostSimilarPatternToSelectedPatternIdx={mostSimilarPatternToSelectedPatternIdx}          
+            bar_data={bar_data}     
+            max_pattern_item={max_pattern_item}             
+            selectedPatterns={selectedPatterns}
+            components_cnt={components_cnt}
+            modes={modes}
+          />          
           <div>
-            <Overview 
-              className={styles.Overview}
-              data={factors_data}
-              onClickPattern={this.handleClickPattern}
-              onUnClickPattern={this.handleUnClickPattern}
-              onMouseOverPattern={this.handleMouseOverPattern}
-              onMouseOutPattern={this.handleMouseOutPattern}            
-              selectedPatterns={selectedPatterns}
-              leastSimilarPatternToSelectedPatternIdx={leastSimilarPatternToSelectedPatternIdx}              
-              mostSimilarPatternToSelectedPatternIdx={mostSimilarPatternToSelectedPatternIdx}
-            />
             <InspectionView 
               className={styles.InspectionView}
               mouseOveredPattern={this.state.mouseOveredPatternData} 
@@ -211,13 +215,8 @@ class App extends Component {
               mouseOveredPatternIdx={this.state.mouseOverPattern}
             />
           </div>
-          <PatternDetailView 
-            data={bar_data}     
-            max_pattern_item={max_pattern_item}             
-            selectedPatterns={selectedPatterns}
-            components_cnt={components_cnt}
-            modes={modes}
-          />
+
+
         </div>
         
       </div>
