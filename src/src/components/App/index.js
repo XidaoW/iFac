@@ -104,8 +104,9 @@ class App extends Component {
 					.padAngle(0.01)
 					.padRadius(innerRadius).centroid(),
 				translate_flower = petals_path_items[i].translate_flower.replace("translate(","").replace(")","").split(","),
-				arcEnd = petals_path_items[i].d.split('M').join(',').split('Q').join(',').split(' ').join(',').split(',').slice(5,7),
+				// tip of the petal				
 				arcEnd_flower = petals_path_items[i].d_flower.split('M').join(',').split('Q').join(',').split(' ').join(',').split(',').slice(5,7),
+				// root of the bar -- to be completed -- for now, using the arcStart
 				arcEnd_bar = petals_path_items[i].d_bar.split('M').join(',').split('Q').join(',').split(' ').join(',').split(',');
 			if(i==2){
 				console.log(petals_path_items[i].d_flower.split('M').join(',').split('Q').join(',').split(' ').join(',').split(','));
