@@ -28,10 +28,14 @@ class CircularView extends Component {
 		},
 	};
 
-	this.pie;
+	this.pie;	
+	this.petals;	
+	this.circle_position_x;
+	this.circle_position_y;
 	this.svg;
 	this.circle_color;
 	this.circle_width;
+	this.compare_N = 3;
 	this.outerCircleRadius = Number(gs.outerCircleRadius);
 	this.innerCircleRadius = Number(gs.innerCircleRadius);
 	this.innerCircleStrokeWidth = Number(gs.innerCircleStrokeWidth);
@@ -45,14 +49,16 @@ class CircularView extends Component {
 	this.detailViewMarginRight = gs.detailViewMarginRight;
 	this.backgroundBarOpacity = gs.detailViewBKBarOpacity;
 	this.foregroundBarOpacity = gs.detailViewFGBarOpacity;
-	this.compare_N = 3;
-	this.petals = 3;
+	this.circularInnerRadius = gs.circularInnerRadius;
 
   }
 
 
   render() {
-	const { data, selectedPatterns,mostSimilarPatternToSelectedPatternIdx,leastSimilarPatternToSelectedPatternIdx, 
+	const { data, selectedPatterns,
+		mostSimilarPatternToSelectedPatternIdx,
+		leastSimilarPatternToSelectedPatternIdx, 
+		arc_positions_bar_petal,
 		bar_data, max_pattern_item,components_cnt,modes } = this.props;        
 	const margin = {top: this.detailViewMarginTop, right: this.detailViewMarginRight, 
 		bottom: this.detailViewMarginBottom, left: this.detailViewMarginLeft},
@@ -60,7 +66,9 @@ class CircularView extends Component {
 	  	height = +this.layout.svg.height - margin.top - margin.bottom;
 
 	const outerRadius = Math.min(width, height),
-		innerRadius = 250;
+		innerRadius = this.circularInnerRadius,
+		max_tsne = data[0].max_tsne,
+		min_tsne = data[0].min_tsne;
 	const _self = this;        
 	
 	var svg = new ReactFauxDOM.Element('svg'),
@@ -74,12 +82,12 @@ class CircularView extends Component {
 	this.circle_color = d3.scaleLinear().domain([0, 1]).range(["#bf5b17","#e31a1c"]).interpolate(d3.interpolateHcl);
 	this.circle_width = d3.scaleLinear().domain([0, 1]).range([1,2]);
 	this.petals = data[0].dims;
-
+	this.circle_position_x = d3.scaleLinear().domain([min_tsne[0],max_tsne[0]]).range([- 0,+ innerRadius]);
+	this.circle_position_y = d3.scaleLinear().domain([min_tsne[1],max_tsne[1]]).range([- 0, + innerRadius]);
 	svg.setAttribute('width', width);
 	svg.setAttribute('height',height);
-
-	// svg.setAttribute('transform', "translate(" + width /2 + "," + height /2 + ")");   
-	svg.setAttribute('transform', "translate(" + this.outerCircleRadius * 4 + "," + this.outerCircleRadius * 6 + ")");   
+	svg.setAttribute('transform', "translate(" + (outerRadius - innerRadius)/2 + "," + (outerRadius - innerRadius)/2 + ")");
+	// svg.setAttribute('transform', "translate(" + this.outerCircleRadius * 4 + "," + this.outerCircleRadius * 6 + ")");   
 
 
 	// UPDATE THE LIST OF AVAILABLE COLORS TO PICK FOR CLICKING PATTERNS
@@ -87,13 +95,14 @@ class CircularView extends Component {
 		used_color = d3.select("#pattern_" + selectedPatterns[i]).attr("stroke");   
 		color_list.splice( color_list.indexOf(used_color), 1 );
 	}
+
 	// PLOT THE BACKDROP
 	const backdrop = d3.select(svg)
 					.append('g')
 					.attr("class", "background"),
 				gFlowers = backdrop
 					.append('g')
-					.attr('transform', 'translate(150,250)')
+					.attr('transform', "translate(" + (outerRadius - innerRadius)/2 + "," + (outerRadius - innerRadius)/2 + ")") 					
 					.attr('class', 'g_flowers');
 
 	// ADD TOOLTIP
@@ -101,6 +110,8 @@ class CircularView extends Component {
 				.attr("id", "tooltip")
 				.attr("class", "tooltip")
 				.style("opacity", 0);   
+
+
 
 	// ADD THE OUTER CIRCLES TO THE BACKDROP
 	const circles = gFlowers.selectAll('.circle')
@@ -118,9 +129,10 @@ class CircularView extends Component {
 				// .attr("stroke-opacity", 0.5)
 				// .attr("stroke", "black")
 				// .attr("stroke-width", (d) => this.circle_width(d.weight))
-				.attr("id", function(d) { return "pattern_" + d.id; })                
+				.attr("id", (d) => "pattern_" + d.id)                
 				.attr("transform", function(d, i) { 
-					return "translate(" + (d.x*0.8) + "," + (d.y*0.8) + ")"; 
+					return "translate(" + _self.circle_position_x(d.tsne_coord.x) + "," 
+							+ _self.circle_position_y(d.tsne_coord.y) + ")"; 
 				  })
 				.on("click", (d) => {
 					if (d3.select("#pattern_" + d.id).classed("selected")) {
@@ -128,15 +140,55 @@ class CircularView extends Component {
 						var cancel_color = d3.select("#pattern_" + d.id).attr("stroke");
 						d3.select("#pattern_" + d.id).classed("selected", false);                                       
 						d3.select("#pattern_" + d.id).attr("stroke", "none");
-				  } else {
-					if(selectedPatterns.length < this.compare_N){
-						_self.props.onClickPattern(d.id);
-						d3.select("#pattern_" + d.id).classed("selected", true);
-						d3.select("#pattern_" + d.id).attr("stroke", color_list[0]);    
-						// d3.selectAll(".petal").attr("stroke-width","1px");               
-						color_list.splice(0, 1);
+					} else {
+						if(selectedPatterns.length < this.compare_N){
+							var petals_path_items = d3.range(this.petals).map(function(p){
+								if(p == 2){
+									console.log(backdrop.select('#flower_'+d.id).attr("transform"));
+								}
+								return {"d":flowers.select('path#petal_'+d.id+'_'+p+'.petal').attr("d"), 										
+										"d_flower":backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr("d"),
+										"translate_flower": backdrop.select('#flower_'+d.id).attr("transform"),
+										"d_bar": backdrop.select('path#bar_'+p+'_'+max_pattern_item[p][d.id]).attr("d"),
+										"item": max_pattern_item[p][d.id],
+										"descriptor_index": p,
+										"pattern_id": d.id}
+							});							
+							
+							_self.props.onClickPattern(d.id, petals_path_items, innerRadius, outerRadius);
+							d3.select("#pattern_" + d.id).classed("selected", true);
+
+							
+							// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
+							// const  x = d3.scaleBand()
+							// 		.range([2*Math.PI*(descriptor_index+1)/descriptor_size-0.4,  2*Math.PI*(descriptor_index+2)/descriptor_size-0.9])    
+							// 		.domain(items) // The domain of the X axis is the list of states.
+							// 		.paddingInner(0.05),
+							// y = scaleRadial()
+							// 		.range([innerRadius, outerRadius])   // Domain will be define later.
+							// 		.domain([0, 1]), // Domain of Y is from 0 to the max seen in the data
+
+
+							// var arcStart = d3.arc()
+							// 	.innerRadius(innerRadius)
+							// 	.outerRadius((d) => y(0.11177587321191938))
+							// 	.startAngle((d) => x("Milwaukee Bucks") + x.bandwidth()*(0+0.5)/patterns.length)
+							// 	.endAngle((d) => x("Milwaukee Bucks") + x.bandwidth()*(0+0.5)/patterns.length)
+							// 	.padAngle(0.01)
+							// 	.padRadius(innerRadius).centroid();
+								
+
+							// Test chunk for adding links between the petals and the bars	
+							// var arcEnd = flowers.select('path#petal_13_0.petal');
+							// arcEnd = arcEnd.attr("d").split('M').join(',').split('Q').join(',').split(' ').join(',').split(',').slice(5,7);
+
+
+
+							d3.select("#pattern_" + d.id).attr("stroke", color_list[0]);    							
+							// d3.selectAll(".petal").attr("stroke-width","1px");               
+							color_list.splice(0, 1);
+						}
 					}
-				  }
 				});
 				
 	// PLOT THE FLOWERS ==> PATTERNS
@@ -146,51 +198,68 @@ class CircularView extends Component {
 				.attr("class", "flower")
 				.attr("id", (d) => "flower_"+d.id)
 				.attr("transform", function(d, i) { 
-					return "translate(" + (d.x*0.8) + "," + (d.y*0.8) + ")"; 
+					return "translate(" + _self.circle_position_x(d.tsne_coord.x) + "," 
+							+ _self.circle_position_y(d.tsne_coord.y) + ")"; 
 				});
 	// ADD THE PETALS TO FLOWERS ==> DESCRIPTORS                
 	const petals = flowers.selectAll(".petal")
 				.data((d) => this.pie(d.petals))
 				.enter().append("path")
 				.attr("class", "petal")
-				// .attr("class", "petal")
+				.attr("id", (d) => "petal_"+d.data.id+"_" + d.index)
 				.attr("transform", (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
 				.attr("d", (d) => petal.petalPath(d, this.outerCircleRadius))
 				.style("stroke", (d, i) => 'gray')
 				.attr("stroke-width", function(d) {   
 					  // console.log(d);
 					// console.log(d3.select("#pattern_" + d.data.id).attr("stroke"))                   
-					  // if (mostSimilarPatternToSelectedPatternIdx.length > 0){                        
-					  //  if(d.data.id == mostSimilarPatternToSelectedPatternIdx[d.index]){
-					  //    return '2px'; 
-					  //  }else{
-					  //    return '1px'; 
-					  //  }                 
-					  // }else{
-					  //  return '1px';
-					  // }  
-				})
-			  	.on("mouseover", function(d) {
-					div_tooltip.transition()
-						.duration(200)
-						.style("opacity", .9);
+					if (mostSimilarPatternToSelectedPatternIdx.length > 0){                        
+						if(d.data.id == mostSimilarPatternToSelectedPatternIdx[d.index]){
+							return '2px'; 
+						}else{
+							return '1px'; 
+						}                 
+					}else{
+						return '1px';
+					}  
 
-					var t = d3.select(this.parentNode).attr("transform");
-					var translate = t.substring(t.indexOf("(")+1, t.indexOf(")")).split(",");
-
-					div_tooltip
-						.html("Entropy: " + d.data.length + "</br>" + "Similarity: " + d.data.width)
-						.style("left", translate[0] + "px")
-						.style("top", translate[1] + "px");
 				})
-				.on("mouseout", function(d) {
-					div_tooltip.transition()
-						.duration(500)
-						.style("opacity", 0);
-				})              
+				.attr("stroke", function(d) {   
+					
+					if (mostSimilarPatternToSelectedPatternIdx.length > 0){                        
+						if(selectedPatterns.length > 0){
+							var cur_color_stroke = d3.select("#pattern_" + selectedPatterns.slice(-1)).attr("stroke");                   	
+						}
+
+						if(d.data.id == mostSimilarPatternToSelectedPatternIdx[d.index]){
+							return cur_color_stroke; 
+						}else{
+							return 'black'; 
+						}                 
+					}else{
+						return 'black';
+					}  
+				})
+			 //  	.on("mouseover", function(d) {
+				// 	div_tooltip.transition()
+				// 		.duration(200)
+				// 		.style("opacity", .9);
+
+				// 	var t = d3.select(this.parentNode).attr("transform");
+				// 	var translate = t.substring(t.indexOf("(")+1, t.indexOf(")")).split(",");
+
+				// 	div_tooltip
+				// 		.html("Entropy: " + d.data.length + "</br>" + "Similarity: " + d.data.width)
+				// 		.style("left", translate[0] + "px")
+				// 		.style("top", translate[1] + "px");
+				// })
+				// .on("mouseout", function(d) {
+				// 	div_tooltip.transition()
+				// 		.duration(500)
+				// 		.style("opacity", 0);
+				// })              
 				.style("fill", (d, i) => petal.petalFill(d, i, this.petals))
 				.style('fill-opacity', 0.8);
-
 
 	// DRAW THE RADIAL BAR CHART
 	for(var descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
@@ -199,10 +268,11 @@ class CircularView extends Component {
 		// if there are patterns being selected
 		if (selectedPatterns.length > 0) {
 			draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, margin, width, height, label_flag = false);
-		}
-	  
+		}	  
 	}
 	
+	
+
 	function draw_bars_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, margin, width, height,label_flag = false){
 
 		let patterns, items;
@@ -248,7 +318,9 @@ class CircularView extends Component {
 			.endAngle((d) => x(d.key) + x.bandwidth()*(d.index+1)/patterns.length)
 			.padAngle(0.01)
 			.padRadius(innerRadius))
+			.attr("id", (d)=> "bar_"+descriptor_index+'_'+d.key)
 			.attr("fill", function(d) { 
+				// console.log(d)
 				return barFill(d, descriptor_index, descriptor_size, bar_opacity); 
 			})
 			.attr("opacity", function(d) { return barFillOpacity(d, descriptor_index, descriptor_size,this.foregroundBarOpacity, this.backgroundBarOpacity,bar_opacity); })       
@@ -258,17 +330,15 @@ class CircularView extends Component {
 			})
 			.attr("stroke-width", function(d) { 
 			// bold the stroke for max_items for each descriptor
-			if (typeof max_pattern_item[descriptor_index][d.id] != 'undefined'){
-				if(d.key == max_pattern_item[descriptor_index][d.id]){
-					return '1px'; 
-			}else{
-					return '0px'; 
-			}}else{
-				return '0px';
-				} 
+				if (typeof max_pattern_item[descriptor_index][d.id] != 'undefined'){
+					if(d.key == max_pattern_item[descriptor_index][d.id]){
+						return '1px'; 
+				}else{
+						return '0px'; 
+				}}else{
+					return '0px';
+					} 
 			});
-
-
 
 		// Add the labels     
 		if(label_flag){
@@ -281,9 +351,22 @@ class CircularView extends Component {
 				.attr("transform", function(d) { return (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? "rotate(180)" : "rotate(0)"; })
 				.style("font-size", "15px")
 				.attr("alignment-baseline", "middle")                         
-		}
+		}else{
+			var line = d3.line()
+						.x(function (d) { return (d.x); })
+						.y(function (d) { return (d.y); });
 
+			descriptor_arcs.append("path")
+							.attr("class", "plot")
+							.attr("stroke", "grey")
+							.attr("stroke-width", 0.5)
+							.attr("stroke-dasharray", "1,5")
+							.attr("fill", "none")
+							.attr("d", line(arc_positions_bar_petal[descriptor_index]));
+
+		}	
 	}
+
 
 
 	function axisStroke(i, descriptor_size) {
