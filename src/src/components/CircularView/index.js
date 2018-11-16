@@ -143,18 +143,17 @@ class CircularView extends Component {
 					} else {
 						if(selectedPatterns.length < this.compare_N){
 							var petals_path_items = d3.range(this.petals).map(function(p){
-								if(p == 2){
-									console.log(backdrop.select('#flower_'+d.id).attr("transform"));
-								}
-								return {"d":flowers.select('path#petal_'+d.id+'_'+p+'.petal').attr("d"), 										
+								return {
 										"d_flower":backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr("d"),
 										"translate_flower": backdrop.select('#flower_'+d.id).attr("transform"),
 										"d_bar": backdrop.select('path#bar_'+p+'_'+max_pattern_item[p][d.id]).attr("d"),
 										"item": max_pattern_item[p][d.id],
 										"descriptor_index": p,
-										"pattern_id": d.id}
+										"pattern_id": d.id
+									}
 							});							
 							
+
 							_self.props.onClickPattern(d.id, petals_path_items, innerRadius, outerRadius);
 							d3.select("#pattern_" + d.id).classed("selected", true);
 
@@ -191,6 +190,7 @@ class CircularView extends Component {
 					}
 				});
 				
+		
 	// PLOT THE FLOWERS ==> PATTERNS
 	const flowers = gFlowers.selectAll('.flower')
 				.data(data)
