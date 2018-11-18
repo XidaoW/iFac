@@ -20,10 +20,10 @@ class CircularView extends Component {
 	constructor(props) {
 		super(props);
 		this.layout = {
-			width: 850,
+			width: 1050,
 			height: 1050,
 			svg: {
-			width: 850, // 90% of whole layout
+			width: 1050, // 90% of whole layout
 			height: 1050 // 100% of whole layout
 		},
 	};
@@ -58,14 +58,14 @@ class CircularView extends Component {
 	const { data, selectedPatterns,
 		mostSimilarPatternToSelectedPatternIdx,
 		leastSimilarPatternToSelectedPatternIdx, 
-		arc_positions_bar_petal,
+		arc_positions_bar_petal,item_max_pattern,
 		bar_data, max_pattern_item,components_cnt,modes } = this.props;        
 	const margin = {top: this.detailViewMarginTop, right: this.detailViewMarginRight, 
 		bottom: this.detailViewMarginBottom, left: this.detailViewMarginLeft},
 		width = +this.layout.svg.width - margin.left - margin.right,
 	  	height = +this.layout.svg.height - margin.top - margin.bottom;
 
-	const outerRadius = Math.min(width, height),
+	const outerRadius = Math.min(width, height) - 100,
 		innerRadius = this.circularInnerRadius,
 		max_tsne = data[0].max_tsne,
 		min_tsne = data[0].min_tsne;
@@ -84,10 +84,11 @@ class CircularView extends Component {
 	this.petals = data[0].dims;
 	this.circle_position_x = d3.scaleLinear().domain([min_tsne[0],max_tsne[0]]).range([- 0,+ innerRadius]);
 	this.circle_position_y = d3.scaleLinear().domain([min_tsne[1],max_tsne[1]]).range([- 0, + innerRadius]);
+	var translate_x = 0;
+	var translate_y = 0;
 	svg.setAttribute('width', width);
 	svg.setAttribute('height',height);
-	svg.setAttribute('transform', "translate(" + (outerRadius - innerRadius)/2 + "," + (outerRadius - innerRadius)/2 + ")");
-	// svg.setAttribute('transform', "translate(" + this.outerCircleRadius * 4 + "," + this.outerCircleRadius * 6 + ")");   
+	svg.setAttribute('transform', "translate(" + translate_x + "," + translate_x + ")");
 
 
 	// UPDATE THE LIST OF AVAILABLE COLORS TO PICK FOR CLICKING PATTERNS
@@ -102,7 +103,7 @@ class CircularView extends Component {
 					.attr("class", "background"),
 				gFlowers = backdrop
 					.append('g')
-					.attr('transform', "translate(" + (outerRadius - innerRadius)/2 + "," + (outerRadius - innerRadius)/2 + ")") 					
+					.attr('transform', "translate(" + ((width)/2-(innerRadius)/2) + "," + ((height)/2-( innerRadius)/2) + ")") 					
 					.attr('class', 'g_flowers');
 
 	// ADD TOOLTIP
@@ -152,37 +153,8 @@ class CircularView extends Component {
 										"pattern_id": d.id
 									}
 							});							
-							
-
 							_self.props.onClickPattern(d.id, petals_path_items, innerRadius, outerRadius);
-							d3.select("#pattern_" + d.id).classed("selected", true);
-
-							
-							// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
-							// const  x = d3.scaleBand()
-							// 		.range([2*Math.PI*(descriptor_index+1)/descriptor_size-0.4,  2*Math.PI*(descriptor_index+2)/descriptor_size-0.9])    
-							// 		.domain(items) // The domain of the X axis is the list of states.
-							// 		.paddingInner(0.05),
-							// y = scaleRadial()
-							// 		.range([innerRadius, outerRadius])   // Domain will be define later.
-							// 		.domain([0, 1]), // Domain of Y is from 0 to the max seen in the data
-
-
-							// var arcStart = d3.arc()
-							// 	.innerRadius(innerRadius)
-							// 	.outerRadius((d) => y(0.11177587321191938))
-							// 	.startAngle((d) => x("Milwaukee Bucks") + x.bandwidth()*(0+0.5)/patterns.length)
-							// 	.endAngle((d) => x("Milwaukee Bucks") + x.bandwidth()*(0+0.5)/patterns.length)
-							// 	.padAngle(0.01)
-							// 	.padRadius(innerRadius).centroid();
-								
-
-							// Test chunk for adding links between the petals and the bars	
-							// var arcEnd = flowers.select('path#petal_13_0.petal');
-							// arcEnd = arcEnd.attr("d").split('M').join(',').split('Q').join(',').split(' ').join(',').split(',').slice(5,7);
-
-
-
+							d3.select("#pattern_" + d.id).classed("selected", true);							
 							d3.select("#pattern_" + d.id).attr("stroke", color_list[0]);    							
 							// d3.selectAll(".petal").attr("stroke-width","1px");               
 							color_list.splice(0, 1);
@@ -268,7 +240,22 @@ class CircularView extends Component {
 		// if there are patterns being selected
 		if (selectedPatterns.length > 0) {
 			draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, margin, width, height, label_flag = false);
+			var line = d3.line()
+						.x(function (d) { return (d.x); })
+						.y(function (d) { return (d.y); });
+
+			gFlowers.append("path")
+							.attr("class", "plot")
+							.attr("stroke", "grey")
+							.attr("stroke-width", 2)
+							.attr("stroke-dasharray", "1,5")
+							.attr("fill", "none")
+							.attr("d", line(arc_positions_bar_petal[descriptor_index]));
+
 		}	  
+
+
+		
 	}
 	
 	
@@ -296,6 +283,7 @@ class CircularView extends Component {
 					.attr("class", "detailView")
 					.attr("id", "descriptor"+descriptor_index)          
 					.attr("transform", "translate(" + (width / 2) + "," + ( height/2 )+ ")"); 
+					// .attr("transform", "translate(" + (width / 2) + "," + ( height/2 )+ ")"); 
 
 		
 		descriptor_arcs = g.selectAll("g")
@@ -350,22 +338,26 @@ class CircularView extends Component {
 				.text((d) => d.key)
 				.attr("transform", function(d) { return (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? "rotate(180)" : "rotate(0)"; })
 				.style("font-size", "15px")
-				.attr("alignment-baseline", "middle")                         
-		}else{
-			var line = d3.line()
-						.x(function (d) { return (d.x); })
-						.y(function (d) { return (d.y); });
+				.attr("id", (d) => "label_"+descriptor_index+"_"+d.key)
+				.attr("alignment-baseline", "middle")       
+				.on("click", (d) => {
+					console.log(d);
+					console.log(backdrop.select('path#petal_'+max_pattern_id+'_'+descriptor_index+'.petal').matrixTransform());
+					var max_pattern_id = item_max_pattern[descriptor_index][d.key],
+						link_max_pattern_item_data = {
+							"d_flower":backdrop.select('path#petal_'+max_pattern_id+'_'+descriptor_index+'.petal').attr("d"),
+							"translate_flower": backdrop.select('#flower_'+max_pattern_id).attr("transform"),
+							"d_bar": backdrop.select('path#bar_'+descriptor_index+'_'+d.key).attr("d"),
+							"item": d.key,
+							"descriptor_index": descriptor_index,
+							"pattern_id": d.id
+						};
 
-			descriptor_arcs.append("path")
-							.attr("class", "plot")
-							.attr("stroke", "grey")
-							.attr("stroke-width", 0.5)
-							.attr("stroke-dasharray", "1,5")
-							.attr("fill", "none")
-							.attr("d", line(arc_positions_bar_petal[descriptor_index]));
-
-		}	
+			})
+		}
 	}
+
+
 
 
 
