@@ -142,22 +142,28 @@ class CircularView extends Component {
 						var cancel_color = d3.select("#pattern_" + d.id).attr("stroke");
 						d3.select("#pattern_" + d.id).classed("selected", false);                                       
 						d3.select("#pattern_" + d.id).attr("stroke", "none");
+						for(var descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
+							backdrop.select("path#link_"+descriptor_index).remove()	
+						}
+						
 					} else {
 						if(selectedPatterns.length < this.compare_N){
 							var petals_path_items = d3.range(this.petals).map(function(p){
 								return {
 										"d_flower":backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr("d"),
+										"transform_petal":backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr("transform"),
 										"translate_flower": backdrop.select('#flower_'+d.id).attr("transform"),
+										"transform_bar": backdrop.select('g#descriptor_'+p+'_barchart').attr("transform"),
+										"transform_g_flower": backdrop.select('g.g_flowers').attr("transform"),
 										"d_bar": backdrop.select('path#bar_'+p+'_'+max_pattern_item[p][d.id]).attr("d"),
 										"item": max_pattern_item[p][d.id],
 										"descriptor_index": p,
 										"pattern_id": d.id
 									}
 							});							
-							_self.props.onClickPattern(d.id, petals_path_items, innerRadius, outerRadius);
+							_self.props.onClickPattern(d.id, petals_path_items);
 							d3.select("#pattern_" + d.id).classed("selected", true);							
 							d3.select("#pattern_" + d.id).attr("stroke", color_list[0]);    							
-							// d3.selectAll(".petal").attr("stroke-width","1px");               
 							color_list.splice(0, 1);
 						}
 					}
@@ -184,32 +190,32 @@ class CircularView extends Component {
 				.attr("d", (d) => petal.petalPath(d, this.outerCircleRadius))
 				.style("stroke", (d, i) => 'gray')
 				.attr("stroke-width", function(d) {   
-					if (mostSimilarPatternToSelectedPatternIdx.length > 0){                        
-						if(d.data.id == mostSimilarPatternToSelectedPatternIdx[d.index]){
-							return '2px'; 
-						}else{
-							return '1px'; 
-						}                 
-					}else{
-						return '1px';
-					}  
+					// if (mostSimilarPatternToSelectedPatternIdx.length > 0){                        
+					// 	if(d.data.id == mostSimilarPatternToSelectedPatternIdx[d.index]){
+					// 		return '2px'; 
+					// 	}else{
+					// 		return '1px'; 
+					// 	}                 
+					// }else{
+					// 	return '1px';
+					// }  
 
 				})
 				.attr("stroke", function(d) {   
 					
-					if (mostSimilarPatternToSelectedPatternIdx.length > 0){                        
-						if(selectedPatterns.length > 0){
-							var cur_color_stroke = d3.select("#pattern_" + selectedPatterns.slice(-1)).attr("stroke");                   	
-						}
+					// if (mostSimilarPatternToSelectedPatternIdx.length > 0){                        
+					// 	if(selectedPatterns.length > 0){
+					// 		var cur_color_stroke = d3.select("#pattern_" + selectedPatterns.slice(-1)).attr("stroke");                   	
+					// 	}
 
-						if(d.data.id == mostSimilarPatternToSelectedPatternIdx[d.index]){
-							return cur_color_stroke; 
-						}else{
-							return 'black'; 
-						}                 
-					}else{
-						return 'black';
-					}  
+					// 	if(d.data.id == mostSimilarPatternToSelectedPatternIdx[d.index]){
+					// 		return cur_color_stroke; 
+					// 	}else{
+					// 		return 'black'; 
+					// 	}                 
+					// }else{
+					// 	return 'black';
+					// }  
 				})
 			 //  	.on("mouseover", function(d) {
 				// 	div_tooltip.transition()
@@ -238,17 +244,18 @@ class CircularView extends Component {
 		draw_bars_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, margin, width, height, label_flag = true)
 		if (selectedPatterns.length > 0) {
 			draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, margin, width, height, label_flag = false);
-			// var line = d3.line()
-			// 			.x(function (d) { return (d.x); })
-			// 			.y(function (d) { return (d.y); });
+			var line = d3.line()
+						.x(function (d) { return (d.x); })
+						.y(function (d) { return (d.y); });
 
-			// gFlowers.append("path")
-			// 				.attr("class", "plot")
-			// 				.attr("stroke", "grey")
-			// 				.attr("stroke-width", 2)
-			// 				.attr("stroke-dasharray", "1,5")
-			// 				.attr("fill", "none")
-			// 				.attr("d", line(arc_positions_bar_petal[descriptor_index]));
+			gFlowers.append("path")
+							.attr("class", "plot")
+							.attr("stroke", "grey")
+							.attr("stroke-width", 2)
+							.attr("stroke-dasharray", "1,5")
+							.attr("fill", "none")		
+							.attr("id", "link_"+descriptor_index)					
+							.attr("d", line(arc_positions_bar_petal[descriptor_index].coordinates));
 
 		}	  
 
@@ -279,7 +286,7 @@ class CircularView extends Component {
 		);
 		g = backdrop.append("g")
 					.attr("class", "detailView")
-					.attr("id", "descriptor"+descriptor_index)          
+					.attr("id", "descriptor_"+descriptor_index+"_barchart")          
 					.attr("transform", "translate(" + (width / 2) + "," + ( height/2 )+ ")"); 
 
 		
@@ -310,8 +317,8 @@ class CircularView extends Component {
 			})
 			.attr("opacity", function(d) { return barFillOpacity(d, descriptor_index, descriptor_size,this.foregroundBarOpacity, this.backgroundBarOpacity,bar_opacity); })       
 			.attr("stroke", function(d) { 
-				return axisStroke(descriptor_index,descriptor_size);
-				// return "none";
+				// return axisStroke(descriptor_index,descriptor_size);
+				return "none";
 			})
 			.attr("stroke-width", function(d) { 
 			// bold the stroke for max_items for each descriptor
@@ -336,9 +343,10 @@ class CircularView extends Component {
 				.attr("transform", function(d) { return (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? "rotate(180)" : "rotate(0)"; })
 				.style("font-size", "15px")
 				.attr("id", (d) => "label_"+descriptor_index+"_"+d.key)
+				.attr("class", "label_bar")
 				.attr("alignment-baseline", "middle")       
 				.on("click", (d) => {
-					// console.log(backdrop.select('path#petal_'+max_pattern_id+'_'+descriptor_index+'.petal').node().getBBox());
+					
 					var max_pattern_id = item_max_pattern[descriptor_index][d.key],
 						link_max_pattern_item_data = {
 							"d_flower":backdrop.select('path#petal_'+max_pattern_id+'_'+descriptor_index+'.petal').attr("d"),
@@ -348,15 +356,29 @@ class CircularView extends Component {
 							"descriptor_index": descriptor_index,
 							"pattern_id": d.id
 						};
+					console.log(max_pattern_id);
+					backdrop.select("circle#pattern_"+max_pattern_id).attr("stroke", "black")
+					backdrop.select("circle#pattern_"+max_pattern_id).attr("stroke-opacity", "1")
+					// for(var i = 0; i < bar_data[descriptor_index].length; i++){
 
-					var cur_selected = 'path#petal_'+max_pattern_id+'_'+descriptor_index;
-					console.log(cur_selected)
-					console.log(document.getElementById(cur_selected));
-
+					// 	if(i != max_pattern_id){
+					// 		console.log(backdrop.select("circle#pattern_"+i));
+							
+					// 		backdrop.select("flower#flower_"+i).attr("opacity", 0.1)	
+					// 	}			
+						
+					// }
 			})
 		}
-	}
 
+	}
+	// backdrop.selectAll("text.label_bar")
+	// 			.on("click", (d) => {
+	// 				var cur_selected = '#bar_'+descriptor_index+'_'+d.key;
+	// 				console.log(cur_selected)
+	// 				console.log(document.getElementById(cur_selected));
+
+	// 			})
 
 
 
