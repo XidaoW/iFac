@@ -35,6 +35,8 @@ class App extends Component {
 		};
 	this.handleClickPattern = this.handleClickPattern.bind(this);
 	this.handleUnClickPattern = this.handleUnClickPattern.bind(this);
+	this.handleClickItem = this.handleClickItem.bind(this);
+	this.handleUnClickItem = this.handleUnClickItem.bind(this);
 	this.handleMouseOverPattern = this.handleMouseOverPattern.bind(this);
 	this.handleMouseOutPattern = this.handleMouseOutPattern.bind(this);
 
@@ -58,7 +60,7 @@ class App extends Component {
 		}));
 	}
 
-	handleClickPattern(idx, petals_path_items, innerRadius, outerRadius) { 
+	handleClickPattern(idx, petals_path_items) { 
 		const newSelectedPattern = idx;
 		console.log('clicked id: ', idx);
 		// update the petal width to match the similarity of the selected patterns.		
@@ -67,10 +69,7 @@ class App extends Component {
 		var mostSimilarPattern = [],
 			tensor_dims = factors_data.modes.length,
 			bar_data_cur = this.state.bar_data,
-			selectedPatternCnt = this.state.selectedPatterns.length + 1,		
-			y = scaleRadial()
-				.range([innerRadius, outerRadius])   // Domain will be define later.
-				.domain([0, 1]); // Domain of Y is from 0 to the max seen in the data
+			selectedPatternCnt = this.state.selectedPatterns.length + 1;
 	
 
 		factors.forEach(function(d, id) {
@@ -92,46 +91,28 @@ class App extends Component {
 		}
 
 		var arc_positions_bar_petal = d3.range(tensor_dims).map(function(i){
-			// console.log(petals_path_items[i].translate_flower);
-			// console.log(petals_path_items[i].d_bar);
-			var items = Object.keys(bar_data_cur[i][0]).filter((d) => d !== "id").sort(),
-				x = d3.scaleBand()
-					.range([2*Math.PI*(i+1)/tensor_dims-0.4,  2*Math.PI*(i+2)/tensor_dims-0.9])    
-					.domain(items) // The domain of the X axis is the list of states.
-					.paddingInner(0.05),
-				arcStart = d3.arc()
-					.innerRadius(innerRadius)
-					.outerRadius((d) => y(bar_data_cur[i][idx][petals_path_items[i].item]))
-					.startAngle((d) => x(petals_path_items[i].item) + x.bandwidth()*(i+0.5)/selectedPatternCnt)
-					.endAngle((d) => x(petals_path_items[i].item) + x.bandwidth()*(i+0.5)/selectedPatternCnt)
-					.padAngle(0.01)
-					.padRadius(innerRadius).centroid(),
-				translate_flower = petals_path_items[i].translate_flower.replace("translate(","").replace(")","").split(","),
+			var translate_flower = petals_path_items[i].translate_flower.replace("translate(","").replace(")","").split(","),
+				translate_g_flower = petals_path_items[i].transform_g_flower.replace("translate(","").replace(")","").split(","),
+				translate_bar = petals_path_items[i].transform_bar.replace("translate(","").replace(")","").split(","),
+				translate_petal = petals_path_items[i].transform_petal.replace("rotate(","").replace(")","").split(","),
 				// tip of the petal				
 				arcEnd_flower = petals_path_items[i].d_flower.split('M').join(',').split('Q').join(',').split(' ').join(',').split(',').slice(5,7),
-				// root of the bar -- to be completed -- for now, using the arcStart				
-				arcEnd_bar = petals_path_items[i].d_bar.split('M').join(',').split('A').join(',').split('L').join(',').split(' ').join(',').split(',');
-				// console.log(arcEnd_flower);
+				arcEnd_bar = petals_path_items[i].d_bar.split('M').join(',').split('A').join(',').split('L').join(',').split(' ').join(',').split(','),
+				arcEnd_bar_start = arcEnd_bar.slice(10,12),
+				arcEnd_bar_end = arcEnd_bar.slice(17,19);
 
-				var arcEnd_bar_start = arcEnd_bar.slice(10,12);
-				var arcEnd_bar_end = arcEnd_bar.slice(17,19);
-			
-			return [{"x": parseFloat(translate_flower[0]) - parseFloat(arcEnd_flower[0]), 
-						"y":parseFloat(translate_flower[1]) - parseFloat(arcEnd_flower[1])}, 
-					{"x":  parseFloat(translate_flower[0]) - (parseFloat(arcEnd_bar_start[0]) + parseFloat(arcEnd_bar_end[0]))/2,
-					 "y": parseFloat(translate_flower[1]) - (parseFloat(arcEnd_bar_start[1]) + parseFloat(arcEnd_bar_end[1]))/2}]
+			return {"degree": parseFloat(translate_petal),
+					"coordinates":[{
+									"x": parseFloat(translate_flower[0]) - 0, 
+									"y":parseFloat(translate_flower[1]) - 0
+									}, 
+								{
+									"x": parseFloat(translate_bar[0])+((parseFloat(arcEnd_bar_start[0]) + parseFloat(arcEnd_bar_end[0]))/2)-parseFloat(translate_g_flower[0]),
+					 				"y": parseFloat(translate_bar[1])+((parseFloat(arcEnd_bar_start[1]) + parseFloat(arcEnd_bar_end[1]))/2)-parseFloat(translate_g_flower[1])
+								}
+					]}
 
 		})
-		// console.log(arc_positions_bar_petal);
-
-		
-
-
-
-	// Test chunk for adding links between the petals and the bars  
-	// var arcEnd = flowers.select('path#petal_13_0.petal');
-	// arcEnd = arcEnd.split('M').join(',').split('Q').join(',').split(' ').join(',').split(',').slice(5,7);
-
 
 		this.setState(prevState => ({
 			selectedPatterns: [...prevState.selectedPatterns, newSelectedPattern],
@@ -147,6 +128,99 @@ class App extends Component {
 	}
 
 	handleUnClickPattern(id) {
+		const newSelectedPattern = id;
+		const factors = factors_data.data;
+
+		factors.forEach(function(d, id) {
+			d.petals = d3.range(d.dims).map(function(i) { 
+			// larger entropy, less concentrated descritors
+			// close to 0, more concentrated descriptors
+				return {id: id, length: 1 - d.factors[i].entropy,
+					width: d.factors[i].similarity.average}; 
+			});
+			d.circles = {dominance: d.weight, radius: 6};     
+		});
+
+		this.setState(prevState => ({
+			selectedPatterns: prevState.selectedPatterns.filter((d) => d !== newSelectedPattern),
+			currentSelectedPatternIdx: ''
+		}));
+
+		this.setState({
+			factors_data: factors_data.data,
+		});
+
+	}
+
+
+	handleClickItem(idx, petals_path_items) { 
+		const newSelectedPattern = idx;
+		console.log('clicked id: ', idx);
+		// update the petal width to match the similarity of the selected patterns.		
+		const factors = factors_data.data;
+
+		var mostSimilarPattern = [],
+			tensor_dims = factors_data.modes.length,
+			bar_data_cur = this.state.bar_data,
+			selectedPatternCnt = this.state.selectedPatterns.length + 1;
+	
+
+		factors.forEach(function(d, id) {
+			d.petals = d3.range(d.dims).map(function(i) { 
+				// larger entropy, less concentrated descritors
+				// close to 0, more concentrated descriptors
+				return {id: id, length: 1 - d.factors[i].entropy,
+						width: d.factors[i].similarity[idx]}; 
+			});
+			d.circles = {dominance: d.weight, radius: 6};     
+		});
+
+		// add the most and least similar pattern idx;
+		var max_ids = [],
+			min_ids = [];
+		for(var i = 0; i < factors_data.data[0].dims; i++){
+			max_ids.push(factors[idx].factors[i].similarity.max_idx);
+			min_ids.push(factors[idx].factors[i].similarity.min_idx);
+		}
+
+		var arc_positions_bar_petal = d3.range(tensor_dims).map(function(i){
+			var translate_flower = petals_path_items[i].translate_flower.replace("translate(","").replace(")","").split(","),
+				translate_g_flower = petals_path_items[i].transform_g_flower.replace("translate(","").replace(")","").split(","),
+				translate_bar = petals_path_items[i].transform_bar.replace("translate(","").replace(")","").split(","),
+				translate_petal = petals_path_items[i].transform_petal.replace("rotate(","").replace(")","").split(","),
+				// tip of the petal				
+				arcEnd_flower = petals_path_items[i].d_flower.split('M').join(',').split('Q').join(',').split(' ').join(',').split(',').slice(5,7),
+				arcEnd_bar = petals_path_items[i].d_bar.split('M').join(',').split('A').join(',').split('L').join(',').split(' ').join(',').split(','),
+				arcEnd_bar_start = arcEnd_bar.slice(10,12),
+				arcEnd_bar_end = arcEnd_bar.slice(17,19);
+
+			return {"degree": parseFloat(translate_petal),
+					"coordinates":[{
+									"x": parseFloat(translate_flower[0]) - 0, 
+									"y":parseFloat(translate_flower[1]) - 0
+									}, 
+								{
+									"x": parseFloat(translate_bar[0])+((parseFloat(arcEnd_bar_start[0]) + parseFloat(arcEnd_bar_end[0]))/2)-parseFloat(translate_g_flower[0]),
+					 				"y": parseFloat(translate_bar[1])+((parseFloat(arcEnd_bar_start[1]) + parseFloat(arcEnd_bar_end[1]))/2)-parseFloat(translate_g_flower[1])
+								}
+					]}
+
+		})
+
+		this.setState(prevState => ({
+			selectedPatterns: [...prevState.selectedPatterns, newSelectedPattern],
+			currentSelectedPatternIdx: newSelectedPattern
+		}));
+
+		this.setState({
+			factors_data: factors_data.data,
+			arc_positions_bar_petal: arc_positions_bar_petal,
+			mostSimilarPatternToSelectedPatternIdx: max_ids,
+			leastSimilarPatternToSelectedPatternIdx: min_ids
+		});
+	}
+
+	handleUnClickItem(id) {
 		const newSelectedPattern = id;
 		const factors = factors_data.data;
 
