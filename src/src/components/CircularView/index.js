@@ -65,6 +65,7 @@ class CircularView extends Component {
 		width = +this.layout.svg.width - margin.left - margin.right,
 	  	height = +this.layout.svg.height - margin.top - margin.bottom;
 
+	console.log(item_max_pattern)
 	const outerRadius = Math.min(width, height) - 100,
 		innerRadius = this.circularInnerRadius,
 		max_tsne = data[0].max_tsne,
@@ -183,8 +184,6 @@ class CircularView extends Component {
 				.attr("d", (d) => petal.petalPath(d, this.outerCircleRadius))
 				.style("stroke", (d, i) => 'gray')
 				.attr("stroke-width", function(d) {   
-					  // console.log(d);
-					// console.log(d3.select("#pattern_" + d.data.id).attr("stroke"))                   
 					if (mostSimilarPatternToSelectedPatternIdx.length > 0){                        
 						if(d.data.id == mostSimilarPatternToSelectedPatternIdx[d.index]){
 							return '2px'; 
@@ -237,20 +236,19 @@ class CircularView extends Component {
 	for(var descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
 		// draw the bar for the default values
 		draw_bars_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, margin, width, height, label_flag = true)
-		// if there are patterns being selected
 		if (selectedPatterns.length > 0) {
 			draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, margin, width, height, label_flag = false);
-			var line = d3.line()
-						.x(function (d) { return (d.x); })
-						.y(function (d) { return (d.y); });
+			// var line = d3.line()
+			// 			.x(function (d) { return (d.x); })
+			// 			.y(function (d) { return (d.y); });
 
-			gFlowers.append("path")
-							.attr("class", "plot")
-							.attr("stroke", "grey")
-							.attr("stroke-width", 2)
-							.attr("stroke-dasharray", "1,5")
-							.attr("fill", "none")
-							.attr("d", line(arc_positions_bar_petal[descriptor_index]));
+			// gFlowers.append("path")
+			// 				.attr("class", "plot")
+			// 				.attr("stroke", "grey")
+			// 				.attr("stroke-width", 2)
+			// 				.attr("stroke-dasharray", "1,5")
+			// 				.attr("fill", "none")
+			// 				.attr("d", line(arc_positions_bar_petal[descriptor_index]));
 
 		}	  
 
@@ -283,7 +281,6 @@ class CircularView extends Component {
 					.attr("class", "detailView")
 					.attr("id", "descriptor"+descriptor_index)          
 					.attr("transform", "translate(" + (width / 2) + "," + ( height/2 )+ ")"); 
-					// .attr("transform", "translate(" + (width / 2) + "," + ( height/2 )+ ")"); 
 
 		
 		descriptor_arcs = g.selectAll("g")
@@ -341,8 +338,7 @@ class CircularView extends Component {
 				.attr("id", (d) => "label_"+descriptor_index+"_"+d.key)
 				.attr("alignment-baseline", "middle")       
 				.on("click", (d) => {
-					console.log(d);
-					console.log(backdrop.select('path#petal_'+max_pattern_id+'_'+descriptor_index+'.petal').matrixTransform());
+					// console.log(backdrop.select('path#petal_'+max_pattern_id+'_'+descriptor_index+'.petal').node().getBBox());
 					var max_pattern_id = item_max_pattern[descriptor_index][d.key],
 						link_max_pattern_item_data = {
 							"d_flower":backdrop.select('path#petal_'+max_pattern_id+'_'+descriptor_index+'.petal').attr("d"),
@@ -352,6 +348,10 @@ class CircularView extends Component {
 							"descriptor_index": descriptor_index,
 							"pattern_id": d.id
 						};
+
+					var cur_selected = 'path#petal_'+max_pattern_id+'_'+descriptor_index;
+					console.log(cur_selected)
+					console.log(document.getElementById(cur_selected));
 
 			})
 		}
