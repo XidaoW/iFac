@@ -157,32 +157,12 @@ class App extends Component {
 		const newSelectedPattern = idx;
 		console.log('clicked id: ', idx);
 		// update the petal width to match the similarity of the selected patterns.		
-		const factors = factors_data.data;
 
 		var mostSimilarPattern = [],
 			tensor_dims = factors_data.modes.length,
 			bar_data_cur = this.state.bar_data,
 			selectedPatternCnt = this.state.selectedPatterns.length + 1;
 	
-
-		factors.forEach(function(d, id) {
-			d.petals = d3.range(d.dims).map(function(i) { 
-				// larger entropy, less concentrated descritors
-				// close to 0, more concentrated descriptors
-				return {id: id, length: 1 - d.factors[i].entropy,
-						width: d.factors[i].similarity[idx]}; 
-			});
-			d.circles = {dominance: d.weight, radius: 6};     
-		});
-
-		// add the most and least similar pattern idx;
-		var max_ids = [],
-			min_ids = [];
-		for(var i = 0; i < factors_data.data[0].dims; i++){
-			max_ids.push(factors[idx].factors[i].similarity.max_idx);
-			min_ids.push(factors[idx].factors[i].similarity.min_idx);
-		}
-
 		var arc_positions_bar_petal = d3.range(tensor_dims).map(function(i){
 			var translate_flower = petals_path_items[i].translate_flower.replace("translate(","").replace(")","").split(","),
 				translate_g_flower = petals_path_items[i].transform_g_flower.replace("translate(","").replace(")","").split(","),
@@ -207,16 +187,9 @@ class App extends Component {
 
 		})
 
-		this.setState(prevState => ({
-			selectedPatterns: [...prevState.selectedPatterns, newSelectedPattern],
-			currentSelectedPatternIdx: newSelectedPattern
-		}));
 
 		this.setState({
-			factors_data: factors_data.data,
 			arc_positions_bar_petal: arc_positions_bar_petal,
-			mostSimilarPatternToSelectedPatternIdx: max_ids,
-			leastSimilarPatternToSelectedPatternIdx: min_ids
 		});
 	}
 
