@@ -3,9 +3,6 @@
 
 
 :export {
-    groupColor1: $group-color1;
-    groupColor2: $group-color2;
-    betweenGroupColor: $between-group-color;
     innerCircleRadius: $innerCircleRadius;
 	outerCircleRadius: $outerCircleRadius;
     innerCircleStrokeWidth: $innerCircleStroke-width;
@@ -20,6 +17,4 @@
     detailViewBKBarOpacity: $detailView-bkbar-opacity;
     detailViewFGBarOpacity: $detailView-fgbar-opacity;
     circularInnerRadius: $circularInnerRadius;
-
-
 }

@@ -28,12 +28,11 @@ class PatternDetailView extends Component {
 		this.detailViewMarginRight = gs.detailViewMarginRight;
 		this.backgroundBarOpacity = gs.detailViewBKBarOpacity;
 		this.foregroundBarOpacity = gs.detailViewFGBarOpacity;
-
 	}
 
 
 	render() {
-		const { data, max_pattern_item, selectedPatterns,components_cnt,modes } = this.props;
+		const { data, max_pattern_item, selectedPatterns,components_cnt, modes } = this.props;
 		const svg = new ReactFauxDOM.Element('svg'),
 					descriptor_size = Object.keys(data).length;
 		let g;
