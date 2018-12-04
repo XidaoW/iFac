@@ -7,7 +7,7 @@ import ControlView from 'components/ControlView';
 import { scaleRadial } from '../../lib/draw_radial.js'
 
 import styles from './styles.scss';
-import factors_data from '../../data/sports_factors_3_20.json';
+import factors_data from '../../data/policy_factors_3_20.json';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 
 class App extends Component {
@@ -29,7 +29,10 @@ class App extends Component {
 			currentSelectedPatternIdx:'',
 			mostSimilarPatternToSelectedPatternIdx:[],
 			leastSimilarPatternToSelectedPatternIdx:[],
-			arc_positions_bar_petal:[]
+			arc_positions_bar_petal:[],
+			queries:{},
+			similarPatternToQueries:[]
+
 		};
 
 		this.handleClickPattern = this.handleClickPattern.bind(this);
@@ -60,11 +63,41 @@ class App extends Component {
 	}
 
 	handleClickPattern(idx, petals_path_items) { 
+
+
+		let pattern_cnt = 20,
+			top_k = 5;
+		let queryKeys = ["MA", "VA"],
+			queryDescriptors = [0,1],
+			queries = [[0, ["MA", "VA", "PA"]], [1, ["Housing", "Health"]], [2, ["2012","2013"]]];
+		let queries_dict = {0: ["MA", "VA", "PA"], 1: ["Housing", "Health"], 2: ["2012","2013"]};
+
+
+		console.log()
+
+
+		// p(item1_descriptor1/pattern)*p(item2_descriptor1/pattern)*p(item3_descriptor2/pattern)*p(item4_descriptor3/pattern)
+		let similarPatternToQueries = d3.range(pattern_cnt).map(function(i){
+			return [
+				i, 
+				Object.keys(queries_dict).map(function(key, index){
+					return queries_dict[key].map(function(queryKey){
+						return factors_data.data[i].factors[key].values[queryKey]
+					}).reduce((a,b) => a * b)			
+				}).reduce((a,b) => a * b)				
+			];
+		})
+		similarPatternToQueries.sort(function(first, second) {
+		  return second[1] - first[1];
+		});
+
+		console.log(similarPatternToQueries.slice(0, top_k))
+
+
 		const newSelectedPattern = idx;
 		console.log('clicked id: ', idx);
 		// update the petal width to match the similarity of the selected patterns.		
 		const factors = factors_data.data;
-
 		let mostSimilarPattern = [],
 				tensor_dims = factors_data.modes.length,
 				bar_data_cur = this.state.bar_data,
@@ -158,44 +191,42 @@ class App extends Component {
 	}
 
 
-	handleClickItem(idx, petals_path_items) { 
-		const newSelectedPattern = idx;
-		console.log('clicked id: ', idx);
+	handleClickItem(new_queries, top_k) { 
+		// Query single item from sinle descriptor
+		const pattern_cnt = factors_data.data.length;
 
-		// update the petal width to match the similarity of the selected patterns.		
-		let mostSimilarPattern = [],
-				tensor_dims = factors_data.modes.length,
-				bar_data_cur = this.state.bar_data,
-				selectedPatternCnt = this.state.selectedPatterns.length + 1;
-	
-		let arc_positions_bar_petal = d3.range(tensor_dims).map(function(i){
-		let translate_flower = petals_path_items[i].translate_flower.replace('translate(','').replace(')','').split(','),
-				translate_g_flower = petals_path_items[i].transform_g_flower.replace('translate(','').replace(')','').split(','),
-				translate_bar = petals_path_items[i].transform_bar.replace('translate(','').replace(')','').split(','),
-				translate_petal = petals_path_items[i].transform_petal.replace('rotate(','').replace(')','').split(','),
-				// tip of the petal				
-				arcEnd_flower = petals_path_items[i].d_flower.split('M').join(',').split('Q').join(',').split(' ').join(',').split(',').slice(5,7),
-				arcEnd_bar = petals_path_items[i].d_bar.split('M').join(',').split('A').join(',').split('L').join(',').split(' ').join(',').split(','),
-				arcEnd_bar_start = arcEnd_bar.slice(10,12),
-				arcEnd_bar_end = arcEnd_bar.slice(17,19);
 
-			return {
-				degree: parseFloat(translate_petal),
-				coordinates:[
-					{
-						x: parseFloat(translate_flower[0]) - 0, 
-						y: parseFloat(translate_flower[1]) - 0
-						}, 
-					{
-						x: parseFloat(translate_bar[0]) + ((parseFloat(arcEnd_bar_start[0]) + parseFloat(arcEnd_bar_end[0]))/2)-parseFloat(translate_g_flower[0]),
-						y: parseFloat(translate_bar[1]) + ((parseFloat(arcEnd_bar_start[1]) + parseFloat(arcEnd_bar_end[1]))/2)-parseFloat(translate_g_flower[1])
+		// const queries = this.state.
+		// let queryKeys = ["MA", "VA"],
+		// 	queryDescriptors = [0,1],
+		// 	new_queries = {0: ["MA", "VA", "PA"], 1: ["Housing", "Health"], 2: ["2012","2013"]};
+		console.log(new_queries);
+		// p(item1_descriptor1/pattern)*p(item2_descriptor1/pattern)*p(item3_descriptor2/pattern)*p(item4_descriptor3/pattern)
+		let similarPatternToQueries = d3.range(pattern_cnt).map(function(i){
+			return [
+				i, 
+				Object.keys(new_queries).map(function(key, index){
+					let query_result_each_key = new_queries[key].map(function(queryKey){					
+						return factors_data.data[i].factors[key].values[queryKey]
+					})
+					console.log(query_result_each_key);
+					if(query_result_each_key.length > 1){
+						return query_result_each_key.reduce((a,b) => a * b)
+					}else{
+						return query_result_each_key
 					}
-				]
-			};
+					return 
+				}).reduce((a,b) => a * b)
+			];
 		})
+		similarPatternToQueries.sort(function(first, second) {
+		  return second[1] - first[1];
+		});
 
+		console.log(similarPatternToQueries.slice(0, top_k))
 		this.setState({
-			arc_positions_bar_petal: arc_positions_bar_petal,
+			queries:new_queries,
+			similarPatternToQueries: similarPatternToQueries,
 		});
 	}
 
@@ -223,7 +254,7 @@ class App extends Component {
 	// Being called before rendering (preparing data to pass it to children)
 	componentWillMount() {
 		const _self = this;
-
+		console.log(factors_data);
 		const factors = factors_data.data;
 		let bar_data = {};
 		let max_pattern_item = {};
@@ -261,6 +292,11 @@ class App extends Component {
 			}
 		}
 
+		const queries = d3.range(factors[0].dims).reduce((obj, item) => {
+		     obj[item] = []
+		     return obj
+		   }, {})
+
 		this.setState({
 			screeData: factors_data.scree,
 			item_max_pattern: factors_data.item_max_pattern,
@@ -270,7 +306,8 @@ class App extends Component {
 			bar_data: bar_data,      
 			max_pattern_item: max_pattern_item,
 			descriptors_mean: factors_data.average,
-			modes: factors_data.modes
+			modes: factors_data.modes,
+			queries: queries
 		});    
 	}
 
@@ -282,7 +319,7 @@ class App extends Component {
 					selectedPatterns, mouseOveredPattern, modes,
 					mostSimilarPatternToSelectedPatternIdx,leastSimilarPatternToSelectedPatternIdx,
 					descriptors, descriptors_text,screeData,max_pattern_item, arc_positions_bar_petal, 
-					item_max_pattern } = this.state;
+					item_max_pattern,queries } = this.state;
 
 	const components_cnt = factors_data.length;
 
@@ -304,6 +341,7 @@ class App extends Component {
 				data={factors_data}
 				onClickPattern={this.handleClickPattern}
 				onUnClickPattern={this.handleUnClickPattern}
+				onClickItem={this.handleClickItem}
 				onMouseOverPattern={this.handleMouseOverPattern}
 				onMouseOutPattern={this.handleMouseOutPattern}                        
 				leastSimilarPatternToSelectedPatternIdx={leastSimilarPatternToSelectedPatternIdx}              
@@ -315,6 +353,7 @@ class App extends Component {
 				arc_positions_bar_petal={arc_positions_bar_petal}
 				item_max_pattern={item_max_pattern}
 				modes={modes}
+				queries={queries}
 		  />          
 		  <div>
 				<InspectionView 
