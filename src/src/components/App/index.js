@@ -7,7 +7,7 @@ import ControlView from 'components/ControlView';
 import { scaleRadial } from '../../lib/draw_radial.js'
 
 import styles from './styles.scss';
-import factors_data from '../../data/policy_factors_3_20.json';
+import factors_data from '../../data/sports_factors_3_20.json';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 
 class App extends Component {
@@ -191,42 +191,44 @@ class App extends Component {
 	}
 
 
+
 	handleClickItem(new_queries, top_k) { 
 		// Query single item from sinle descriptor
 		const pattern_cnt = factors_data.data.length;
 
 
-		// const queries = this.state.
-		// let queryKeys = ["MA", "VA"],
-		// 	queryDescriptors = [0,1],
 		// 	new_queries = {0: ["MA", "VA", "PA"], 1: ["Housing", "Health"], 2: ["2012","2013"]};
-		console.log(new_queries);
 		// p(item1_descriptor1/pattern)*p(item2_descriptor1/pattern)*p(item3_descriptor2/pattern)*p(item4_descriptor3/pattern)
 		let similarPatternToQueries = d3.range(pattern_cnt).map(function(i){
-			return [
-				i, 
-				Object.keys(new_queries).map(function(key, index){
+
+			let query_result = 	Object.keys(new_queries).map(function(key, index){
 					let query_result_each_key = new_queries[key].map(function(queryKey){					
-						return factors_data.data[i].factors[key].values[queryKey]
+						return factors_data.data[i].factors[key].values[queryKey];
 					})
-					console.log(query_result_each_key);
+					
 					if(query_result_each_key.length > 1){
-						return query_result_each_key.reduce((a,b) => a * b)
-					}else{
-						return query_result_each_key
+						query_result_each_key = query_result_each_key.reduce((a,b) => a * b)
 					}
-					return 
-				}).reduce((a,b) => a * b)
+					return query_result_each_key;
+				})
+			query_result = query_result.map(function(key){
+				if(key.length == 0){
+					return 1;
+				}else{
+					return key;
+				}
+			})
+			query_result = query_result.reduce((a,b) => a * b)
+			return [
+				i, query_result
 			];
 		})
 		similarPatternToQueries.sort(function(first, second) {
-		  return second[1] - first[1];
+			return second[1] - first[1];
 		});
-
-		console.log(similarPatternToQueries.slice(0, top_k))
 		this.setState({
 			queries:new_queries,
-			similarPatternToQueries: similarPatternToQueries,
+			similarPatternToQueries: similarPatternToQueries.slice(0, top_k)
 		});
 	}
 
@@ -319,7 +321,7 @@ class App extends Component {
 					selectedPatterns, mouseOveredPattern, modes,
 					mostSimilarPatternToSelectedPatternIdx,leastSimilarPatternToSelectedPatternIdx,
 					descriptors, descriptors_text,screeData,max_pattern_item, arc_positions_bar_petal, 
-					item_max_pattern,queries } = this.state;
+					item_max_pattern,queries,similarPatternToQueries } = this.state;
 
 	const components_cnt = factors_data.length;
 
@@ -354,6 +356,7 @@ class App extends Component {
 				item_max_pattern={item_max_pattern}
 				modes={modes}
 				queries={queries}
+				similarPatternToQueries={similarPatternToQueries}
 		  />          
 		  <div>
 				<InspectionView 
