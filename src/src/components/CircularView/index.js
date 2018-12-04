@@ -58,6 +58,7 @@ class CircularView extends Component {
 	this.backgroundBarOpacity = gs.detailViewBKBarOpacity;
 	this.foregroundBarOpacity = gs.detailViewFGBarOpacity;
 	this.circularInnerRadius = gs.circularInnerRadius;
+	this.barLabelFontSize = gs.barLabelFontSize;
 
   }
 
@@ -67,11 +68,11 @@ class CircularView extends Component {
 						mostSimilarPatternToSelectedPatternIdx,
 						leastSimilarPatternToSelectedPatternIdx, 
 						arc_positions_bar_petal,item_max_pattern,
-						bar_data, max_pattern_item,components_cnt,modes } = this.props;        
+						bar_data, max_pattern_item,components_cnt,modes,queries } = this.props;        
 		const width = +this.layout.svg.width - this.layout.detailView.margin.left - this.layout.detailView.margin.right,
 					height = +this.layout.svg.height - this.layout.detailView.margin.top - this.layout.detailView.margin.bottom;
 
-		console.log(item_max_pattern)
+		console.log(queries);
 		const outerRadius = Math.min(width, height) - 100,
 			innerRadius = this.circularInnerRadius,
 			max_tsne = data[0].max_tsne,
@@ -242,8 +243,10 @@ class CircularView extends Component {
 		for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
 			// draw the bar for the default values
 			draw_bars_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, this.layout.detailView.margin, width, height, label_flag = true)
+			draw_query_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, this.layout.detailView.margin, width, height, label_flag = false);				
 			if (selectedPatterns.length > 0) {
 				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, this.layout.detailView.margin, width, height, label_flag = false);
+
 				let line = d3.line()
 						.x(function (d) { return (d.x); })
 						.y(function (d) { return (d.y); });
@@ -329,7 +332,7 @@ class CircularView extends Component {
 					.append('text')
 					.text((d) => d.key)
 					.attr('transform', function(d) { return (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'rotate(180)' : 'rotate(0)'; })
-					.style('font-size', '15px')
+					.style('font-size', '12px')
 					.attr('id', (d) => 'label_' + descriptor_index + '_' + d.key)
 					.attr('class', 'label_bar')
 					.attr('alignment-baseline', 'middle')       
@@ -343,12 +346,104 @@ class CircularView extends Component {
 								'descriptor_index': descriptor_index,
 								'pattern_id': d.id
 							};
-						console.log(max_pattern_id);
 						backdrop.select('circle#pattern_'+max_pattern_id).attr('stroke', 'black');
 						backdrop.select('circle#pattern_'+max_pattern_id).attr('stroke-opacity', '1');
 				})
 			}
 		}
+
+		function draw_query_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, margin, width, height,label_flag = false){
+			let patterns, items;
+			let descriptor_arcs;
+			
+			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
+			items = Object.keys(bar_data[descriptor_index][0]).filter((d) => d !== 'id').sort();
+			// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
+			const x = d3.scaleBand()
+							.range([2*Math.PI*(descriptor_index+1)/descriptor_size-0.4,  2*Math.PI*(descriptor_index+2)/descriptor_size-0.9])    
+							.domain(items) // The domain of the X axis is the list of states.
+							.paddingInner(0.05),
+						y = scaleRadial()
+							.range([innerRadius-20, innerRadius])   // Domain will be define later.
+							.domain([0, 1]), // Domain of Y is from 0 to the max seen in the data
+						bar_opacity = d3.scaleLinear()
+							.range([0, 1])
+							.domain([0, d3.max(patterns, (d) =>
+								d3.max(items, (key) => d[key])) ]
+							);
+						g = backdrop.append('g')
+							.attr('class', 'queryView')
+							.attr('id', 'query_'+descriptor_index+'_barchart')          
+							.attr('transform', 'translate(' + (width / 2) + ',' + ( height/2 )+ ')'); 
+
+			descriptor_arcs = g.selectAll('g')
+							.select('#query' + descriptor_index)
+							.data(patterns)
+							.enter()                                    
+							.selectAll('path')
+							.data(function(d,cur_index) {
+								return items.map(function(key) { 
+									return {key: key, value: d[key], id: d.id, index: cur_index};                         
+								}); 
+							})
+							.enter()
+			// Add the bars
+			descriptor_arcs.append('path')
+					.attr('d', d3.arc()     // imagine your doing a part of a donut plot
+					.innerRadius(innerRadius-10)
+					.outerRadius((d) => y(0))
+					.startAngle((d) => x(d.key) + x.bandwidth()*(d.index)/patterns.length)
+					.endAngle((d) => x(d.key) + x.bandwidth()*(d.index+1)/patterns.length)
+					.padAngle(0.01)
+					.padRadius(innerRadius-10))
+					.attr('class', (d) => 'query_' + descriptor_index)
+					.attr('id', (d)=> 'query_bar_' + descriptor_index + '_' + d.key)
+					.attr('fill', (d) => barFill(d, descriptor_index, descriptor_size, bar_opacity))
+					.attr('opacity', (d) => barFillOpacity(d, descriptor_index, descriptor_size, _self.foregroundBarOpacity, _self.backgroundBarOpacity,bar_opacity))       
+					.attr('stroke', 'none')
+					.on('click', (d) => {
+						let max_pattern_id = item_max_pattern[descriptor_index][d.key];
+						let top_k = 5;
+						if (d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried')) {
+							d3.select('#petal_' + max_pattern_id+ '_' + descriptor_index+'.petal').attr('stroke-width', '1px');  
+							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke", "none");							
+							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', false);							
+						} else {
+							// queries = 
+							queries[descriptor_index].push(d.key)
+							// console.log(d3.select(".queried"))
+							_self.props.onClickItem(queries, top_k);
+							
+							// let max_pattern_id = item_max_pattern[descriptor_index][d.key];
+								// link_max_pattern_item_data = {
+								// 	'd_flower': backdrop.select('path#petal_' + max_pattern_id + '_' + descriptor_index + '.petal').attr('d'),
+								// 	'translate_flower': backdrop.select('#flower_' + max_pattern_id).attr('transform'),
+								// 	'd_bar': backdrop.select('path#bar_' + descriptor_index + '_' + d.key).attr('d'),
+								// 	'item': d.key,
+								// 	'descriptor_index': descriptor_index,
+								// 	'pattern_id': d.id
+								// };
+							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke", "black");
+							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', true);											
+							d3.select('#petal_' + max_pattern_id+ '_' + descriptor_index+'.petal').attr('stroke-width', '3px');  
+
+
+						}						
+					})					
+					.attr('stroke-width', function(d) { 
+						// bold the stroke for max_items for each descriptor
+						if (typeof max_pattern_item[descriptor_index][d.id] != 'undefined') {
+							if (d.key == max_pattern_item[descriptor_index][d.id]) {
+								return '2px'; 
+							} else {
+								return '2px'; 
+							}
+						} else {
+							return '2px';
+						} 
+					});
+
+		}		
 
 		function axisStroke(i, descriptor_size) {
 			return d3.hcl(i / descriptor_size * 360, 60, 70);
