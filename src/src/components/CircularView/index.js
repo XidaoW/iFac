@@ -68,11 +68,12 @@ class CircularView extends Component {
 						mostSimilarPatternToSelectedPatternIdx,
 						leastSimilarPatternToSelectedPatternIdx, 
 						arc_positions_bar_petal,item_max_pattern,
-						bar_data, max_pattern_item,components_cnt,modes,queries } = this.props;        
+						bar_data, max_pattern_item,components_cnt,modes,queries,similarPatternToQueries } = this.props;        
 		const width = +this.layout.svg.width - this.layout.detailView.margin.left - this.layout.detailView.margin.right,
 					height = +this.layout.svg.height - this.layout.detailView.margin.top - this.layout.detailView.margin.bottom;
 
 		console.log(queries);
+		console.log(similarPatternToQueries);
 		const outerRadius = Math.min(width, height) - 100,
 			innerRadius = this.circularInnerRadius,
 			max_tsne = data[0].max_tsne,
@@ -405,6 +406,9 @@ class CircularView extends Component {
 						let max_pattern_id = item_max_pattern[descriptor_index][d.key];
 						let top_k = 5;
 						if (d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried')) {
+							queries[descriptor_index].pop(d.key)
+							// console.log(d3.select(".queried"))
+							_self.props.onClickItem(queries, top_k);							
 							d3.select('#petal_' + max_pattern_id+ '_' + descriptor_index+'.petal').attr('stroke-width', '1px');  
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke", "none");							
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', false);							
