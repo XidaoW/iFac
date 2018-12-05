@@ -65,19 +65,19 @@ class CircularView extends Component {
 
   render() {
 		const { data, selectedPatterns,
-						mostSimilarPatternToSelectedPatternIdx,
-						leastSimilarPatternToSelectedPatternIdx, 
-						arc_positions_bar_petal,item_max_pattern,
-						bar_data, max_pattern_item,components_cnt,modes,queries,similarPatternToQueries } = this.props;        
+				mostSimilarPatternToSelectedPatternIdx,
+				leastSimilarPatternToSelectedPatternIdx, 
+				arc_positions_bar_petal,item_max_pattern,
+				bar_data, max_pattern_item,components_cnt,modes,
+				queries, similarPatternToQueries, item_similarity } = this.props;        
 		const width = +this.layout.svg.width - this.layout.detailView.margin.left - this.layout.detailView.margin.right,
 					height = +this.layout.svg.height - this.layout.detailView.margin.top - this.layout.detailView.margin.bottom;
 
 		const query_flag = Object.keys(queries).map(function(key){			
 			return queries[key].length;
 		}).reduce((a,b)=>a+b);
-		console.log(query_flag);
-		console.log(similarPatternToQueries);
-		const outerRadius = Math.min(width, height) - 100,
+
+		const outerRadius = Math.min(width, height) - 0,
 			innerRadius = this.circularInnerRadius,
 			max_tsne = data[0].max_tsne,
 			min_tsne = data[0].min_tsne;
@@ -85,9 +85,11 @@ class CircularView extends Component {
 		
 		var svg = new ReactFauxDOM.Element('svg'),
 			descriptor_size = Object.keys(bar_data).length,
+			// color_list = ['#ffff99', '#beaed4'],
 			color_list = ['#ffff99', '#fdc086', '#beaed4'],
 			used_color = '',
 			label_flag = false;
+		// this.compare_N = color_list;
 
 		let g; 
 		this.pie = d3.pie().sort(null).value(function(d) { return 1; });
@@ -142,7 +144,6 @@ class CircularView extends Component {
 						.on('click', (d) => {
 							if (d3.select('#pattern_' + d.id).classed('selected')) {
 								_self.props.onUnClickPattern(d.id);
-
 								let cancel_color = d3.select('#pattern_' + d.id).attr('stroke');
 								d3.select('#pattern_' + d.id).classed('selected', false);                                       
 								d3.select('#pattern_' + d.id).attr('stroke', 'none');
@@ -153,7 +154,6 @@ class CircularView extends Component {
 							} else {
 								if (selectedPatterns.length < this.compare_N) {
 									let petals_path_items = d3.range(this.petals).map(function(p){
-										console.log(backdrop.select('path#bar_'+p+'_'+max_pattern_item[p][d.id]));
 										return {
 											'd_flower': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('d'),
 											'transform_petal': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('transform'),
@@ -174,17 +174,6 @@ class CircularView extends Component {
 							}
 						});
 
-		if(query_flag){
-			console.log(similarPatternToQueries);
-			gFlowers.selectAll(".rankText")
-					.data(similarPatternToQueries)
-					.enter().append('text')
-					.attr('transform', (d, i) => { 
-						return 'translate(' + (_self.circle_position_x(d.tsne_coord.x)-4) + ',' 
-								+ (_self.circle_position_y(d.tsne_coord.y)+4) + ')'; 
-						})					
-                	.text((d) => d.rank.toString());
-		}
 		// PLOT THE FLOWERS ==> PATTERNS
 		const flowers = gFlowers.selectAll('.flower')
 						.data(data)
@@ -206,92 +195,73 @@ class CircularView extends Component {
 					.attr('d', (d) => petal.petalPath(d, this.outerCircleRadius))
 					.style('stroke', (d, i) => 'gray')
 					.attr('stroke-width', function(d) {   
-						// if (mostSimilarPatternToSelectedPatternIdx.length > 0){                        
-						// 	if(d.data.id == mostSimilarPatternToSelectedPatternIdx[d.index]){
-						// 		return '2px'; 
-						// 	}else{
-						// 		return '1px'; 
-						// 	}                 
-						// }else{
-						// 	return '1px';
-						// }  
 					})
 					.attr('stroke', function(d) {   
-						// if (mostSimilarPatternToSelectedPatternIdx.length > 0){                        
-						// 	if(selectedPatterns.length > 0){
-						// 		var cur_color_stroke = d3.select('#pattern_' + selectedPatterns.slice(-1)).attr('stroke');                   	
-						// 	}
-
-						// 	if(d.data.id == mostSimilarPatternToSelectedPatternIdx[d.index]){
-						// 		return cur_color_stroke; 
-						// 	}else{
-						// 		return 'black'; 
-						// 	}                 
-						// }else{
-						// 	return 'black';
-						// }  
 					})
-				//  	.on('mouseover', function(d) {
-					// 	div_tooltip.transition()
-					// 		.duration(200)
-					// 		.style('opacity', .9);
-
-					// 	var t = d3.select(this.parentNode).attr('transform');
-					// 	var translate = t.substring(t.indexOf('(')+1, t.indexOf(')')).split(',');
-
-					// 	div_tooltip
-					// 		.html('Entropy: ' + d.data.length + '</br>' + 'Similarity: ' + d.data.width)
-					// 		.style('left', translate[0] + 'px')
-					// 		.style('top', translate[1] + 'px');
-					// })
-					// .on('mouseout', function(d) {
-					// 	div_tooltip.transition()
-					// 		.duration(500)
-					// 		.style('opacity', 0);
-					// })              
 					.style('fill', (d, i) => petal.petalFill(d, i, this.petals))
 					.style('fill-opacity', 0.8);
 
 		// DRAW THE RADIAL BAR CHART
 		for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
 			// draw the bar for the default values
-			draw_bars_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, this.layout.detailView.margin, width, height, label_flag = true)
-			draw_query_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, this.layout.detailView.margin, width, height, label_flag = false);				
+			draw_bars_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, this.layout.detailView.margin, width, height)
+			// draw the query bar
+			draw_query_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, this.layout.detailView.margin, width, height);				
 			if (selectedPatterns.length > 0) {
-				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, this.layout.detailView.margin, width, height, label_flag = false);
+				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, this.layout.detailView.margin, width, height);
 
 				let line = d3.line()
 						.x(function (d) { return (d.x); })
 						.y(function (d) { return (d.y); });
 
-				gFlowers.append('path')
-						.attr('class', 'plot')
+				let pattern_item_line = gFlowers.append('path')
+						.attr('class', 'line_pointer')
 						.attr('stroke', 'grey')
 						.attr('stroke-width', 2)
 						.attr('stroke-dasharray', '1,5')
 						.attr('fill', 'none')		
 						.attr('id', 'link_'+descriptor_index)					
 						.attr('d', line(arc_positions_bar_petal[descriptor_index].coordinates));
+				// console.log(gFlowers.selectAll('.line_pointer'))
+				// gFlowers.exit().selectAll('.line_pointer').transition().duration(5).remove();
+						// ;
 			}	  
 		}
 
 
-		function draw_bars_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, margin, width, height,label_flag = false){
+		// Add the text of queried pattern rank
+		if(query_flag){
+			gFlowers.selectAll(".rankText")
+					.data(similarPatternToQueries)
+					.enter().append('text')
+					.attr('transform', (d, i) => { 
+						return 'translate(' + (_self.circle_position_x(d.tsne_coord.x)-5) + ',' 
+								+ (_self.circle_position_y(d.tsne_coord.y)+5) + ')'; 
+						})					
+                	.text((d) => (d.rank+1).toString());
+		}else{
+			d3.select(".rankText").remove();
+		}
+
+
+		function draw_bars_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, margin, width, height){
 			let patterns, items;
 			let descriptor_arcs;
 			
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
 			items = Object.keys(bar_data[descriptor_index][0]).filter((d) => d !== 'id').sort();
+
+
 			// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
 			const x = d3.scaleBand()
-							.range([2*Math.PI*(descriptor_index+1)/descriptor_size-0.4,  2*Math.PI*(descriptor_index+2)/descriptor_size-0.9])    
+							.range([2*Math.PI*(descriptor_index+1)/descriptor_size-0.2,  2*Math.PI*(descriptor_index+2)/descriptor_size-0.4])    
 							.domain(items) // The domain of the X axis is the list of states.
 							.paddingInner(0.05),
 						y = scaleRadial()
 							.range([innerRadius, outerRadius])   // Domain will be define later.
-							.domain([0, 1]), // Domain of Y is from 0 to the max seen in the data
+							.domain([0, 3]), // Domain of Y is from 0 to the max seen in the data
 						bar_opacity = d3.scaleLinear()
-							.range([0, 1])
+							.range([0, 0.8])
 							.domain([0, d3.max(patterns, (d) =>
 								d3.max(items, (key) => d[key])) ]
 							);
@@ -338,48 +308,49 @@ class CircularView extends Component {
 					});
 
 			// Add the labels     
-			if (label_flag) {
-				descriptor_arcs.append('g')
-					.attr('id', 'descriptor_text')
-					.attr('text-anchor', function(d) { return (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'end' : 'start'; })
-					.attr('transform', function(d) { return 'rotate(' + ((x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length) * 180 / Math.PI - 90) + ')'+'translate(' + (y(d.value)+20) + ',0)'; })
-					.append('text')
-					.text((d) => d.key)
-					.attr('transform', function(d) { return (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'rotate(180)' : 'rotate(0)'; })
-					.style('font-size', '12px')
-					.attr('id', (d) => 'label_' + descriptor_index + '_' + d.key)
-					.attr('class', 'label_bar')
-					.attr('alignment-baseline', 'middle')       
-					.on('click', (d) => {
-						let max_pattern_id = item_max_pattern[descriptor_index][d.key],
-							link_max_pattern_item_data = {
-								'd_flower': backdrop.select('path#petal_' + max_pattern_id + '_' + descriptor_index + '.petal').attr('d'),
-								'translate_flower': backdrop.select('#flower_' + max_pattern_id).attr('transform'),
-								'd_bar': backdrop.select('path#bar_' + descriptor_index + '_' + d.key).attr('d'),
-								'item': d.key,
-								'descriptor_index': descriptor_index,
-								'pattern_id': d.id
-							};
-						backdrop.select('circle#pattern_'+max_pattern_id).attr('stroke', 'black');
-						backdrop.select('circle#pattern_'+max_pattern_id).attr('stroke-opacity', '1');
-				})
-			}
+			backdrop.selectAll("text.label_bar" + descriptor_index).remove();
+			descriptor_arcs.append('g')
+				.attr('class', 'descriptor_text' + descriptor_index)
+				.attr('text-anchor', function(d) { return (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'end' : 'start'; })
+				.attr('transform', function(d) { return 'rotate(' + ((x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length) * 180 / Math.PI - 90) + ')'+'translate(' + (y(d.value)+5) + ',0)'; })
+				.append('text')
+				.text((d) => d.key)
+				.attr('transform', function(d) { return (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'rotate(180)' : 'rotate(0)'; })
+				.style('font-size', '9px')
+				.attr('id', (d) => 'label_' + descriptor_index + '_' + d.key)
+				.attr('class', 'label_bar' + descriptor_index)
+				.attr('alignment-baseline', 'middle')       
+				.on('click', (d) => {
+					let max_pattern_id = item_max_pattern[descriptor_index][d.key],
+						link_max_pattern_item_data = {
+							'd_flower': backdrop.select('path#petal_' + max_pattern_id + '_' + descriptor_index + '.petal').attr('d'),
+							'translate_flower': backdrop.select('#flower_' + max_pattern_id).attr('transform'),
+							'd_bar': backdrop.select('path#bar_' + descriptor_index + '_' + d.key).attr('d'),
+							'item': d.key,
+							'descriptor_index': descriptor_index,
+							'pattern_id': d.id
+						};
+					backdrop.select('circle#pattern_'+max_pattern_id).attr('stroke', 'black');
+					backdrop.select('circle#pattern_'+max_pattern_id).attr('stroke-opacity', '1');
+			})
+			
 		}
 
-		function draw_query_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, margin, width, height,label_flag = false){
+		function draw_query_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, margin, width, height){
 			let patterns, items;
 			let descriptor_arcs;
+			let query_bar;
 			
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
 			items = Object.keys(bar_data[descriptor_index][0]).filter((d) => d !== 'id').sort();
 			// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
 			const x = d3.scaleBand()
-							.range([2*Math.PI*(descriptor_index+1)/descriptor_size-0.4,  2*Math.PI*(descriptor_index+2)/descriptor_size-0.9])    
+							.range([2*Math.PI*(descriptor_index+1)/descriptor_size-0.2,  2*Math.PI*(descriptor_index+2)/descriptor_size-0.4])    
 							.domain(items) // The domain of the X axis is the list of states.
 							.paddingInner(0.05),
 						y = scaleRadial()
 							.range([innerRadius-20, innerRadius])   // Domain will be define later.
-							.domain([0, 1]), // Domain of Y is from 0 to the max seen in the data
+							.domain([0, 3]), // Domain of Y is from 0 to the max seen in the data
 						bar_opacity = d3.scaleLinear()
 							.range([0, 1])
 							.domain([0, d3.max(patterns, (d) =>
@@ -402,7 +373,7 @@ class CircularView extends Component {
 							})
 							.enter()
 			// Add the bars
-			descriptor_arcs.append('path')
+			query_bar = descriptor_arcs.append('path')
 					.attr('d', d3.arc()     // imagine your doing a part of a donut plot
 					.innerRadius(innerRadius-10)
 					.outerRadius((d) => y(0))
@@ -413,38 +384,34 @@ class CircularView extends Component {
 					.attr('class', (d) => 'query_' + descriptor_index)
 					.attr('id', (d)=> 'query_bar_' + descriptor_index + '_' + d.key)
 					.attr('fill', (d) => barFill(d, descriptor_index, descriptor_size, bar_opacity))
-					.attr('opacity', (d) => barFillOpacity(d, descriptor_index, descriptor_size, _self.foregroundBarOpacity, _self.backgroundBarOpacity,bar_opacity))       
+					.attr('opacity', 0.2)       
 					.attr('stroke', 'none')
+					.attr('stroke-width', '3px')
 					.on('click', (d) => {
 						let max_pattern_id = item_max_pattern[descriptor_index][d.key];
 						let top_k = 5;
 						if (d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried')) {
-							queries[descriptor_index].pop(d.key)
+							queries[descriptor_index].pop(d.key);
 							_self.props.onClickItem(queries, top_k);							
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke", "none");							
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', false);							
 						} else {
-							queries[descriptor_index].push(d.key)
+							queries[descriptor_index].push(d.key);
 							_self.props.onClickItem(queries, top_k);
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke", "black");
-							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', true);											
-
-
+							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', true);
 						}						
-					})					
-					.attr('stroke-width', function(d) { 
-						// bold the stroke for max_items for each descriptor
-						if (typeof max_pattern_item[descriptor_index][d.id] != 'undefined') {
-							if (d.key == max_pattern_item[descriptor_index][d.id]) {
-								return '2px'; 
-							} else {
-								return '2px'; 
-							}
-						} else {
-							return '2px';
-						} 
-					});
-
+					})
+					.on('mouseover', (d) => {
+						Object.keys(item_similarity[descriptor_index][d.key]).map(function(key){										
+							d3.select('#query_bar_' + descriptor_index+ '_'+ key).attr("opacity", item_similarity[descriptor_index][d.key][key]);
+						});
+					})
+					.on('mouseout', (d) => {
+						Object.keys(item_similarity[descriptor_index][d.key]).map(function(key){										
+							d3.select('#query_bar_' + descriptor_index+ '_'+ key).attr("opacity", 0.1);
+						});
+					});									
 		}		
 
 		function axisStroke(i, descriptor_size) {
@@ -465,7 +432,7 @@ class CircularView extends Component {
 		}
 		function barFillOpacity(d, descriptor_index, descriptor_size, foregroundBarOpacity, backgroundBarOpacity,bar_opacity) {
 			if (d.id >= components_cnt) {
-				return 0.1;
+				return 0.3;
 			} else {
 				return 1;
 			}     
