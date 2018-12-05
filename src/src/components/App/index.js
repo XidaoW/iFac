@@ -64,36 +64,6 @@ class App extends Component {
 
 	handleClickPattern(idx, petals_path_items) { 
 
-
-		let pattern_cnt = 20,
-			top_k = 5;
-		let queryKeys = ["MA", "VA"],
-			queryDescriptors = [0,1],
-			queries = [[0, ["MA", "VA", "PA"]], [1, ["Housing", "Health"]], [2, ["2012","2013"]]];
-		let queries_dict = {0: ["MA", "VA", "PA"], 1: ["Housing", "Health"], 2: ["2012","2013"]};
-
-
-		console.log()
-
-
-		// p(item1_descriptor1/pattern)*p(item2_descriptor1/pattern)*p(item3_descriptor2/pattern)*p(item4_descriptor3/pattern)
-		let similarPatternToQueries = d3.range(pattern_cnt).map(function(i){
-			return [
-				i, 
-				Object.keys(queries_dict).map(function(key, index){
-					return queries_dict[key].map(function(queryKey){
-						return factors_data.data[i].factors[key].values[queryKey]
-					}).reduce((a,b) => a * b)			
-				}).reduce((a,b) => a * b)				
-			];
-		})
-		similarPatternToQueries.sort(function(first, second) {
-		  return second[1] - first[1];
-		});
-
-		console.log(similarPatternToQueries.slice(0, top_k))
-
-
 		const newSelectedPattern = idx;
 		console.log('clicked id: ', idx);
 		// update the petal width to match the similarity of the selected patterns.		
@@ -200,20 +170,31 @@ class App extends Component {
 		// 	new_queries = {0: ["MA", "VA", "PA"], 1: ["Housing", "Health"], 2: ["2012","2013"]};
 		// p(item1_descriptor1/pattern)*p(item2_descriptor1/pattern)*p(item3_descriptor2/pattern)*p(item4_descriptor3/pattern)
 		// WANT TO ISOLATE THIS CHUNK OF CODE
-		const similarPatternToQueries = this.calculateSimilarityBtnPatternToQueries(pattern_cnt, new_queries);
+		let similarPatternToQueries = this.calculateSimilarityBtnPatternToQueries(pattern_cnt, new_queries);
 
 		similarPatternToQueries.sort(function(first, second) {
 			return second[1] - first[1];
 		});
-		// WANT TO ISOLATE THIS CHUNK OF CODE
-
+		similarPatternToQueries = similarPatternToQueries.slice(0, top_k);
+		similarPatternToQueries = d3.range(top_k).map(function(i){
+			let pattern_idx = similarPatternToQueries[i][0],
+				relevance_score = similarPatternToQueries[i][1],
+				coordinates = factors_data.data[pattern_idx].tsne_coord;
+			return {"rank": i,
+					"pattern_idx": pattern_idx,
+					"relevance_score":relevance_score,
+					"tsne_coord":coordinates};
+		});
 
 		this.setState({
 			queries:new_queries,
-			similarPatternToQueries: similarPatternToQueries.slice(0, top_k)
+			similarPatternToQueries: similarPatternToQueries
 		});
 	}
 
+	// formatSimilarPatterns(similarPatternToQueries, factors_data){
+
+	// }
 	calculateSimilarityBtnPatternToQueries(pattern_cnt, new_queries) {
 		return d3.range(pattern_cnt).map(function(i){
 			let query_result = 	Object.keys(new_queries).map(function(key, index){
