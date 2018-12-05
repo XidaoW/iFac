@@ -173,13 +173,17 @@ class CircularView extends Component {
 								}
 							}
 						});
-		let top_k = 5;
+
 		if(query_flag){
-			for(let pattern_rank_idx = 0; pattern_rank_idx < top_k; pattern_rank_idx++){
-				console.log('#pattern_' + similarPatternToQueries[pattern_rank_idx][0]);
-				d3.select('#pattern_' + similarPatternToQueries[pattern_rank_idx][0]).append("text")
-					.text(pattern_rank_idx);
-			}
+			console.log(similarPatternToQueries);
+			gFlowers.selectAll(".rankText")
+					.data(similarPatternToQueries)
+					.enter().append('text')
+					.attr('transform', (d, i) => { 
+						return 'translate(' + (_self.circle_position_x(d.tsne_coord.x)-4) + ',' 
+								+ (_self.circle_position_y(d.tsne_coord.y)+4) + ')'; 
+						})					
+                	.text((d) => d.rank.toString());
 		}
 		// PLOT THE FLOWERS ==> PATTERNS
 		const flowers = gFlowers.selectAll('.flower')
@@ -416,29 +420,14 @@ class CircularView extends Component {
 						let top_k = 5;
 						if (d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried')) {
 							queries[descriptor_index].pop(d.key)
-							// console.log(d3.select(".queried"))
 							_self.props.onClickItem(queries, top_k);							
-							d3.select('#petal_' + max_pattern_id+ '_' + descriptor_index+'.petal').attr('stroke-width', '1px');  
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke", "none");							
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', false);							
 						} else {
-							// queries = 
 							queries[descriptor_index].push(d.key)
-							// console.log(d3.select(".queried"))
 							_self.props.onClickItem(queries, top_k);
-							
-							// let max_pattern_id = item_max_pattern[descriptor_index][d.key];
-								// link_max_pattern_item_data = {
-								// 	'd_flower': backdrop.select('path#petal_' + max_pattern_id + '_' + descriptor_index + '.petal').attr('d'),
-								// 	'translate_flower': backdrop.select('#flower_' + max_pattern_id).attr('transform'),
-								// 	'd_bar': backdrop.select('path#bar_' + descriptor_index + '_' + d.key).attr('d'),
-								// 	'item': d.key,
-								// 	'descriptor_index': descriptor_index,
-								// 	'pattern_id': d.id
-								// };
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke", "black");
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', true);											
-							d3.select('#petal_' + max_pattern_id+ '_' + descriptor_index+'.petal').attr('stroke-width', '3px');  
 
 
 						}						
