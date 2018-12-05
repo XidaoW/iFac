@@ -7,7 +7,8 @@ import ControlView from 'components/ControlView';
 import { scaleRadial } from '../../lib/draw_radial.js'
 
 import styles from './styles.scss';
-import factors_data from '../../data/sports_factors_3_20.json';
+// import factors_data from '../../data/sports_factors_3_20.json';
+import factors_data from '../../data/policy_factors_3_20.json';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 
 class App extends Component {
@@ -19,6 +20,7 @@ class App extends Component {
 			descriptors: factors_data.descriptors,
 			descriptors_mean: factors_data.average,
 			item_max_pattern: factors_data.item_max_pattern,
+			item_similarity: factors_data.itemSimilarity,
 			descriptors_text: [],
 			modes: factors_data.modes,
 			bar_data: {},
@@ -38,9 +40,11 @@ class App extends Component {
 		this.handleClickPattern = this.handleClickPattern.bind(this);
 		this.handleUnClickPattern = this.handleUnClickPattern.bind(this);
 		this.handleClickItem = this.handleClickItem.bind(this);
-		this.handleUnClickItem = this.handleUnClickItem.bind(this);
 		this.handleMouseOverPattern = this.handleMouseOverPattern.bind(this);
 		this.handleMouseOutPattern = this.handleMouseOutPattern.bind(this);
+		this.handleMouseOverItem = this.handleMouseOverItem.bind(this);
+		this.handleMouseOutItem = this.handleMouseOutItem.bind(this);
+
 	}
 
 	handleMouseOverPattern(idx){
@@ -220,25 +224,22 @@ class App extends Component {
 			];
 		});
 	}
+	handleMouseOverItem(descriptor_index, key, idx){
+		const { factors_data } = this.state;
+		const newMouseOverPatternIdx = idx;
 
-	handleUnClickItem(id) {
-		const newSelectedPattern = id;
-		const factors = factors_data.data;
-
-		factors.forEach(function(d, id) {
-			d.petals = d3.range(d.dims).map(function(i) { 
-			// larger entropy, less concentrated descritors
-			// close to 0, more concentrated descriptors
-				return {id: id, length: 1 - d.factors[i].entropy,
-					width: d.factors[i].similarity.average}; 
-			});
-			d.circles = {dominance: d.weight, radius: 6};     
-		});
+		console.log('mouseovered id: ', factors_data);
+		console.log('mouseovered id: ', idx);
 
 		this.setState(prevState => ({
-			selectedPatterns: prevState.selectedPatterns.filter((d) => d !== newSelectedPattern),
-			currentSelectedPatternIdx: '',
-			factors_data: factors_data.data
+		  mouseOveredPatternIdx: newMouseOverPatternIdx,
+		  mouseOveredPatternData: factors_data[idx]
+		}));
+
+	}
+	handleMouseOutItem(descriptor_index, key){
+		this.setState(prevState => ({
+			mouseOveredPatternIdx: ''
 		}));
 	}
 
@@ -307,10 +308,10 @@ class App extends Component {
 	  return <div />
 
 	const { factors_data, bar_data, descriptors_mean,
-					selectedPatterns, mouseOveredPattern, modes,
-					mostSimilarPatternToSelectedPatternIdx,leastSimilarPatternToSelectedPatternIdx,
-					descriptors, descriptors_text,screeData,max_pattern_item, arc_positions_bar_petal, 
-					item_max_pattern,queries,similarPatternToQueries } = this.state;
+			selectedPatterns, mouseOveredPattern, modes,			
+			mostSimilarPatternToSelectedPatternIdx,leastSimilarPatternToSelectedPatternIdx,
+			descriptors, descriptors_text,screeData, max_pattern_item, arc_positions_bar_petal, 
+			item_max_pattern,queries,similarPatternToQueries, item_similarity } = this.state;
 
 	const components_cnt = factors_data.length;
 
@@ -335,6 +336,8 @@ class App extends Component {
 				onClickItem={this.handleClickItem}
 				onMouseOverPattern={this.handleMouseOverPattern}
 				onMouseOutPattern={this.handleMouseOutPattern}                        
+				onMouseOverItem={this.handleMouseOverItem}
+				onMouseOutItem={this.handleMouseOutItem}                        
 				leastSimilarPatternToSelectedPatternIdx={leastSimilarPatternToSelectedPatternIdx}              
 				mostSimilarPatternToSelectedPatternIdx={mostSimilarPatternToSelectedPatternIdx}          
 				bar_data={bar_data}     
@@ -343,6 +346,7 @@ class App extends Component {
 				components_cnt={components_cnt}
 				arc_positions_bar_petal={arc_positions_bar_petal}
 				item_max_pattern={item_max_pattern}
+				item_similarity={item_similarity}
 				modes={modes}
 				queries={queries}
 				similarPatternToQueries={similarPatternToQueries}
