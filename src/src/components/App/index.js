@@ -199,6 +199,7 @@ class App extends Component {
 
 		// 	new_queries = {0: ["MA", "VA", "PA"], 1: ["Housing", "Health"], 2: ["2012","2013"]};
 		// p(item1_descriptor1/pattern)*p(item2_descriptor1/pattern)*p(item3_descriptor2/pattern)*p(item4_descriptor3/pattern)
+		// WANT TO ISOLATE THIS CHUNK OF CODE
 		let similarPatternToQueries = d3.range(pattern_cnt).map(function(i){
 
 			let query_result = 	Object.keys(new_queries).map(function(key, index){
@@ -226,6 +227,9 @@ class App extends Component {
 		similarPatternToQueries.sort(function(first, second) {
 			return second[1] - first[1];
 		});
+		// WANT TO ISOLATE THIS CHUNK OF CODE
+
+
 		this.setState({
 			queries:new_queries,
 			similarPatternToQueries: similarPatternToQueries.slice(0, top_k)

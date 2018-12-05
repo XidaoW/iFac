@@ -72,7 +72,10 @@ class CircularView extends Component {
 		const width = +this.layout.svg.width - this.layout.detailView.margin.left - this.layout.detailView.margin.right,
 					height = +this.layout.svg.height - this.layout.detailView.margin.top - this.layout.detailView.margin.bottom;
 
-		console.log(queries);
+		const query_flag = Object.keys(queries).map(function(key){			
+			return queries[key].length;
+		}).reduce((a,b)=>a+b);
+		console.log(query_flag);
 		console.log(similarPatternToQueries);
 		const outerRadius = Math.min(width, height) - 100,
 			innerRadius = this.circularInnerRadius,
@@ -163,7 +166,6 @@ class CircularView extends Component {
 											'pattern_id': d.id
 										}
 									});
-
 									_self.props.onClickPattern(d.id, petals_path_items);
 									d3.select('#pattern_' + d.id).classed('selected', true);							
 									d3.select('#pattern_' + d.id).attr('stroke', color_list[0]);    							
@@ -171,8 +173,14 @@ class CircularView extends Component {
 								}
 							}
 						});
-					
-			
+		let top_k = 5;
+		if(query_flag){
+			for(let pattern_rank_idx = 0; pattern_rank_idx < top_k; pattern_rank_idx++){
+				console.log('#pattern_' + similarPatternToQueries[pattern_rank_idx][0]);
+				d3.select('#pattern_' + similarPatternToQueries[pattern_rank_idx][0]).append("text")
+					.text(pattern_rank_idx);
+			}
+		}
 		// PLOT THE FLOWERS ==> PATTERNS
 		const flowers = gFlowers.selectAll('.flower')
 						.data(data)
@@ -262,7 +270,8 @@ class CircularView extends Component {
 						.attr('d', line(arc_positions_bar_petal[descriptor_index].coordinates));
 			}	  
 		}
-	
+
+
 		function draw_bars_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, margin, width, height,label_flag = false){
 			let patterns, items;
 			let descriptor_arcs;
