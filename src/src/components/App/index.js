@@ -75,7 +75,8 @@ class App extends Component {
 		let mostSimilarPattern = [],
 				tensor_dims = factors_data.modes.length,
 				bar_data_cur = this.state.bar_data,
-				selectedPatternCnt = this.state.selectedPatterns.length + 1;
+				prev_selected_patterns = this.state.selectedPatterns,
+				selectedPatternCnt = prev_selected_patterns.length + 1;
 	
 		factors.forEach(function(d, id) {
 			d.petals = d3.range(d.dims).map(function(i) { 
@@ -126,11 +127,21 @@ class App extends Component {
 				]
 			};
 		})
+		// if selected two patterns, we generate the comparison data (difference between two patterns) and assign it to the bar dtaa.
+		if(selectedPatternCnt == 2){
+			Object.keys(bar_data_cur).map(function(key, index){
+				bar_data_cur[key][factors.length+1] = Object.keys(bar_data_cur[key][0]).reduce(function(obj, keyItem){
+					obj[keyItem] = (bar_data_cur[key][newSelectedPattern][keyItem] - bar_data_cur[key][prev_selected_patterns][keyItem])
+					return obj 
+				}, {});
+			});
+		}
 
 		this.setState(prevState => ({
 			selectedPatterns: [...prevState.selectedPatterns, newSelectedPattern],
 			currentSelectedPatternIdx: newSelectedPattern,
 			factors_data: factors_data.data,
+			bar_data: bar_data_cur,
 			arc_positions_bar_petal: arc_positions_bar_petal,
 			mostSimilarPatternToSelectedPatternIdx: max_ids,
 			leastSimilarPatternToSelectedPatternIdx: min_ids
@@ -246,7 +257,6 @@ class App extends Component {
 	// Being called before rendering (preparing data to pass it to children)
 	componentWillMount() {
 		const _self = this;
-		console.log(factors_data);
 		const factors = factors_data.data;
 		let bar_data = {};
 		let max_pattern_item = {};
