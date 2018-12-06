@@ -47,78 +47,89 @@ class App extends Component {
 
 	}
 
+	// depricated
 	handleMouseOverPattern(idx){
-		const { factors_data } = this.state;
-		const newMouseOverPatternIdx = idx;
-
-		console.log('mouseovered id: ', factors_data);
-		console.log('mouseovered id: ', idx);
+		const { factors_data } = this.state,
+			newMouseOverPatternIdx = idx;
 
 		this.setState(prevState => ({
 		  mouseOveredPatternIdx: newMouseOverPatternIdx,
 		  mouseOveredPatternData: factors_data[idx]
 		}));
-
 	}
+	// depricated
 	handleMouseOutPattern(id){
 		this.setState(prevState => ({
 			mouseOveredPatternIdx: ''
 		}));
 	}
 
-	handleClickPattern(idx, petals_path_items) { 
 
-		const newSelectedPattern = idx;
-		console.log('clicked id: ', idx);
-		// update the petal width to match the similarity of the selected patterns.		
-		const factors = factors_data.data;
+	handleClickPattern(idx, petals_path_items) { 
+		/**
+		 * Handles the click events over the patterns.
+		 *
+		 * Prepares data When users select one or two patterns. 
+		 * 1) When user click on one pattern: 
+		 * 	a) updates the petal to match with the simialrity of the selected patterns.
+		 * 	b) computes the patterns with max and min similarity on each descriptor.
+		 * 	c) computes the line path start and end coordinates of the pattern flower and the bar items. 
+		 * 2) When user click and select two patterns:
+		 * 	a) it updates the bar data to include the difference between the two patterns.
+		 * 3) Update the state.		 
+		 *
+		 * @since      0.0.0
+		 *
+		 * @fires   click
+		 * @fires   gFlowers.selectAll('.circle')#click
+		 *
+		 * @param {var}   idx           the id of clicked pattern.
+		 * @param {object} petals_path_items     a object of key-value pair that contains the transform and translates of related items and patterns.
+		 * 
+		 */
+		const newSelectedPattern = idx,
+			factors = factors_data.data,
+			tensor_dims = factors_data.modes.length,			
+			prev_selected_patterns = this.state.selectedPatterns,
+			selectedPatternCnt = prev_selected_patterns.length + 1;
+
 		let mostSimilarPattern = [],
-				tensor_dims = factors_data.modes.length,
-				bar_data_cur = this.state.bar_data,
-				prev_selected_patterns = this.state.selectedPatterns,
-				selectedPatternCnt = prev_selected_patterns.length + 1;
+			max_ids = [],
+			min_ids = [],			
+			bar_data_cur = this.state.bar_data;
+			
 	
 		factors.forEach(function(d, id) {
 			d.petals = d3.range(d.dims).map(function(i) { 
-				// larger entropy, less concentrated descritors
-				// close to 0, more concentrated descriptors
 				return {
 						id: id, length: 1 - d.factors[i].entropy,
 						width: d.factors[i].similarity[idx]
 				}; 
 			});
-
-			d.circles = {
-				dominance: d.weight, 
-				radius: 6
-			};     
 		});
 
-		// add the most and least similar pattern idx;
-		let max_ids = [],
-				min_ids = [];
 		for(var i = 0; i < factors_data.data[0].dims; i++){
 			max_ids.push(factors[idx].factors[i].similarity.max_idx);
 			min_ids.push(factors[idx].factors[i].similarity.min_idx);
 		}
 
 		const arc_positions_bar_petal = d3.range(tensor_dims).map(function(i) {
+			// get the flower coordinates and rotation degree
 			const translate_flower = petals_path_items[i].translate_flower.replace('translate(','').replace(')','').split(','),
-						translate_g_flower = petals_path_items[i].transform_g_flower.replace('translate(','').replace(')','').split(','),
-						translate_bar = petals_path_items[i].transform_bar.replace('translate(','').replace(')','').split(','),
-						translate_petal = petals_path_items[i].transform_petal.replace('rotate(','').replace(')','').split(',');
-			// tip of the petal				
-			const	arcEnd_flower = petals_path_items[i].d_flower.split('M').join(',').split('Q').join(',').split(' ').join(',').split(',').slice(5,7),
-						arcEnd_bar = petals_path_items[i].d_bar.split('M').join(',').split('A').join(',').split('L').join(',').split(' ').join(',').split(','),
-						arcEnd_bar_start = arcEnd_bar.slice(10,12),
-						arcEnd_bar_end = arcEnd_bar.slice(17,19);
+					translate_g_flower = petals_path_items[i].transform_g_flower.replace('translate(','').replace(')','').split(','),
+					translate_bar = petals_path_items[i].transform_bar.replace('translate(','').replace(')','').split(','),
+					translate_petal = petals_path_items[i].transform_petal.replace('rotate(','').replace(')','').split(',');
+			// tip of the petal (not true; currently using the center of the flower)	
+			const	arcEnd_bar = petals_path_items[i].d_bar.split('M').join(',').split('A').join(',').split('L').join(',').split(' ').join(',').split(','),
+					arcEnd_bar_start = arcEnd_bar.slice(10,12),
+					arcEnd_bar_end = arcEnd_bar.slice(17,19);
 
 			return {
 				degree: parseFloat(translate_petal),
 				coordinates:[
 					{
-						x: parseFloat(translate_flower[0]) - 0, 
-						y:parseFloat(translate_flower[1]) - 0
+						x: parseFloat(translate_flower[0]), 
+						y: parseFloat(translate_flower[1])
 					}, 
 					{
 						x: parseFloat(translate_bar[0])+((parseFloat(arcEnd_bar_start[0]) + parseFloat(arcEnd_bar_end[0]))/2)-parseFloat(translate_g_flower[0]),
@@ -127,12 +138,12 @@ class App extends Component {
 				]
 			};
 		})
-		// if selected two patterns, we generate the comparison data (difference between two patterns) and assign it to the bar dtaa.
+
 		if(selectedPatternCnt == 2){
 			Object.keys(bar_data_cur).map(function(key, index){
 				bar_data_cur[key][factors.length+1] = Object.keys(bar_data_cur[key][0]).reduce(function(obj, keyItem){
-					obj[keyItem] = (bar_data_cur[key][newSelectedPattern][keyItem] - bar_data_cur[key][prev_selected_patterns][keyItem])
-					return obj 
+					obj[keyItem] = (bar_data_cur[key][newSelectedPattern][keyItem] - bar_data_cur[key][prev_selected_patterns][keyItem]);
+					return obj;
 				}, {});
 			});
 		}
@@ -148,24 +159,33 @@ class App extends Component {
 		}));
 	}
 
-	handleUnClickPattern(id) {
-		const newSelectedPattern = id;
-		const factors = factors_data.data;
+	handleUnClickPattern(idx) {
+		/**
+		 * Handles the click again events over the patterns.
+		 *
+		 * Prepares data When users unclick pattern. 
+		 * 1) When user click on one pattern: 
+		 * 	a) updates the petal to match with the average simialrity of all patterns.
+		 * 3) Update the state.		 
+		 *
+		 * @since      0.0.0
+		 *
+		 * @fires   click
+		 * @fires   gFlowers.selectAll('.circle')#click
+		 *
+		 * @param {var}   idx           the id of clicked pattern.
+		 * 
+		 */
+		const newSelectedPattern = idx,
+			factors = factors_data.data;
 
 		factors.forEach(function(d, id) {
 			d.petals = d3.range(d.dims).map(function(i) { 
-			// larger entropy, less concentrated descritors
-			// close to 0, more concentrated descriptors
 				return {
 					id: id, length: 1 - d.factors[i].entropy,
 					width: d.factors[i].similarity.average
 				}; 
-			});
-
-			d.circles = {
-				dominance: d.weight, 
-				radius: 6
-			};     
+			});   
 		});
 
 		this.setState(prevState => ({
@@ -178,27 +198,44 @@ class App extends Component {
 
 
 	handleClickItem(new_queries, top_k) { 
-		// Query single item from sinle descriptor
+		/**
+		 * Handles the click items events.
+		 *
+		 * Prepares data when users click on items. 
+		 * 1) When user click on item: 
+		 * 	a) calculate the similarity between the pattern and the query.
+		 * 	b) sort the patterns based on the similarity and select the top_k patterns.
+		 * 	c) reformat that similarities to include the coordinates
+		 * 2) Update the state.		 
+		 *
+		 * @since      0.0.0
+		 *
+		 * @param {object}   new_queries           the dictionary of queries, 
+		 * e.g., new_queries = {0: ["MA", "VA", "PA"], 1: ["Housing", "Health"], 2: ["2012","2013"]}.
+		 * @param {var}   top_k         the number of top patterns.
+		 * 
+		 */
 		const pattern_cnt = factors_data.data.length;
-
-
-		// 	new_queries = {0: ["MA", "VA", "PA"], 1: ["Housing", "Health"], 2: ["2012","2013"]};
 		// p(item1_descriptor1/pattern)*p(item2_descriptor1/pattern)*p(item3_descriptor2/pattern)*p(item4_descriptor3/pattern)
-		// WANT TO ISOLATE THIS CHUNK OF CODE
-		let similarPatternToQueries = this.calculateSimilarityBtnPatternToQueries(pattern_cnt, new_queries);
+		let similarPatternToQueries = this.calculateSimilarityBtnPatternToQueries(pattern_cnt, new_queries),
+			pattern_idx,
+			relevance_score,
+			coordinates;
+
 
 		similarPatternToQueries.sort(function(first, second) {
 			return second[1] - first[1];
-		});
-		similarPatternToQueries = similarPatternToQueries.slice(0, top_k);
+		}).slice(0, top_k);
 		similarPatternToQueries = d3.range(top_k).map(function(i){
-			let pattern_idx = similarPatternToQueries[i][0],
-				relevance_score = similarPatternToQueries[i][1],
-				coordinates = factors_data.data[pattern_idx].tsne_coord;
-			return {"rank": i,
+			pattern_idx = similarPatternToQueries[i][0];
+			relevance_score = similarPatternToQueries[i][1];
+			coordinates = factors_data.data[pattern_idx].tsne_coord;
+			return {
+					"rank": i,
 					"pattern_idx": pattern_idx,
 					"relevance_score":relevance_score,
-					"tsne_coord":coordinates};
+					"tsne_coord":coordinates
+				};
 		});
 
 		this.setState({
@@ -207,28 +244,44 @@ class App extends Component {
 		});
 	}
 
-	// formatSimilarPatterns(similarPatternToQueries, factors_data){
-
-	// }
 	calculateSimilarityBtnPatternToQueries(pattern_cnt, new_queries) {
+		/**
+		 * Caculates the similarity between patterns and the query.
+		 *
+		 * The relevance is defined as:
+		 * \prod_{d\in D^{'}}\prod_{i\in I^{'}} ~p_{di},
+		 * where D^{'} is the set of descriptors and I^{'} is the set of items in new_queries
+		 * and p_{di} is the probability of item i in descriptor d for each pattern.
+		 * 1) When user click on item: 
+		 * 	a) calculate the similarity between the pattern and the query.
+		 * 	b) sort the patterns based on the similarity and select the top_k patterns.
+		 * 	c) reformat that similarities to include the coordinates
+		 * 2) Update the state.		 
+		 *
+		 * @since      0.0.0
+		 *
+		 * @param {var}   pattern_cnt           the total number of patterns.
+		 * @param {object}   new_queries         the query.
+		 * e.g., new_queries = {0: ["MA", "VA", "PA"], 1: ["Housing", "Health"], 2: ["2012","2013"]}.		 
+		 * @return {tuple} [[0, 0.02],[1, 0.01], ...] the relevance score for each pattern.
+		 * 
+		 */		
 		return d3.range(pattern_cnt).map(function(i){
 			let query_result = 	Object.keys(new_queries).map(function(key, index){
 					let query_result_each_key = new_queries[key].map(function(queryKey){					
+						// obtain p_{di} from factors_data
 						return factors_data.data[i].factors[key].values[queryKey];
-					})
-					
-					if(query_result_each_key.length > 1){
-						query_result_each_key = query_result_each_key.reduce((a,b) => a * b)
-					}
-					return query_result_each_key;
-				})
+					});				
+					// multiply each probability if there are more than one item, otherwise use the probability of that item.
+					// p_d = \prod_{i\in I^{'}} ~p_{di}
+					return (query_result_each_key.length > 1)? query_result_each_key.reduce((a,b) => a * b) : query_result_each_key
+				});
 			query_result = query_result.map(function(key){
-				if(key.length == 0){
-					return 1;
-				}else{
-					return key;
-				}
-			})
+				// if there are no items in the query from certain descriptor, use 1 to multiply the ones that have items.				
+				return key.length == 0? 1:key; 
+			});
+			// multiply the prob from each descriptor.
+			// p = \prod_{d\in D^{'}}~p_d
 			query_result = query_result.reduce((a,b) => a * b)
 			return [
 				i, query_result
@@ -236,8 +289,14 @@ class App extends Component {
 		});
 	}
 	handleMouseOverItem(descriptor_index, key, idx){
-		const { factors_data } = this.state;
-		const newMouseOverPatternIdx = idx;
+		/**
+		 * Handles the mouseover items events.
+		 *
+		 * @depricated      0.0.0
+		 * 
+		 */		
+		const { factors_data } = this.state,
+			newMouseOverPatternIdx = idx;
 
 		console.log('mouseovered id: ', factors_data);
 		console.log('mouseovered id: ', idx);
@@ -249,22 +308,43 @@ class App extends Component {
 
 	}
 	handleMouseOutItem(descriptor_index, key){
+		/**
+		 * Handles the mouseout items events.
+		 *
+		 * @depricated      0.0.0
+		 * 
+		 */			
 		this.setState(prevState => ({
 			mouseOveredPatternIdx: ''
 		}));
 	}
 
-	// Being called before rendering (preparing data to pass it to children)
 	componentWillMount() {
-		const _self = this;
-		const factors = factors_data.data;
-		let bar_data = {};
-		let max_pattern_item = {};
+		/**
+		 * Being called before rendering (preparing data to pass it to children)
+		 *
+		 * Prepares the data upon mounting
+		 * 1) update factors to include petal and circle data (potentially can be moved to python data generation process).
+		 * 2) generate the bar_data and push the average distribution to the last element of the bar_data.
+		 * 3) generate the descriptor descriptors.
+		 * 4) update the state
+		 * @since      0.0.0
+		 *
+		 * 
+		*/		
+		const _self = this,
+			factors = factors_data.data,
+			queries = d3.range(factors[0].dims).reduce((obj, item) => {
+				obj[item] = [];
+				return obj;
+			}, {});
+		let bar_data = {},
+			max_pattern_item = {},
+			descriptors_text = [];
+
 
 		factors.forEach(function(d, id) {
 			d.petals = d3.range(d.dims).map(function(i) { 
-			// larger entropy, less concentrated descritors
-			// close to 0, more concentrated descriptors
 				return {
 					id: id, length: 1 - d.factors[i].entropy,
 					width: d.factors[i].similarity.average
@@ -287,17 +367,12 @@ class App extends Component {
 			bar_data[i].push(factors_data.average[i]); 
 		}
 
-		let descriptors_text = [];
 		for (let key in factors_data.descriptors) {
 			if (factors_data.descriptors.hasOwnProperty(key)) {
 				descriptors_text.push(key + '(' + factors_data.descriptors[key].length + ')');
 			}
 		}
 
-		const queries = d3.range(factors[0].dims).reduce((obj, item) => {
-		     obj[item] = []
-		     return obj
-		   }, {})
 
 		this.setState({
 			screeData: factors_data.scree,
