@@ -102,8 +102,8 @@ class App extends Component {
 		factors.forEach(function(d, id) {
 			d.petals = d3.range(d.dims).map(function(i) { 
 				return {
-						id: id, length: 1 - d.factors[i].entropy,
-						width: d.factors[i].similarity[idx]
+						"id": id, "length": 1 - d.factors[i].entropy,
+						"width": d.factors[i].similarity[idx]
 				}; 
 			});
 		});
@@ -182,8 +182,8 @@ class App extends Component {
 		factors.forEach(function(d, id) {
 			d.petals = d3.range(d.dims).map(function(i) { 
 				return {
-					id: id, length: 1 - d.factors[i].entropy,
-					width: d.factors[i].similarity.average
+					"id": id, "length": 1 - d.factors[i].entropy,
+					"width": d.factors[i].similarity.average
 				}; 
 			});   
 		});
@@ -346,13 +346,13 @@ class App extends Component {
 		factors.forEach(function(d, id) {
 			d.petals = d3.range(d.dims).map(function(i) { 
 				return {
-					id: id, length: 1 - d.factors[i].entropy,
-					width: d.factors[i].similarity.average
+					"id": id, "length": 1 - d.factors[i].entropy,
+					"width": d.factors[i].similarity.average
 				}; 
 			});
 			d.circles = {
-				dominance: d.weight, 
-				radius: 6
+				"dominance": d.weight, 
+				"radius": 6
 			};     
 		});
 
