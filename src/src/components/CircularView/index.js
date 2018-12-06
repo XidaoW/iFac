@@ -37,7 +37,6 @@ class CircularView extends Component {
 		};
 
 	this.pie;	
-	this.petals;	
 	this.circle_position_x;
 	this.circle_position_y;
 	this.svg;
@@ -69,94 +68,88 @@ class CircularView extends Component {
 				leastSimilarPatternToSelectedPatternIdx, 
 				arc_positions_bar_petal,item_max_pattern,
 				bar_data, max_pattern_item,components_cnt,modes,
-				queries, similarPatternToQueries, item_similarity } = this.props;        
-		const width = +this.layout.svg.width - this.layout.detailView.margin.left - this.layout.detailView.margin.right,
-					height = +this.layout.svg.height - this.layout.detailView.margin.top - this.layout.detailView.margin.bottom;
+				queries, similarPatternToQueries, item_similarity } = this.props;  
 
-		const query_flag = Object.keys(queries).map(function(key){			
-			return queries[key].length;
-		}).reduce((a,b)=>a+b);
-
-		const outerRadius = Math.min(width, height) - 0,
+		const _self = this,
+			width = +this.layout.svg.width - this.layout.detailView.margin.left - this.layout.detailView.margin.right,
+			height = +this.layout.svg.height - this.layout.detailView.margin.top - this.layout.detailView.margin.bottom,
+			outerRadius = Math.min(width, height) - 0,
 			innerRadius = this.circularInnerRadius,
 			max_tsne = data[0].max_tsne,
-			min_tsne = data[0].min_tsne;
-		const _self = this;        
-		
-		var svg = new ReactFauxDOM.Element('svg'),
-			descriptor_size = Object.keys(bar_data).length,
+			min_tsne = data[0].min_tsne,
+			query_flag = Object.keys(queries).map(function(key){			
+				return queries[key].length;
+			}).reduce((a,b)=>a+b);			
+
+		let	descriptor_size = Object.keys(bar_data).length,
 			color_list = ['#ffff99', '#beaed4'],
-			// color_list = ['#ffff99', '#fdc086', '#beaed4'],
 			used_color = '',
 			label_flag = false,
-			reorder_item = false;
-		// this.compare_N = color_list;
+			reorder_item = false,
+			translate_x = 0,
+			translate_y = 0;			
 
-		let g; 
-		this.pie = d3.pie().sort(null).value(function(d) { return 1; });
-		this.circle_color = d3.scaleLinear().domain([0, 1]).range(['#bf5b17','#e31a1c']).interpolate(d3.interpolateHcl);
-		this.circle_width = d3.scaleLinear().domain([0, 1]).range([1,2]);
-		this.petals = data[0].dims;
-		this.circle_position_x = d3.scaleLinear().domain([min_tsne[0],max_tsne[0]]).range([- 0,+ innerRadius]);
-		this.circle_position_y = d3.scaleLinear().domain([min_tsne[1],max_tsne[1]]).range([- 0, + innerRadius]);
-		var translate_x = 0;
-		var translate_y = 0;
+		let g,
+			svg = new ReactFauxDOM.Element('svg');
+
 		svg.setAttribute('width', width);
 		svg.setAttribute('height',height);
 		svg.setAttribute('transform', 'translate(' + translate_x + ',' + translate_x + ')');
 
 
-		// UPDATE THE LIST OF AVAILABLE COLORS TO PICK FOR CLICKING PATTERNS
+		this.pie = d3.pie().sort(null).value(function(d) { return 1; });
+		this.circle_color = d3.scaleLinear().domain([0, 1]).range(['#bf5b17','#e31a1c']).interpolate(d3.interpolateHcl);
+		this.circle_width = d3.scaleLinear().domain([0, 1]).range([1,2]);
+		this.circle_position_x = d3.scaleLinear().domain([min_tsne[0],max_tsne[0]]).range([- 0, + innerRadius]);
+		this.circle_position_y = d3.scaleLinear().domain([min_tsne[1],max_tsne[1]]).range([- 0, + innerRadius]);
+
+
+		// Update the list of available colors to pick for clicking patterns
 		for(var i = 0; i < selectedPatterns.length; i++){
 			used_color = d3.select('#pattern_' + selectedPatterns[i]).attr('stroke');   
 			color_list.splice( color_list.indexOf(used_color), 1 );
 		}
 
-		// PLOT THE BACKDROP
+		// draw the backdrop
 		const backdrop = d3.select(svg)
 						.append('g')
 						.attr('class', 'background'),
-					gFlowers = backdrop
-						.append('g')
-						.attr('transform', 'translate(' + ((width)/2-(innerRadius)/2) + ',' + ((height)/2-( innerRadius)/2) + ')') 					
-						.attr('class', 'g_flowers');
+			gFlowers = backdrop
+				.append('g')
+				.attr('transform', 'translate(' + ((width)/2-(innerRadius)/2) + ',' + ((height)/2-( innerRadius)/2) + ')')
+				.attr('class', 'g_flowers');
 
-		// ADD TOOLTIP
-		const div_tooltip = d3.select('body').append('div')
-						.attr('id', 'tooltip')
-						.attr('class', 'tooltip')
-						.style('opacity', 0);   
-
+		// remove the lines between patterns and dominating items.
+		// questionable functions
 		backdrop.selectAll('path.line_pointer').remove();
 
-		// ADD THE OUTER CIRCLES TO THE BACKDROP
+		// Add the outer circles to the backdrop.
 		const circles = gFlowers.selectAll('.circle')
 						.data(data)
-						.enter().append('circle')
+						.enter()
+						.append('circle')
 						.attr('class', 'outer_circle')
 						.attr('r', gs.innerCircleRadius)
 						.attr('fill', '#fc8d12')
 						.attr('stroke-width', gs.innerCircleStrokeWidth)                
-						.attr('fill-opacity', function(d) { return d.weight; })                         
+						.attr('fill-opacity', (d) => d.weight) 
 						.attr('stroke-opacity', gs.innerCircleStrokeOpacity)
 						.attr('id', (d) => 'pattern_' + d.id)                
-						.attr('transform', (d, i) => { 
-							return 'translate(' + _self.circle_position_x(d.tsne_coord.x) + ',' 
-									+ _self.circle_position_y(d.tsne_coord.y) + ')'; 
-							})
+						.attr('transform', (d, i) => 'translate(' + _self.circle_position_x(d.tsne_coord.x) + ',' 
+									+ _self.circle_position_y(d.tsne_coord.y) + ')')
 						.on('click', (d) => {
 							if (d3.select('#pattern_' + d.id).classed('selected')) {
 								_self.props.onUnClickPattern(d.id);
 								let cancel_color = d3.select('#pattern_' + d.id).attr('stroke');
 								d3.select('#pattern_' + d.id).classed('selected', false);                                       
 								d3.select('#pattern_' + d.id).attr('stroke', 'none');
+								// remove the lines between patterns and the dominating items.
 								for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
 									backdrop.select('path#link_'+descriptor_index).remove();
-								}
-								
+								}								
 							} else {
 								if (selectedPatterns.length < this.compare_N) {
-									let petals_path_items = d3.range(this.petals).map(function(p){
+									let petals_path_items = d3.range(descriptor_size).map(function(p){
 										return {
 											'd_flower': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('d'),
 											'transform_petal': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('transform'),
@@ -177,21 +170,21 @@ class CircularView extends Component {
 							}
 						});
 
-		// PLOT THE FLOWERS ==> PATTERNS
+		// plot the flowers
 		const flowers = gFlowers.selectAll('.flower')
 						.data(data)
-						.enter().append('g')
+						.enter()
+						.append('g')
 						.attr('class', 'flower')
 						.attr('id', (d) => 'flower_' + d.id)
-						.attr('transform', (d, i) => { 
-							return 'translate(' + _self.circle_position_x(d.tsne_coord.x) + ',' 
-									+ _self.circle_position_y(d.tsne_coord.y) + ')'; 
-						});
+						.attr('transform', (d, i) => 'translate(' + _self.circle_position_x(d.tsne_coord.x) + ',' 
+									+ _self.circle_position_y(d.tsne_coord.y) + ')');
 
-		// ADD THE PETALS TO FLOWERS ==> DESCRIPTORS                
+		// add the petals to the flowers
 		const petals = flowers.selectAll('.petal')
 					.data((d) => this.pie(d.petals))
-					.enter().append('path')
+					.enter()
+					.append('path')
 					.attr('class', 'petal')
 					.attr('id', (d) => 'petal_'+d.data.id+'_' + d.index)
 					.attr('transform', (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
@@ -201,48 +194,73 @@ class CircularView extends Component {
 					})
 					.attr('stroke', function(d) {   
 					})
-					.style('fill', (d, i) => petal.petalFill(d, i, this.petals))
-					.style('fill-opacity', 0.8);
+					.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
+					.style('fill-opacity', 0.6);
 
 		// DRAW THE RADIAL BAR CHART
 		for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
-			let pattern_cnt = selectedPatterns.length;
-			// draw the bar for the default values that show the average of the patterns
+			let selected_pattern_cnt = selectedPatterns.length;
+			// draw the bar for the default values that show the average of the patterns.
 			draw_bars_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, this.layout.detailView.margin, width, height)
 
 			// when selected more than one pattern, show the distribution of selected patterns.
-			if(pattern_cnt > 0) {
+			if(selected_pattern_cnt > 0) {
 				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, this.layout.detailView.margin, width, height);
 				// only show the line pointer (dominating items) when one pattern is selected.
-				if (pattern_cnt == 1) {
+				if (selected_pattern_cnt == 1) {
 					draw_line_pointer(descriptor_index, arc_positions_bar_petal);
 				}
 			}	  
-			reorder_item = (pattern_cnt == 2)? true : false;
+			// when two patterns are selected for comparison, the query bar also needs to or-ordered. 
+			reorder_item = (selected_pattern_cnt == 2)? true : false;
 			draw_query_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, this.layout.detailView.margin, width, height, reorder_item = reorder_item);				
 
 		}
+		draw_query_result(similarPatternToQueries, query_flag);
 
 
-		// Add the text of queried pattern rank
-		if(query_flag){
-			gFlowers.selectAll(".rankText")
-					.data(similarPatternToQueries)
-					.enter().append('text')
-					.attr('transform', (d, i) => { 
-						return 'translate(' + (_self.circle_position_x(d.tsne_coord.x)-5) + ',' 
-								+ (_self.circle_position_y(d.tsne_coord.y)+5) + ')'; 
-						})					
-                	.text((d) => (d.rank+1).toString());
-		}else{
-			d3.select(".rankText").remove();
+		function draw_query_result(similarPatternToQueries, query_flag){
+			/**
+			 * Draws the query result on to the patterns.
+			 *
+			 * if there is query input, draws the query output in terms of rankings as text to center of the flowers.
+			 * otherwise, remove the ranking text.
+			 *
+			 * @since      0.0.0
+			 *
+			 *
+			 * @param {array}   similarPatternToQueries           a ranked list of similarity between pattern and query.
+			 * @param {boolean}  query_flag     if there is query input.
+			 * 
+			 */			
+			if(query_flag){
+				gFlowers.selectAll(".rankText")
+						.data(similarPatternToQueries)
+						.enter()
+						.append('text')
+						.attr('transform', (d, i) => 'translate(' + (_self.circle_position_x(d.tsne_coord.x)-5) + ',' 
+									+ (_self.circle_position_y(d.tsne_coord.y)+5) + ')')
+	                	.text((d) => (d.rank+1).toString());
+			}else{
+				d3.select(".rankText").remove();
+			}
+
 		}
 
 
 		function draw_line_pointer(descriptor_index, arc_positions_bar_petal){
+			/**
+			 * Draws the line between flower and the bar to identify the dominating items.
+			 *
+			 * @since      0.0.0
+			 *
+			 * @param {var}   descriptor_index       the descriptor index.
+			 * @param {object}  arc_positions_bar_petal     the coordiates of the start and end.
+			 * 
+			 */			
 			let line = d3.line()
-						.x(function (d) { return (d.x); })
-						.y(function (d) { return (d.y); });
+						.x((d) => d.x)
+						.y((d) => d.y);
 
 			let pattern_item_line = gFlowers.append('path')
 					.attr('class', 'line_pointer')
@@ -255,18 +273,32 @@ class CircularView extends Component {
 		}
 
 		function draw_bars_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, margin, width, height){
-			let patterns, items, items1;
-			let descriptor_arcs;
+			/**
+			 * Draws the circular bar for each descriptor
+			 *
+			 * 1) obtain the bar data for the selected patterns.
+			 * 2) re-order the items if two patterns are selected for comparison.
+			 * 3) 
+			 * otherwise, remove the ranking text.
+			 *
+			 * @since      0.0.0
+			 *
+			 *
+			 * @param {array}   similarPatternToQueries           a ranked list of similarity between pattern and query.
+			 * @param {boolean}  query_flag     if there is query input.
+			 * 
+			 */					
+			let patterns, items, items1, descriptor_arcs;
 			
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
 			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();
 			if(patterns.length == 2){
-				items1 = Object.keys(bar_data[descriptor_index][components_cnt+1]).filter((d) => d !== 'id').map(function(key){
-					return [key, bar_data[descriptor_index][components_cnt+1][key]];
-				}).sort(function(first, second) {
-					return second[1] - first[1];
-				});
-				items = items1.map(function(key){return key[0]});				
+				// re-ordering the items based on the difference between the two patterns on each descriptor.
+				items1 = Object.keys(bar_data[descriptor_index][components_cnt+1])
+								.filter((d) => d !== 'id')
+								.map((key) => [key, bar_data[descriptor_index][components_cnt+1][key]])
+								.sort((first, second) => second[1] - first[1]);
+				items = items1.map((key) => key[0]);				
 			}
 
 
@@ -293,11 +325,10 @@ class CircularView extends Component {
 							.data(patterns)
 							.enter()                                    
 							.selectAll('path')
-							.data(function(d,cur_index) {
-								return items.map(function(key) { 
-									return {key: key, value: d[key], id: d.id, index: cur_index};                         
-								}); 
-							})
+							.data((d,cur_index) => 
+									items.map((key) => (
+										{key: key, value: d[key], id: d.id, index: cur_index}
+									)))
 							.enter()
 			// Add the bars
 			descriptor_arcs.append('path')
@@ -329,11 +360,11 @@ class CircularView extends Component {
 			backdrop.selectAll("text.label_bar" + descriptor_index).remove();
 			descriptor_arcs.append('g')
 				.attr('class', 'descriptor_text' + descriptor_index)
-				.attr('text-anchor', function(d) { return (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'end' : 'start'; })
-				.attr('transform', function(d) { return 'rotate(' + ((x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length) * 180 / Math.PI - 90) + ')'+'translate(' + (y(d.value)+20) + ',0)'; })
+				.attr('text-anchor', (d) => (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'end' : 'start')
+				.attr('transform', (d) => 'rotate(' + ((x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length) * 180 / Math.PI - 90) + ')'+'translate(' + (y(d.value)+20) + ',0)')
 				.append('text')
 				.text((d) => d.key)
-				.attr('transform', function(d) { return (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'rotate(180)' : 'rotate(0)'; })
+				.attr('transform', (d) => (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'rotate(180)' : 'rotate(0)')
 				.style('font-size', '9px')
 				.attr('id', (d) => 'label_' + descriptor_index + '_' + d.key)
 				.attr('class', 'label_bar' + descriptor_index)
@@ -355,20 +386,17 @@ class CircularView extends Component {
 		}
 
 		function draw_query_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, margin, width, height, reorder_item = false){
-			let patterns, items, items1;
-			let descriptor_arcs;
-			let query_bar;
+			let patterns, items, items1, descriptor_arcs, query_bar;
 			
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
 			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();
 
 			if(reorder_item){
-				items1 = Object.keys(bar_data[descriptor_index][components_cnt+1]).filter((d) => d !== 'id').map(function(key){
-					return [key, bar_data[descriptor_index][components_cnt+1][key]];
-				}).sort(function(first, second) {
-					return second[1] - first[1];
-				});
-				items = items1.map(function(key){return key[0]});				
+				items1 = Object.keys(bar_data[descriptor_index][components_cnt+1])
+								.filter((d) => d !== 'id')
+								.map((key) => [key, bar_data[descriptor_index][components_cnt+1][key]])
+								.sort((first, second) => second[1] - first[1]);
+				items = items1.map((key) => key[0]);	
 			}	
 			// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
 			const x = d3.scaleBand()
@@ -393,11 +421,10 @@ class CircularView extends Component {
 							.data(patterns)
 							.enter()                                    
 							.selectAll('path')
-							.data(function(d,cur_index) {
-								return items.map(function(key) { 
-									return {key: key, value: d[key], id: d.id, index: cur_index};                         
-								}); 
-							})
+							.data((d,cur_index) => 
+									items.map((key) => (
+										{key: key, value: d[key], id: d.id, index: cur_index}
+									)))
 							.enter()
 			// Add the bars
 			query_bar = descriptor_arcs.append('path')
