@@ -87,7 +87,8 @@ class CircularView extends Component {
 			label_flag = false,
 			reorder_item = false,
 			translate_x = 0,
-			translate_y = 0;			
+			translate_y = 0,
+			top_k = 5;
 
 		let g,
 			svg = new ReactFauxDOM.Element('svg');
@@ -278,7 +279,8 @@ class CircularView extends Component {
 			 *
 			 * 1) obtain the bar data for the selected patterns.
 			 * 2) re-order the items if two patterns are selected for comparison.
-			 * 3) 
+			 * 3) draw arc bars
+			 * 4) add labels
 			 * otherwise, remove the ranking text.
 			 *
 			 * @since      0.0.0
@@ -368,24 +370,26 @@ class CircularView extends Component {
 				.style('font-size', '9px')
 				.attr('id', (d) => 'label_' + descriptor_index + '_' + d.key)
 				.attr('class', 'label_bar' + descriptor_index)
-				.attr('alignment-baseline', 'middle')       
-				.on('click', (d) => {
-					let max_pattern_id = item_max_pattern[descriptor_index][d.key],
-						link_max_pattern_item_data = {
-							'd_flower': backdrop.select('path#petal_' + max_pattern_id + '_' + descriptor_index + '.petal').attr('d'),
-							'translate_flower': backdrop.select('#flower_' + max_pattern_id).attr('transform'),
-							'd_bar': backdrop.select('path#bar_' + descriptor_index + '_' + d.key).attr('d'),
-							'item': d.key,
-							'descriptor_index': descriptor_index,
-							'pattern_id': d.id
-						};
-					backdrop.select('circle#pattern_'+max_pattern_id).attr('stroke', 'black');
-					backdrop.select('circle#pattern_'+max_pattern_id).attr('stroke-opacity', '1');
-			})
+				.attr('alignment-baseline', 'middle');
 			
 		}
 
 		function draw_query_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, margin, width, height, reorder_item = false){
+			/**
+			 * Draws the circular bar for input query and visualize item similarity
+			 *
+			 * 1) obtain the bar data for the selected patterns.
+			 * 2) re-order the items if two patterns are selected for comparison.
+			 * 3) draw arc bars and attach click events
+			 * otherwise, remove the ranking text.
+			 *
+			 * @since      0.0.0
+			 *
+			 *
+			 * @param {array}   similarPatternToQueries           a ranked list of similarity between pattern and query.
+			 * @param {boolean}  query_flag     if there is query input.
+			 * 
+			 */				
 			let patterns, items, items1, descriptor_arcs, query_bar;
 			
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
@@ -442,8 +446,6 @@ class CircularView extends Component {
 					.attr('stroke', 'none')
 					.attr('stroke-width', '3px')
 					.on('click', (d) => {
-						let max_pattern_id = item_max_pattern[descriptor_index][d.key];
-						let top_k = 5;
 						if (d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried')) {
 							queries[descriptor_index].pop(d.key);
 							_self.props.onClickItem(queries, top_k);							
@@ -475,21 +477,16 @@ class CircularView extends Component {
 		function barFill(d, descriptor_index, descriptor_size,bar_opacity) {
 			if(d.id >= components_cnt){
 				return axisStroke(descriptor_index, descriptor_size);
-			} else {
-				let cur_color  = d3.select('#pattern_' + d.id).attr('stroke'),       
-						color_dark = d3.rgb(cur_color).darker(0.5),
-						color_light = d3.rgb(cur_color).brighter(0.5),
-						color_pick = d3.scaleLinear().domain([0, 1]).range([color_light,color_dark]);
+			}  
+			let cur_color  = d3.select('#pattern_' + d.id).attr('stroke'),       
+				color_dark = d3.rgb(cur_color).darker(0.5),
+				color_light = d3.rgb(cur_color).brighter(0.5),
+				color_pick = d3.scaleLinear().domain([0, 1]).range([color_light,color_dark]);
 
-				return color_pick(bar_opacity(d.value));
-			}
+			return color_pick(bar_opacity(d.value));
 		}
 		function barFillOpacity(d, descriptor_index, descriptor_size, foregroundBarOpacity, backgroundBarOpacity,bar_opacity) {
-			if (d.id >= components_cnt) {
-				return 0.1;
-			} else {
-				return 1;
-			}     
+			return (d.id >= components_cnt)? 0.1 : 1;
 		};
 
 		return (
