@@ -65,9 +65,9 @@ class ControlView extends Component {
 		
 		var n = screeData.error.length;
 
-		plot_linechart(this.svg_error, error_data, margin, width, height, n, 1);
-		plot_linechart(this.svg_stability, stability_data, margin, width, height, n,2);
-		plot_linechart(this.svg_interpretability, interpretability_data, margin, width, height, n,3);
+		plot_linechart(this.svg_error, error_data, margin, width, height);
+		plot_linechart(this.svg_stability, stability_data, margin, width, height);
+		plot_linechart(this.svg_interpretability, interpretability_data, margin, width, height, n);
 
 
 		// Compute the scree (mean, std) for each metric
@@ -78,7 +78,7 @@ class ControlView extends Component {
 			return [mean_, std_]
 		}
 
-		function plot_linechart(cur_svg, dataset, margin, width, height, place = 1){
+		function plot_linechart(cur_svg, dataset, margin, width, height){
 
 			var svg = d3.select(cur_svg).append("g")
 						.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
