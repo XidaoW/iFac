@@ -8,7 +8,7 @@ import { scaleRadial } from '../../lib/draw_radial.js'
 
 import styles from './styles.scss';
 // import factors_data from '../../data/sports_factors_3_20.json';
-import factors_data from '../../data/policy_factors_3_20.json';
+import factors_data from '../../data/policy_factors_3_5.json';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 
 class App extends Component {
@@ -18,6 +18,7 @@ class App extends Component {
 			screeData: factors_data.scree,
 			factors_data: factors_data.data,
 			descriptors: factors_data.descriptors,
+			screeData: factors_data.metrics,
 			descriptors_mean: factors_data.average,
 			item_max_pattern: factors_data.item_max_pattern,
 			item_similarity: factors_data.itemSimilarity,
@@ -375,7 +376,6 @@ class App extends Component {
 
 
 		this.setState({
-			screeData: factors_data.scree,
 			item_max_pattern: factors_data.item_max_pattern,
 			descriptors: factors_data.descriptors,      
 			factors_data: factors_data.data,
