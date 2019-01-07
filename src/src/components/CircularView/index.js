@@ -2,8 +2,7 @@ import React, { Component } from 'react';
 import * as d3 from 'd3';
 import ReactFauxDOM from 'react-faux-dom';
 import {scaleRadial} from '../../lib/draw_radial.js'
-
-
+import * as quadPath from '../../lib/draw_quadratic_path.js'	
 import * as petal from '../../lib/draw_petals.js'
 
 import _ from 'lodash';
@@ -68,7 +67,7 @@ class CircularView extends Component {
 				leastSimilarPatternToSelectedPatternIdx, 
 				arc_positions_bar_petal,item_max_pattern,
 				bar_data, max_pattern_item,components_cnt,modes,
-				queries, similarPatternToQueries, item_similarity } = this.props;  
+				queries, similarPatternToQueries, item_links, mouseOveredDescriptorIdx, item_similarity } = this.props;  
 
 		const _self = this,
 			width = +this.layout.svg.width - this.layout.detailView.margin.left - this.layout.detailView.margin.right,
@@ -97,12 +96,13 @@ class CircularView extends Component {
 		svg.setAttribute('height',height);
 		svg.setAttribute('transform', 'translate(' + translate_x + ',' + translate_x + ')');
 
-
 		this.pie = d3.pie().sort(null).value(function(d) { return 1; });
 		this.circle_color = d3.scaleLinear().domain([0, 1]).range(['#bf5b17','#e31a1c']).interpolate(d3.interpolateHcl);
 		this.circle_width = d3.scaleLinear().domain([0, 1]).range([1,2]);
 		this.circle_position_x = d3.scaleLinear().domain([min_tsne[0],max_tsne[0]]).range([- 0, + innerRadius]);
 		this.circle_position_y = d3.scaleLinear().domain([min_tsne[1],max_tsne[1]]).range([- 0, + innerRadius]);
+
+
 
 
 		// Update the list of available colors to pick for clicking patterns
@@ -217,8 +217,9 @@ class CircularView extends Component {
 			draw_query_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, this.layout.detailView.margin, width, height, reorder_item = reorder_item);				
 
 		}
-		draw_query_result(similarPatternToQueries, query_flag);
 
+		draw_query_result(similarPatternToQueries, query_flag);
+		
 
 		function draw_query_result(similarPatternToQueries, query_flag){
 			/**
@@ -380,7 +381,8 @@ class CircularView extends Component {
 			 *
 			 * 1) obtain the bar data for the selected patterns.
 			 * 2) re-order the items if two patterns are selected for comparison.
-			 * 3) draw arc bars and attach click events
+			 * 3) draw arc bars and attach click and mouseover events
+			 * 4) draw the link between items
 			 * otherwise, remove the ranking text.
 			 *
 			 * @since      0.0.0
@@ -414,7 +416,10 @@ class CircularView extends Component {
 							.range([0, 1])
 							.domain([0, d3.max(patterns, (d) =>
 								d3.max(items, (key) => d[key])) ]
-							);
+							),
+						line_width = d3.scaleLinear()
+							.range([0, 2])
+							.domain([0, 1]),
 						g = backdrop.append('g')
 							.attr('class', 'queryView')
 							.attr('id', 'query_'+descriptor_index+'_barchart')          
@@ -459,15 +464,47 @@ class CircularView extends Component {
 						}						
 					})
 					.on('mouseover', (d) => {
+						d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("opacity",1);
+						// d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke","black");
 						Object.keys(item_similarity[descriptor_index][d.key]).map(function(key){										
 							d3.select('#query_bar_' + descriptor_index+ '_'+ key).attr("opacity", item_similarity[descriptor_index][d.key][key]);
 						});
+						const top_k_item = 5;
+						// Create items array
+						var top_items = Object.keys(item_similarity[descriptor_index][d.key]).map(function(key) {
+							return [key, item_similarity[descriptor_index][d.key][key]];
+						});
+						// Sort the array based on the second element
+						top_items.sort(function(first, second) {
+							return second[1] - first[1];
+						});	
+						top_items = top_items.slice(0, top_k_item);
+						let bars_item = top_items.map(function(key, value){
+							return {
+								'transform_bar': backdrop.select('g#query_'+descriptor_index+'_barchart').attr('transform'),
+								'q_bar_end': backdrop.select('path#query_bar_'+descriptor_index+'_'+key[0]).attr('d'),
+								'transform_g_flower': backdrop.select('g.g_flowers').attr('transform'),
+								'key': key[0],
+								'similarity': item_similarity[descriptor_index][d.key][key[0]]
+							}
+						}),q_bar_start = backdrop.select('path#query_bar_'+descriptor_index+'_'+d.key).attr('d');
+
+						_self.props.onMouseOverItem(descriptor_index, d.key, q_bar_start, bars_item);
+
 					})
 					.on('mouseout', (d) => {
+						d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("opacity",0.1);
+						// d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke","none");
 						Object.keys(item_similarity[descriptor_index][d.key]).map(function(key){										
 							d3.select('#query_bar_' + descriptor_index+ '_'+ key).attr("opacity", 0.1);
 						});
-					});									
+						_self.props.onMouseOutItem();
+					});			
+			// Draw the link between similar items
+			for(let link_id = 0; link_id < item_links.length; link_id++){
+				quadPath.drawQuadratic(gFlowers, item_links[link_id], axisStroke(mouseOveredDescriptorIdx, descriptor_size), line_width);
+			}
+
 		}		
 
 		function axisStroke(i, descriptor_size) {
