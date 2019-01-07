@@ -27,10 +27,9 @@ class ControlView extends Component {
 	}
 
 	render() {
-		// if (!this.props.scree || this.props.scree.length === 0)
-		// return <div />
+		// if (!this.props.screeData || this.props.screeData.length === 0)
+		// 	return <div />
 		// https://bl.ocks.org/NGuernse/8dc8b9e96de6bedcb6ad2c5467f5ef9a
-		console.log(this.props);
 		const _self = this;
 		const { screeData } = this.props;
 
@@ -38,9 +37,14 @@ class ControlView extends Component {
 		  	width = this.layout.width - margin.left - margin.right, // Use the window's width 
 		  	height = this.layout.height - margin.top - margin.bottom; // Use the window's height
 
+		this.svg_description = new ReactFauxDOM.Element('svg');
 		this.svg_error = new ReactFauxDOM.Element('svg');
 		this.svg_stability = new ReactFauxDOM.Element('svg');
 		this.svg_interpretability = new ReactFauxDOM.Element('svg');
+
+		this.svg_description.setAttribute('width', width + margin.left + margin.right);
+		this.svg_description.setAttribute('height', height + margin.top + margin.bottom);
+		this.svg_description.setAttribute('transform', "translate(" + 0 + "," + 0 + ")");
 
 		this.svg_error.setAttribute('width', width + margin.left + margin.right);
 		this.svg_error.setAttribute('height', height + margin.top + margin.bottom);
@@ -51,6 +55,8 @@ class ControlView extends Component {
 		this.svg_interpretability.setAttribute('width', width + margin.left + margin.right);		
 		this.svg_interpretability.setAttribute('height', height + margin.top + margin.bottom);
 		this.svg_interpretability.setAttribute('transform', "translate(" + (margin.left + (this.layout.width)*2) + "," + (margin.top- (this.layout.height)*2) + ")");		
+		// d3.select(this.svg_description).append("text").text("#Pattens");
+		// d3.select(this.svg_description).append("text").text("#Descriptors");
 
 		var error_data = d3.range(screeData.error.length).map(function(d, i) {
 			var rst = computeMeanStd(screeData.error[d]);

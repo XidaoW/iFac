@@ -4,7 +4,9 @@ import Overview from 'components/Overview';
 import CircularView from 'components/CircularView';
 import InspectionView from 'components/InspectionView';
 import ControlView from 'components/ControlView';
-import { scaleRadial } from '../../lib/draw_radial.js'
+import { extractItemCoordinates, extractPetalBarCoordinates } from '../../lib/extract_coordinates.js'
+
+
 
 import styles from './styles.scss';
 // import factors_data from '../../data/sports_factors_3_20.json';
@@ -28,13 +30,15 @@ class App extends Component {
 			max_pattern_item: {},
 			mouseOveredPatternIdx: '',
 			mouseOveredPatternData: {},
+			mouseOveredDescriptorIdx: '',						
 			selectedPatterns: [],
 			currentSelectedPatternIdx:'',
 			mostSimilarPatternToSelectedPatternIdx:[],
 			leastSimilarPatternToSelectedPatternIdx:[],
 			arc_positions_bar_petal:[],
 			queries:{},
-			similarPatternToQueries:[]
+			similarPatternToQueries:[],
+			item_links: []
 
 		};
 
@@ -114,32 +118,6 @@ class App extends Component {
 			min_ids.push(factors[idx].factors[i].similarity.min_idx);
 		}
 
-		const arc_positions_bar_petal = d3.range(tensor_dims).map(function(i) {
-			// get the flower coordinates and rotation degree
-			const translate_flower = petals_path_items[i].translate_flower.replace('translate(','').replace(')','').split(','),
-					translate_g_flower = petals_path_items[i].transform_g_flower.replace('translate(','').replace(')','').split(','),
-					translate_bar = petals_path_items[i].transform_bar.replace('translate(','').replace(')','').split(','),
-					translate_petal = petals_path_items[i].transform_petal.replace('rotate(','').replace(')','').split(',');
-			// tip of the petal (not true; currently using the center of the flower)	
-			const	arcEnd_bar = petals_path_items[i].d_bar.split('M').join(',').split('A').join(',').split('L').join(',').split(' ').join(',').split(','),
-					arcEnd_bar_start = arcEnd_bar.slice(10,12),
-					arcEnd_bar_end = arcEnd_bar.slice(17,19);
-
-			return {
-				degree: parseFloat(translate_petal),
-				coordinates:[
-					{
-						x: parseFloat(translate_flower[0]), 
-						y: parseFloat(translate_flower[1])
-					}, 
-					{
-						x: parseFloat(translate_bar[0])+((parseFloat(arcEnd_bar_start[0]) + parseFloat(arcEnd_bar_end[0]))/2)-parseFloat(translate_g_flower[0]),
-						y: parseFloat(translate_bar[1])+((parseFloat(arcEnd_bar_start[1]) + parseFloat(arcEnd_bar_end[1]))/2)-parseFloat(translate_g_flower[1])
-					}
-				]
-			};
-		})
-
 		if(selectedPatternCnt == 2){
 			Object.keys(bar_data_cur).map(function(key, index){
 				bar_data_cur[key][factors.length+1] = Object.keys(bar_data_cur[key][0]).reduce(function(obj, keyItem){
@@ -154,7 +132,7 @@ class App extends Component {
 			currentSelectedPatternIdx: newSelectedPattern,
 			factors_data: factors_data.data,
 			bar_data: bar_data_cur,
-			arc_positions_bar_petal: arc_positions_bar_petal,
+			arc_positions_bar_petal: extractPetalBarCoordinates(petals_path_items),
 			mostSimilarPatternToSelectedPatternIdx: max_ids,
 			leastSimilarPatternToSelectedPatternIdx: min_ids
 		}));
@@ -228,14 +206,11 @@ class App extends Component {
 			return second[1] - first[1];
 		}).slice(0, top_k);
 		similarPatternToQueries = d3.range(top_k).map(function(i){
-			pattern_idx = similarPatternToQueries[i][0];
-			relevance_score = similarPatternToQueries[i][1];
-			coordinates = factors_data.data[pattern_idx].tsne_coord;
 			return {
 					"rank": i,
-					"pattern_idx": pattern_idx,
-					"relevance_score":relevance_score,
-					"tsne_coord":coordinates
+					"pattern_idx": similarPatternToQueries[i][0],
+					"relevance_score":similarPatternToQueries[i][1],
+					"tsne_coord":factors_data.data[similarPatternToQueries[i][0]].tsne_coord
 				};
 		});
 
@@ -289,34 +264,38 @@ class App extends Component {
 			];
 		});
 	}
-	handleMouseOverItem(descriptor_index, key, idx){
+	handleMouseOverItem(descriptor_index, key, q_bar_start, items){
 		/**
 		 * Handles the mouseover items events.
 		 *
-		 * @depricated      0.0.0
+		 *
+		 * 1) Compute the coordinates of the bar_start (mouseovered item) and the bar_end (top similar items) 
+		 * 2) return in the format of function drawQuadratic input
+		 *
+		 * @since       0.0.0
+		 * @param {var} descriptor_index  the descriptor_index that is being mouse overed
+		 * @param {var} key  the item key that is being mouse overed
+		 * @param {var} q_bar_start  the path of the key being mouse overed
+		 * @param {object} items  the dictionary that contains the path of the similar items
 		 * 
 		 */		
-		const { factors_data } = this.state,
-			newMouseOverPatternIdx = idx;
-
-		console.log('mouseovered id: ', factors_data);
-		console.log('mouseovered id: ', idx);
 
 		this.setState(prevState => ({
-		  mouseOveredPatternIdx: newMouseOverPatternIdx,
-		  mouseOveredPatternData: factors_data[idx]
+			item_links: extractItemCoordinates(q_bar_start, items),
+			mouseOveredDescriptorIdx: descriptor_index
 		}));
 
 	}
-	handleMouseOutItem(descriptor_index, key){
+	handleMouseOutItem(){
 		/**
 		 * Handles the mouseout items events.
 		 *
-		 * @depricated      0.0.0
+		 * reset the data
 		 * 
 		 */			
 		this.setState(prevState => ({
-			mouseOveredPatternIdx: ''
+			item_links: [],
+			mouseOveredDescriptorIdx: ''
 		}));
 	}
 
@@ -396,7 +375,7 @@ class App extends Component {
 			selectedPatterns, mouseOveredPattern, modes,			
 			mostSimilarPatternToSelectedPatternIdx,leastSimilarPatternToSelectedPatternIdx,
 			descriptors, descriptors_text,screeData, max_pattern_item, arc_positions_bar_petal, 
-			item_max_pattern,queries,similarPatternToQueries, item_similarity } = this.state;
+			item_max_pattern,queries,similarPatternToQueries, item_links, mouseOveredDescriptorIdx, item_similarity } = this.state;
 
 	const components_cnt = factors_data.length;
 
@@ -434,6 +413,8 @@ class App extends Component {
 				item_similarity={item_similarity}
 				modes={modes}
 				queries={queries}
+				item_links={item_links}
+				mouseOveredDescriptorIdx={mouseOveredDescriptorIdx}
 				similarPatternToQueries={similarPatternToQueries}
 		  />          
 		  <div>
