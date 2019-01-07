@@ -61,13 +61,25 @@ export function drawQuadratic(g, quadratic, stroke_color, line_width) {
 		.attr("stroke", stroke_color);
 
 	// draw the path
-	gQuadratic.append('path')
+	var cur_path = gQuadratic.append('path')
 		.attr('class', 'curve')
 		.attr('d', quadraticPath(quadratic))
 		.attr("fill", "none")
 		.attr("stroke", stroke_color)
 		.attr("stroke-width", line_width(quadratic.similarity));
 
+
+	// draw transition
+	// console.log(cur_path.node().getTotalLength());
+    // var totalLength = cur_path.node().getTotalLength();
+
+    // cur_path
+    //   .attr("stroke-dasharray", totalLength + " " + totalLength)
+    //   .attr("stroke-dashoffset", totalLength)
+    //   .transition()
+    //     .duration(2000)
+    //     .ease("linear")
+    //     .attr("stroke-dashoffset", 0);
 
 	const quadraticInterpolator = interpolateQuadraticBezier(quadratic.start, quadratic.control, quadratic.end);
 	const interpolatedPoints = d3.range(10).map((d, i, a) => quadraticInterpolator(d / (a.length - 1)));
