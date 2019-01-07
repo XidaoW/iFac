@@ -5,7 +5,7 @@ import CircularView from 'components/CircularView';
 import InspectionView from 'components/InspectionView';
 import ControlView from 'components/ControlView';
 import { extractItemCoordinates, extractPetalBarCoordinates } from '../../lib/extract_coordinates.js'
-
+import { computeMeanStd } from '../../lib/draw_linechart.js'
 
 
 import styles from './styles.scss';
@@ -38,7 +38,10 @@ class App extends Component {
 			arc_positions_bar_petal:[],
 			queries:{},
 			similarPatternToQueries:[],
-			item_links: []
+			item_links: [],
+			error_data: [],
+			stability_data: [],
+			interpretability_data: []
 
 		};
 
@@ -314,6 +317,7 @@ class App extends Component {
 		*/		
 		const _self = this,
 			factors = factors_data.data,
+			screeData = factors_data.metrics,
 			queries = d3.range(factors[0].dims).reduce((obj, item) => {
 				obj[item] = [];
 				return obj;
@@ -321,7 +325,6 @@ class App extends Component {
 		let bar_data = {},
 			max_pattern_item = {},
 			descriptors_text = [];
-
 
 		factors.forEach(function(d, id) {
 			d.petals = d3.range(d.dims).map(function(i) { 
@@ -354,6 +357,19 @@ class App extends Component {
 		}
 
 
+		// compute scree data
+		var error_data = d3.range(screeData['error'].length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.error[d]);
+			return {"x": d, "y": rst[0], "e":rst[1]};
+		}), stability_data = d3.range(screeData.stability.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.stability[d]);
+			return {"x": d, "y": rst[0], "e":rst[1]};
+		}), interpretability_data = d3.range(screeData.interpretability.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.interpretability[d]);
+			return {"x": d, "y": rst[0], "e":rst[1]};
+		})
+
+
 		this.setState({
 			item_max_pattern: factors_data.item_max_pattern,
 			descriptors: factors_data.descriptors,      
@@ -363,7 +379,10 @@ class App extends Component {
 			max_pattern_item: max_pattern_item,
 			descriptors_mean: factors_data.average,
 			modes: factors_data.modes,
-			queries: queries
+			queries: queries,
+			error_data: error_data,
+			stability_data: stability_data,
+			interpretability_data: interpretability_data,
 		});    
 	}
 
@@ -375,7 +394,8 @@ class App extends Component {
 			selectedPatterns, mouseOveredPattern, modes,			
 			mostSimilarPatternToSelectedPatternIdx,leastSimilarPatternToSelectedPatternIdx,
 			descriptors, descriptors_text,screeData, max_pattern_item, arc_positions_bar_petal, 
-			item_max_pattern,queries,similarPatternToQueries, item_links, mouseOveredDescriptorIdx, item_similarity } = this.state;
+			item_max_pattern,queries,similarPatternToQueries, item_links, mouseOveredDescriptorIdx, 
+			item_similarity, error_data, stability_data,  interpretability_data} = this.state;
 
 	const components_cnt = factors_data.length;
 
@@ -385,13 +405,14 @@ class App extends Component {
 		  <h1 className='title'>Tensor Pattern Exploration</h1>
 		</header>
 		<div className={styles.wrapper}>
-		  <div className={styles.infoPanel}>
-				<div>#Patterns: {components_cnt}</div>
-				<div>#Descriptors: {descriptors_text.join(', ')}</div>
-				<ControlView
-					screeData={screeData}
-				/>
-		  </div>
+			<ControlView
+				components_cnt={components_cnt}
+				descriptors_text={descriptors_text}				
+				error_data={error_data}
+				stability_data={stability_data}
+				interpretability_data={interpretability_data}								
+			/>
+
 		  <CircularView 
 				className={styles.Overview}
 				data={factors_data}
