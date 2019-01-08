@@ -1,9 +1,3 @@
-
-# coding: utf-8
-
-# In[1]:
-
-
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 '''
@@ -17,11 +11,23 @@ from myutil.histogram import createHistogram
 from myutil.plotter import showFactorValue, showHistDistribution
 from myutil.ponpare.reader import readPonpareData
 from myutil.ponpare.converter import     digitizeHistoryFeatureValue, transformForHistogram
+import multiview.mvtsne as mvtsne
+from sklearn.utils.testing import assert_raises
+
+
 import scipy
 import numpy as np
 import pandas as pd
 from scipy import stats
 from scipy.special import entr
+from scipy import spatial
+
+import sys
+import json
+from pyspark import SparkConf, SparkContext
+import itertools
+
+
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -41,6 +47,7 @@ class iFacData():
 		self.domain = ""
 		self.labels = []
 		self.base = 0
+		self.cur_base = 0
 		self.hist = None
 		
 	def readData(self, domain = "nba", columns = []):
@@ -62,7 +69,7 @@ class iFacData():
 				self.labels.append(each_label)
 			
 		elif self.domain == "policy":
-			policy = pd.read_csv("policy_adoption.csv")
+			policy = pd.read_csv("data/policy_adoption.csv")
 			policy['adoption'] = 1
 			policy = policy[policy.adopted_year >= 1970]
 			policy = policy[policy.subject_name != "Unknown"]            
@@ -126,21 +133,6 @@ class iFacData():
 		self.base = bases
 		self.trials = trials
 		self.all_trials = []
-		for base_cnt in range(1,bases+1):
-			_log.info("Current Rank: {}".format(base_cnt))
-			each_rank_trials = []
-			for random_seed in range(self.trials):
-				_log.info("Current Trial: {}".format(random_seed))
-				ntfInstance = ntf.NTF(base_cnt, self.hist, parallelCalc=True, ones = False, random_seed = random_seed)
-				ntfInstance.factorize(self.hist, showProgress=True)
-				each_rank_trials.append(ntfInstance)
-			self.all_trials.append(each_rank_trials)
-			
-		
-	def getMetrics(self):
-		"""
-		compute the evaluation metrics for different runs
-		"""        
 		self.metrics = {"error":[None]*self.base, 
 						"stability": [None]*self.base, 
 						"interpretability": [None]*self.base, 
@@ -148,32 +140,46 @@ class iFacData():
 		
 		self.weights_all = [None]*self.base
 		self.factors_all = [None]*self.base
-		
-		for self.base_cnt in range(1,self.base+1):
+
+		conf = SparkConf().set("spark.driver.maxResultSize", "220g").setAppName("DSGD_NTF")
+		self.sc = SparkContext(conf=conf)
+
+		# self.start_index = 2
+		for self.base_cnt in range(self.start_index, self.base+1):
+			_log.info("Current Rank: {}".format(self.base_cnt))
+			each_rank_trials = []
+			for random_seed in range(self.trials):
+				_log.info("Current Trial: {}".format(random_seed))
+				ntfInstance = ntf.NTF(self.base_cnt, self.hist, parallelCalc=True, ones = False, random_seed = random_seed)
+				ntfInstance.factorize(self.hist, showProgress=True)
+				each_rank_trials.append(ntfInstance)
+			self.all_trials.append(each_rank_trials)
 			_log.info("Getting Metric for rank: {}".format(self.base_cnt))
-			self.metrics["error"][self.base_cnt-1] = []
-			self.metrics["stability"][self.base_cnt-1] = []
-			self.metrics["interpretability"][self.base_cnt-1] = []            
-			self.weights_all[self.base_cnt-1] = []
-			self.factors_all[self.base_cnt-1] = []            
+			self.metrics["error"][self.base_cnt-self.start_index] = []
+			self.metrics["stability"][self.base_cnt-self.start_index] = []
+			self.metrics["interpretability"][self.base_cnt-self.start_index] = []            
+			self.weights_all[self.base_cnt-self.start_index] = []
+			self.factors_all[self.base_cnt-self.start_index] = []            
 			for random_seed in range(self.trials):
 				_log.info("Getting Metric for Trial: {}".format(random_seed))				
-				ntfInstance = self.all_trials[self.base_cnt-1][random_seed]            
-				self.metrics["error"][self.base_cnt-1].append(self.computeReconstructionError(ntfInstance,self.hist))
+				ntfInstance = self.all_trials[self.base_cnt-self.start_index][random_seed]            
+				self.metrics["error"][self.base_cnt-self.start_index].append(self.computeReconstructionError(ntfInstance,self.hist))
 				weights, factors = ntfInstance.getNormalizedFactor()
-				self.weights_all[self.base_cnt-1].append(weights)
-				self.factors_all[self.base_cnt-1].append(factors)
-				self.metrics["interpretability"][self.base_cnt-1].append(np.mean([entr(factors[i][j]).sum(axis = 0) for i in range(len(factors)) for j in range(len(factors[0]))]))
-			best_fit_index = np.argmin(self.metrics["error"][self.base_cnt-1])
-			self.metrics["min_error_index"][self.base_cnt-1] = int(best_fit_index)
-			self.best_factors = self.factors_all[self.base_cnt-1][best_fit_index]
-			from scipy import stats            
+				self.weights_all[self.base_cnt-self.start_index].append(weights)
+				self.factors_all[self.base_cnt-self.start_index].append(factors)
+				self.metrics["interpretability"][self.base_cnt-self.start_index].append(np.mean([entr(factors[i][j]).sum(axis = 0) for i in range(len(factors)) for j in range(len(factors[0]))]))
+			best_fit_index = np.argmin(self.metrics["error"][self.base_cnt-self.start_index])
+			self.metrics["min_error_index"][self.base_cnt-self.start_index] = int(best_fit_index)
+			self.best_factors = self.factors_all[self.base_cnt-self.start_index][best_fit_index]
 			for random_seed in range(self.trials):
 				_log.info("Getting Similarity for Trial: {}".format(random_seed))				
-				self.cur_factors = self.factors_all[self.base_cnt-1][random_seed]
-				self.metrics["stability"][self.base_cnt-1].append(self.maxFactorSimilarity(self.cur_factors, self.best_factors, self.base_cnt))                                
-			
-			
+				self.cur_factors = self.factors_all[self.base_cnt-self.start_index][random_seed]
+				self.metrics["stability"][self.base_cnt-self.start_index].append(self.maxFactorSimilarity(self.cur_factors, self.best_factors, self.base_cnt))   
+			self.cur_base = self.base_cnt                 
+			self.saveAttributes()
+
+					
+
 	def maxFactorSimilarity(self, cur_factors, best_factors, base_cnt):
 		"""
 		compute the max similarity to a given set of factors by permutations
@@ -182,11 +188,14 @@ class iFacData():
 		type base_cnt: int: the rank
 		rtype similarity: float: best similarity
 		"""
+		# from pprint import pprint
+		# import itertools
+		permuts = self.sc.parallelize(list(itertools.permutations(range(base_cnt))))
 
-		import itertools
-		all_permutation_similarity = []
-		for each_permutation in list(itertools.permutations(range(base_cnt))):            
-			all_permutation_similarity.append(np.mean([stats.spearmanr(cur_factors[list(each_permutation)[i]][j], best_factors[i][j])[0] for i in range(len(best_factors)) for j in range(len(best_factors[0]))]))            
+		def computeEachSimilarity(each_permutation, cur_factors, best_factors):
+			return np.mean([stats.spearmanr(cur_factors[list(each_permutation)[i]][j], best_factors[i][j])[0] for i in range(len(best_factors)) for j in range(len(best_factors[0]))])
+
+		all_permutation_similarity = permuts.map(lambda each_permutation: computeEachSimilarity(each_permutation, cur_factors, best_factors)).collect()
 		similarity = max(all_permutation_similarity)
 		return similarity
 		
@@ -199,7 +208,7 @@ class iFacData():
 		"""
 		
 		print("Start factorization...")
-		self.ntfInstance = ntf.NTF(self.base, self.hist, parallelCalc=True, ones = ones, random_seed = random_seed)
+		self.ntfInstance = ntf.NTF(self.cur_base, self.hist, parallelCalc=True, ones = ones, random_seed = random_seed)
 		self.ntfInstance.factorize(self.hist, showProgress=True)
 		self.ntfInstance.normalizeFactor()        
 
@@ -208,14 +217,13 @@ class iFacData():
 		"""
 		normalize the weights
 		"""        
-		from scipy import spatial
 		self.ntfInstance.normalizedWeight = self.ntfInstance.weight / np.sum(self.ntfInstance.weight)            
 	
 	def getFactors(self):
 		"""
 		obtain the factors
 		"""        
-		from scipy.special import entr
+		
 		self.factors = self.ntfInstance.factor
 #         self.column = ['ZONE','PERIOD', 'TEAM']
 		self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(len(self.column))]
@@ -275,7 +283,7 @@ class iFacData():
 		self.data_mean_descriptor = []
 		for m in range(len(data_mean)):
 			each_dict_descriptor = dict(zip(self.labels[m], data_mean[m]))
-			each_dict_descriptor['id'] = self.base
+			each_dict_descriptor['id'] = self.cur_base
 			self.data_mean_descriptor.append(each_dict_descriptor)
 		
 	def getEmbedding(self, rd_state = 3):
@@ -284,8 +292,6 @@ class iFacData():
 		type rd_state: int: random state
 		"""
 		self.rd_state = rd_state
-		import multiview.mvtsne as mvtsne
-		from sklearn.utils.testing import assert_raises
 		is_distance = [False] * len(self.data)
 		mvtsne_est = mvtsne.MvtSNE(k=2, perplexity = 10,random_state = self.rd_state, epoch = 3000)
 		mvtsne_est.fit(self.data, is_distance)
@@ -344,30 +350,38 @@ class iFacData():
 		self.data_output["data"] = output        
 			
 	def saveOutput(self):
-		import json
-		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'_factors_'+str(len(self.column))+'_'+str(self.base)+'.json', 'w') as fp:
+		
+		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'_factors_'+str(len(self.column))+'_'+str(self.cur_base)+'.json', 'w') as fp:
 			json.dump(self.data_output, fp)
 
-iFac = iFacData()
-base = 10
-iFac.readData(domain = "nba")
-_log.info("Fitting Different Ranks up to {}".format(base))
-iFac.getFitForRanks(base, trials = 5)
-_log.info("Compute Evaluation Metrics")
-iFac.getMetrics()
-_log.info("Factorize Tensor")          
-iFac.factorizeTensor(ones = False, random_seed = iFac.metrics["min_error_index"][iFac.base-1])
-_log.info("Get Factors")          
-iFac.normalizeFactor()
-iFac.getFactors()
-_log.info("Compute Item Similarity")                    
-iFac.computeItemSimilarity()
-_log.info("Compute Item Similarity")                    
-iFac.computeEntropy()
-iFac.getMaxPatternForItem()
-iFac.getMeanDistribution()
-_log.info("Get Embedding")                    
-iFac.getEmbedding()
-_log.info("Saving Output")                              
-iFac.formatOutput()
-iFac.saveOutput()
+	def saveAttributes(self):
+		_log.info("Factorize Tensor")   
+		self.factorizeTensor(ones = False, random_seed = iFac.metrics["min_error_index"][self.cur_base-self.start_index])
+		_log.info("Get Factors")          
+		self.normalizeFactor()
+		self.getFactors()
+		_log.info("Compute Item Similarity")                    
+		self.computeItemSimilarity()
+		self.computeEntropy()
+		self.getMaxPatternForItem()
+		self.getMeanDistribution()
+		self.getEmbedding()
+		_log.info("Saving Output")                              
+		self.formatOutput()
+		self.saveOutput()
+
+if __name__ == '__main__':
+	
+	iFac = iFacData()
+	base = 30
+	iFac.start_index = 2
+	domain = "policy"
+	nb_trials = 5
+
+	base = int(sys.argv[1])
+	iFac.start_index = int(sys.argv[2])
+	domain = str(sys.argv[3])
+
+	iFac.readData(domain = domain)
+	_log.info("Fitting Different Ranks up to {}".format(base))
+	iFac.getFitForRanks(base, trials = nb_trials)
