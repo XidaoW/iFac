@@ -11,24 +11,28 @@ export function computeMeanStd(array_list){
 
 export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title = ""){
 
-		var svg = d3.select(cur_svg).append("g")
-					.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-		var xScale = d3.scaleLinear()
-		    .domain([0, n-1]) // input
-		    .range([0, width]); // output
-
+		var start_index = 2,
+			title1 = "good",
+			title2 = "bad",
+			svg = d3.select(cur_svg).append("g")					
+					.attr("transform", "translate(" + margin.left + "," + margin.top + ")"),
+			xScale = d3.scaleLinear()
+		    .domain([start_index, n-1+2]) // input
+		    .range([0, width]), // output
 		// 6. Y scale will use the randomly generate number 
-		var yScale = d3.scaleLinear()
+		 	yScale = d3.scaleLinear()
 		    .domain([0, d3.max(dataset, (d) => d.y + d.e)]) // input 
-		    .range([height, 0]); // output 
-
+		    .range([height, 0]), // output 
 		// 7. d3's line generator
-		var line = d3.line()
-		    .x(function(d, i) { return xScale(i); }) // set the x values for the line generator
+			line = d3.line()
+		    .x(function(d, i) { return xScale(d.x); }) // set the x values for the line generator
 		    .y(function(d) { return yScale(d.y); }) // set the y values for the line generator 
-		    .curve(d3.curveMonotoneX) // apply smoothing to the line
+		    .curve(d3.curveMonotoneX); // apply smoothing to the line
 
+		if(title == "Model Stability"){
+			title1 = "bad"
+			title2 = "good"
+		}
 		// 3. Call the x axis in a group tag
 		svg.append("g")
 		    .attr("class", "x axis")
@@ -38,7 +42,7 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 		// 4. Call the y axis in a group tag
 		svg.append("g")
 		    // .attr("class", "y axis")
-		    .call(d3.axisLeft(yScale).ticks(3)); // Create an axis component with d3.axisLeft
+		    .call(d3.axisLeft(yScale).ticks(0)); // Create an axis component with d3.axisLeft
 
 		// 9. Append the path, bind the data, and call the line generator 
 		svg.append("path")
@@ -53,15 +57,15 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 		// 12. Appends a circle for each datapoint 
 		svg.selectAll(".dot")
 		    .data(dataset)
-		  .enter().append("circle") // Uses the enter().append() method
+		  	.enter().append("circle") // Uses the enter().append() method
 		    // .attr("class", "dot") // Assign a class for styling
-		    .attr("cx", function(d, i) { return xScale(i) })
+		    .attr("cx", function(d, i) { return xScale(d.x) })
 		    .attr("cy", function(d) { return yScale(d.y) })
 		    .attr("r", 5);
 
 
 		svg.append("text")
-			.attr("x", (width / 2))             
+			.attr("x", (width / 2)+8)             
 			.attr("y", 0 - (margin.top / 2 + 10))
 			.attr("dy", "1em")
 			.attr("font-size", "10px")
@@ -69,6 +73,25 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 	        .style("text-decoration", "underline")  				
 			.text(title)
 			.attr("class", "y axis label");
+
+		svg.append("text")
+			// .attr("transform", "rotate(-90)")
+			.attr("x", 0 - 8)             
+			.attr("y", 0 - (margin.top / 2 + 10))
+			.attr("dy", "1em")
+			.attr("font-size", "8px")
+			.style("text-anchor", "middle")
+			.text(title2); 			
+
+		svg.append("text")
+			// .attr("transform", "rotate(-90)")
+			.attr("x", 0 - 8)             
+			.attr("y", height)
+			.attr("dy", "1em")
+			.attr("font-size", "8px")
+			.style("text-anchor", "middle")
+			.text(title1); 			
+
 
 		// Add Error Line
 		svg.append("g").selectAll("line")
@@ -78,13 +101,13 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 			.attr("stroke", "#b30059")
 			.attr("stroke-dasharray", "2.2")			
 			.attr("x1", function(d, i) {
-				return xScale(i);
+				return xScale(d.x);
 			})
 			.attr("y1", function(d) {
 				return yScale(d.y + d.e);
 			})
 			.attr("x2", function(d, i) {
-				return xScale(i);
+				return xScale(d.x);
 			})
 			.attr("y2", function(d) {
 				return yScale(d.y - d.e);
@@ -99,13 +122,13 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 			.attr("stroke-width", "2px")
 			.attr("stroke-type", "solid")			
 			.attr("x1", function(d, i) {
-				return xScale(i) - 4;
+				return xScale(d.x) - 4;
 			})
 			.attr("y1", function(d) {
 				return yScale(d.y + d.e);
 			})
 			.attr("x2", function(d, i) {
-				return xScale(i) + 4;
+				return xScale(d.x) + 4;
 			})
 			.attr("y2", function(d) {
 				return yScale(d.y + d.e);
@@ -120,13 +143,13 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 			.attr("stroke-width", "2px")
 			.attr("stroke-type", "solid")						
 			.attr("x1", function(d, i) {
-				return xScale(i) - 4;
+				return xScale(d.x) - 4;
 			})
 			.attr("y1", function(d) {
 				return yScale(d.y - d.e);
 			})
 			.attr("x2", function(d, i) {
-				return xScale(i) + 4;
+				return xScale(d.x) + 4;
 			})
 			.attr("y2", function(d) {
 				return yScale(d.y - d.e);
@@ -138,7 +161,7 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 			.data(dataset).enter()
 			.append("circle")
 			.attr("cx", function(d, i) {
-				return xScale(i);
+				return xScale(d.x);
 			})
 			.attr("cy", function(d) {
 				return yScale(d.y);

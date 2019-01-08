@@ -32,7 +32,7 @@ class ControlView extends Component {
 
 		var n = error_data.length, 
 			title = '',
-			margin = {top: 15, right: 15, bottom: 15, left: 15},
+			margin = {top: 15, right: 15, bottom: 25, left: 15},
 		  	width = this.layout.width - margin.left - margin.right, // Use the window's width 
 		  	height = this.layout.height - margin.top - margin.bottom; // Use the window's height
 
@@ -50,18 +50,46 @@ class ControlView extends Component {
 		this.svg_stability.setAttribute('transform', "translate(" + (margin.left + (width)*1) + "," + margin.top + ")");
 		this.svg_interpretability.setAttribute('transform', "translate(" + (margin.left + (width)*2) + "," + margin.top + ")");		
 
-
+		
+		console.log(error_data);
 		plot_linechart(this.svg_error, error_data, margin, width, height, n, title = "Reconstruction Error");
 		plot_linechart(this.svg_stability, stability_data, margin, width, height, n, title = "Model Stability");
 		plot_linechart(this.svg_interpretability, interpretability_data, margin, width, height, n, title = "Pattern interpretability");
+		
+
+		this.svg = new ReactFauxDOM.Element('svg')
+		this.svg.setAttribute('width',  "100%");
+		this.svg.setAttribute('height', 30);
+
+		// add the red line legend
+		d3.select(this.svg).append("text")
+				.attr("x", 0)             
+				.attr("y", 20)    
+				.attr("class", "toggle")
+				.style("fill", "red")         
+				.on("click", function(){
+					var newdisplay = "none";
+					if (d3.selectAll(".toggle").classed('selected')) {
+						newdisplay = "inline";
+						d3.select(".toggle").classed('selected', false);                                       
+					}else{
+						newdisplay = "none";
+						d3.select(".toggle").classed('selected', true);                                       
+					}			
+					d3.select("#scree_charts").style("display", newdisplay)		
+				})
+				.text("Toggle Model Inspection");
 
 		return (
 			<div className={styles.infoPanel}>
+				{this.svg.toReact()}
 				<div>#Patterns: {components_cnt}</div>
 				<div>#Descriptors: {descriptors_text.join(', ')}</div>	
+				<div id="scree_charts">
 				{this.svg_error.toReact()}
 				{this.svg_stability.toReact()}				
-				{this.svg_interpretability.toReact()}				
+				{this.svg_interpretability.toReact()}							
+				</div>							
 			</div>
 		);
 
