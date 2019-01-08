@@ -10,7 +10,8 @@ import { computeMeanStd } from '../../lib/draw_linechart.js'
 
 import styles from './styles.scss';
 // import factors_data from '../../data/sports_factors_3_20.json';
-import factors_data from '../../data/policy_factors_3_5.json';
+// import factors_data from '../../data/policy_factors_3_7.json';
+import factors_data from '../../data/nba_factors_3_6.json';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 
 class App extends Component {
@@ -318,6 +319,7 @@ class App extends Component {
 		const _self = this,
 			factors = factors_data.data,
 			screeData = factors_data.metrics,
+			start_index = 2,
 			queries = d3.range(factors[0].dims).reduce((obj, item) => {
 				obj[item] = [];
 				return obj;
@@ -358,15 +360,18 @@ class App extends Component {
 
 
 		// compute scree data
+		screeData['error'] = screeData['error'].filter(Boolean);
+		screeData['stability'] = screeData['stability'].filter(Boolean);
+		screeData['interpretability'] = screeData['interpretability'].filter(Boolean);
 		var error_data = d3.range(screeData['error'].length).map(function(d, i) {
 			var rst = computeMeanStd(screeData.error[d]);
-			return {"x": d, "y": rst[0], "e":rst[1]};
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		}), stability_data = d3.range(screeData.stability.length).map(function(d, i) {
 			var rst = computeMeanStd(screeData.stability[d]);
-			return {"x": d, "y": rst[0], "e":rst[1]};
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		}), interpretability_data = d3.range(screeData.interpretability.length).map(function(d, i) {
 			var rst = computeMeanStd(screeData.interpretability[d]);
-			return {"x": d, "y": rst[0], "e":rst[1]};
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		})
 
 
@@ -404,7 +409,7 @@ class App extends Component {
 		<header className='header'>
 		  <h1 className='title'>Tensor Pattern Exploration</h1>
 		</header>
-		<div className={styles.wrapper}>
+		<div>
 			<ControlView
 				components_cnt={components_cnt}
 				descriptors_text={descriptors_text}				
