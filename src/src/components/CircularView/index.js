@@ -19,11 +19,11 @@ class CircularView extends Component {
 	constructor(props) {
 		super(props);
 		this.layout = {
-			width: 1050,
-			height: 1050,
+			width: 850,
+			height: 850,
 			svg: {
-				width: 1050,
-				height: 1050
+				width: 850,
+				height: 850
 			},
 			detailView: {
 				margin: {
@@ -527,8 +527,7 @@ class CircularView extends Component {
 		};
 
 		return (
-			<div className={styles.CircularOverview}>
-			<div className={index.title}>Circular View</div>      
+			<div className={styles.CircularOverview}>			
 				{svg.toReact()}
 			</div>
 		);
