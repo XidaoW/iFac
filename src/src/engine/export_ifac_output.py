@@ -171,10 +171,12 @@ class iFacData():
 			best_fit_index = np.argmin(self.metrics["error"][self.base_cnt-self.start_index])
 			self.metrics["min_error_index"][self.base_cnt-self.start_index] = int(best_fit_index)
 			self.best_factors = self.factors_all[self.base_cnt-self.start_index][best_fit_index]
+			self.best_weights = self.weights_all[self.base_cnt-self.start_index][best_fit_index]
 			for random_seed in range(self.trials):
 				_log.info("Getting Similarity for Trial: {}".format(random_seed))				
 				self.cur_factors = self.factors_all[self.base_cnt-self.start_index][random_seed]
-				self.metrics["stability"][self.base_cnt-self.start_index].append(self.maxFactorSimilarity(self.cur_factors, self.best_factors, self.base_cnt))   
+				self.cur_weights = self.weights_all[self.base_cnt-self.start_index][random_seed]
+				self.metrics["stability"][self.base_cnt-self.start_index].append(self.maxFactorSimilarity(self.cur_factors, self.cur_weights, self.best_factors, self.best_weights, self.base_cnt))   
 			self.cur_base = self.base_cnt                 
 			self.saveAttributes()
 
@@ -191,9 +193,18 @@ class iFacData():
 		# from pprint import pprint
 		# import itertools
 		permuts = self.sc.parallelize(list(itertools.permutations(range(base_cnt))))
-
+		# reduce(lambda x, y: x*y, [1,2,3,4])
 		def computeEachSimilarity(each_permutation, cur_factors, best_factors):
-			return np.mean([stats.spearmanr(cur_factors[list(each_permutation)[i]][j], best_factors[i][j])[0] for i in range(len(best_factors)) for j in range(len(best_factors[0]))])
+			# return np.mean([stats.spearmanr(cur_factors[list(each_permutation)[i]][j], best_factors[i][j])[0] for i in range(len(best_factors)) for j in range(len(best_factors[0]))])
+			similarity = 0.
+			for component_index in range(len(best_factors)):
+				rst = 1. - (abs(best_weights[component_index] - cur_weights[list(each_permutation)[component_index]])) / max(best_weights[component_index], cur_weights[list(each_permutation)[component_index]])
+				for factor_index in range(len(best_factors[0])):
+					rst *= spatial.distance.cosine(cur_factors[list(each_permutation)[component_index]][factor_index], best_factors[component_index][factor_index])
+				similarity += rst
+			similarity /= len(best_factors)
+
+			return similarity
 
 		all_permutation_similarity = permuts.map(lambda each_permutation: computeEachSimilarity(each_permutation, cur_factors, best_factors)).collect()
 		similarity = max(all_permutation_similarity)
