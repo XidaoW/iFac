@@ -151,6 +151,8 @@ class CircularView extends Component {
 							} else {
 								if (selectedPatterns.length < this.compare_N) {
 									let petals_path_items = d3.range(descriptor_size).map(function(p){
+										console.log(max_pattern_item[p]);
+										console.log(max_pattern_item[p][d.id]);
 										return {
 											'd_flower': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('d'),
 											'transform_petal': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('transform'),

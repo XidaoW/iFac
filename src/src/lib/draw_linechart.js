@@ -37,7 +37,7 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 		svg.append("g")
 		    .attr("class", "x axis")
 		    .attr("transform", "translate(0," + height + ")")
-		    .call(d3.axisBottom(xScale).ticks(n)); // Create an axis component with d3.axisBottom
+		    .call(d3.axisBottom(xScale).ticks(5)); // Create an axis component with d3.axisBottom
 
 		// 4. Call the y axis in a group tag
 		svg.append("g")
@@ -61,7 +61,7 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 		    // .attr("class", "dot") // Assign a class for styling
 		    .attr("cx", function(d, i) { return xScale(d.x) })
 		    .attr("cy", function(d) { return yScale(d.y) })
-		    .attr("r", 5);
+		    .attr("r", 2);
 
 
 		svg.append("text")
