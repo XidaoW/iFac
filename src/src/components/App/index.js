@@ -10,8 +10,8 @@ import { computeMeanStd } from '../../lib/draw_linechart.js'
 
 import styles from './styles.scss';
 // import factors_data from '../../data/sports_factors_3_20.json';
-// import factors_data from '../../data/policy_factors_3_7.json';
-import factors_data from '../../data/nba_factors_3_6.json';
+import factors_data from '../../data/policy_factors_3_10.json';
+// import factors_data from '../../data/nba_factors_3_6.json';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 
 class App extends Component {
