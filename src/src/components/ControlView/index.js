@@ -28,7 +28,7 @@ class ControlView extends Component {
 		// adapted from https://bl.ocks.org/NGuernse/8dc8b9e96de6bedcb6ad2c5467f5ef9a
 		const _self = this;
 		const { components_cnt, descriptors_text, 
-			error_data,  stability_data, interpretability_data} = this.props;
+			error_data,  stability_data, interpretability_data, onClickPoint} = this.props;
 
 		var n = error_data.length, 
 			title = '',
@@ -51,7 +51,7 @@ class ControlView extends Component {
 		this.svg_interpretability.setAttribute('transform', "translate(" + (margin.left + (width)*2) + "," + margin.top + ")");		
 
 		
-		console.log(error_data);
+		
 		plot_linechart(this.svg_error, error_data, margin, width, height, n, title = "Reconstruction Error");
 		plot_linechart(this.svg_stability, stability_data, margin, width, height, n, title = "Model Stability");
 		plot_linechart(this.svg_interpretability, interpretability_data, margin, width, height, n, title = "Pattern interpretability");
