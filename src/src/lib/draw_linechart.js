@@ -9,9 +9,9 @@ export function computeMeanStd(array_list){
 }
 
 
-export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title = ""){
-
+export	function plot_linechart(_self, cur_svg, dataset, margin, width, height, n, title = ""){
 		var start_index = 2,
+			error_cap_size = 2,
 			title1 = "good",
 			title2 = "bad",
 			svg = d3.select(cur_svg).append("g")					
@@ -21,7 +21,7 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 		    .range([0, width]), // output
 		// 6. Y scale will use the randomly generate number 
 		 	yScale = d3.scaleLinear()
-		    .domain([0, d3.max(dataset, (d) => d.y + d.e)]) // input 
+		    .domain([d3.min(dataset, (d) => d.y - d.e), d3.max(dataset, (d) => d.y + d.e)]) // input 
 		    .range([height, 0]), // output 
 		// 7. d3's line generator
 			line = d3.line()
@@ -51,17 +51,7 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 		    .attr("d", line) // 11. Calls the line generator 
 		    .attr("fill", "none")
 		    .attr("stroke", "#ffab00")
-		    .attr("stroke-width", 3);
-
-
-		// 12. Appends a circle for each datapoint 
-		svg.selectAll(".dot")
-		    .data(dataset)
-		  	.enter().append("circle") // Uses the enter().append() method
-		    // .attr("class", "dot") // Assign a class for styling
-		    .attr("cx", function(d, i) { return xScale(d.x) })
-		    .attr("cy", function(d) { return yScale(d.y) })
-		    .attr("r", 2);
+		    .attr("stroke-width", 1);
 
 
 		svg.append("text")
@@ -99,7 +89,7 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 			.append("line")
 			.attr("class", "error-line")
 			.attr("stroke", "#b30059")
-			.attr("stroke-dasharray", "2.2")			
+			.attr("stroke-dasharray", "1.2")			
 			.attr("x1", function(d, i) {
 				return xScale(d.x);
 			})
@@ -119,16 +109,16 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 			.append("line")
 			.attr("class", "error-cap")
 			.attr("stroke", "#b30059")
-			.attr("stroke-width", "2px")
+			.attr("stroke-width", "1px")
 			.attr("stroke-type", "solid")			
 			.attr("x1", function(d, i) {
-				return xScale(d.x) - 4;
+				return xScale(d.x) - error_cap_size;
 			})
 			.attr("y1", function(d) {
 				return yScale(d.y + d.e);
 			})
 			.attr("x2", function(d, i) {
-				return xScale(d.x) + 4;
+				return xScale(d.x) + error_cap_size;
 			})
 			.attr("y2", function(d) {
 				return yScale(d.y + d.e);
@@ -143,13 +133,13 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 			.attr("stroke-width", "2px")
 			.attr("stroke-type", "solid")						
 			.attr("x1", function(d, i) {
-				return xScale(d.x) - 4;
+				return xScale(d.x) - error_cap_size;
 			})
 			.attr("y1", function(d) {
 				return yScale(d.y - d.e);
 			})
 			.attr("x2", function(d, i) {
-				return xScale(d.x) + 4;
+				return xScale(d.x) + error_cap_size;
 			})
 			.attr("y2", function(d) {
 				return yScale(d.y - d.e);
@@ -166,6 +156,18 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 			.attr("cy", function(d) {
 				return yScale(d.y);
 			})
-			.attr("r", 4);			
+			.attr("r", 2)
+			.attr("class", (d) => "rank"+d.x.toString())
+			.on("mouseover", function(d){
+				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "#ffab00");
+				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke-width", "2px");
+			})
+			.on("mouseout", function(d){
+				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "none");
+			})			
+			.on("click", function(d){
+				_self.props.onClickPoint(d.x);
+			});
+
 	}
 
