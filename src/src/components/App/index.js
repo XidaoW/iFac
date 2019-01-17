@@ -9,10 +9,13 @@ import { computeMeanStd } from '../../lib/draw_linechart.js'
 
 
 import styles from './styles.scss';
-// import factors_data from '../../data/policy_factors_3_15_sample.json';
-// import factors_data from '../../data/nba_factors_3_17_sample.json';
-import factors_data from '../../data/purchase_factors_4_3_sample.json';
+// import factors_data from '../../data/policy_factors_3_25_sample.json';
+import factors_data from '../../data/nba_factors_3_15_sample.json';
+// import factors_data from '../../data/purchase_factors_4_18_sample.json';
 import gs from '../../config/_variables.scss'; // gs (=global style)
+
+
+// import factors_data from '../../data/nba_factors_3_20_sample.json';
 
 class App extends Component {
 	constructor(props) {
@@ -53,7 +56,7 @@ class App extends Component {
 		this.handleMouseOutPattern = this.handleMouseOutPattern.bind(this);
 		this.handleMouseOverItem = this.handleMouseOverItem.bind(this);
 		this.handleMouseOutItem = this.handleMouseOutItem.bind(this);
-
+		this.handleClickPoint = this.handleClickPoint.bind(this);
 	}
 
 	// depricated
@@ -73,6 +76,36 @@ class App extends Component {
 		}));
 	}
 
+
+	handleClickPoint(rank) { 
+		/**
+		 * Handles the click events over the points in the control panel.
+		 *
+		 * Prepares data When users select one point. 
+		 * 1) When user click on one point: 
+		 * 	a) load the corresponding data file
+		 * 2) Update the state.		 
+		 *
+		 * @since      0.0.0
+		 *
+		 * @fires   click
+		 *
+		 * @param {var}   idx           the rank.
+		 * 
+		 */		
+		console.log(rank); 
+		// d3.json('../../data/purchase_factors_4_'+rank.toString()+'_sample.json', function(data){
+		// 	console.log(data)
+		// });
+		// this.setState(prevState => ({
+		// 	factors_data: factors_data.data,
+		// 	descriptors: factors_data.descriptors,
+		// 	screeData: factors_data.metrics,
+		// 	descriptors_mean: factors_data.average,
+		// 	item_max_pattern: factors_data.item_max_pattern,
+		// 	item_similarity: factors_data.itemSimilarity,
+		// }));
+	}
 
 	handleClickPattern(idx, petals_path_items) { 
 		/**
@@ -416,6 +449,7 @@ class App extends Component {
 				error_data={error_data}
 				stability_data={stability_data}
 				interpretability_data={interpretability_data}								
+				onClickPoint={this.handleClickPoint}				
 			/>
 
 		  <CircularView 
