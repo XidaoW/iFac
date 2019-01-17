@@ -67,7 +67,8 @@ class CircularView extends Component {
 				leastSimilarPatternToSelectedPatternIdx, 
 				arc_positions_bar_petal,item_max_pattern,
 				bar_data, max_pattern_item,components_cnt,modes,
-				queries, similarPatternToQueries, item_links, mouseOveredDescriptorIdx, item_similarity } = this.props;  
+				queries, similarPatternToQueries, item_links, 
+				mouseOveredDescriptorIdx, item_similarity } = this.props;  
 
 		const _self = this,
 			width = +this.layout.svg.width - this.layout.detailView.margin.left - this.layout.detailView.margin.right,
@@ -331,9 +332,9 @@ class CircularView extends Component {
 							.enter()                                    
 							.selectAll('path')
 							.data((d,cur_index) => 
-									items.map((key) => (
-										{key: key, value: d[key], id: d.id, index: cur_index}
-									)))
+								items.map((key) => (
+									{key: key, value: d[key], id: d.id, index: cur_index}
+								)))
 							.enter()
 			// Add the bars
 			descriptor_arcs.append('path')
@@ -370,11 +371,10 @@ class CircularView extends Component {
 				.append('text')
 				.text((d) => d.key)
 				.attr('transform', (d) => (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'rotate(180)' : 'rotate(0)')
-				.style('font-size', '9px')
+				.style('font-size', '6px')
 				.attr('id', (d) => 'label_' + descriptor_index + '_' + d.key)
 				.attr('class', 'label_bar' + descriptor_index)
-				.attr('alignment-baseline', 'middle');
-			
+				.attr('alignment-baseline', 'middle');			
 		}
 
 		function draw_query_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, margin, width, height, reorder_item = false){
