@@ -1,1 +1,3 @@
+# ignore json data
 src/src/data/*.json
+*.json
