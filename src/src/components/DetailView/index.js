@@ -50,18 +50,15 @@ class DetailView extends Component {
 			select_cnt = selectedPatterns.length,
 			descriptor_size = Object.keys(bar_data).length;
 
-		var g;
+		var g, cur_cloud;
 
-		var margin = {top: 30, right: 50, bottom: 30, left: 50},
-			width = +this.layout.svg.width - this.layout.detailView.margin.left - this.layout.detailView.margin.right,
-			height = +this.layout.svg.height - this.layout.detailView.margin.top - this.layout.detailView.margin.bottom;
+		var margin = {top: 10, right: 10, bottom: 10, left: 10},
+			width = +this.layout.svg.width - margin.left - margin.right,
+			height = +this.layout.svg.height - margin.top - margin.bottom;
 
 		if( select_cnt > 0){
 			default_ptn_idx = (select_cnt==1)?selectedPatterns[0]:selectedPatterns[1]
 		}
-		console.log("showing:", default_ptn_idx);
-
-		console.log(bar_data);
 		for(var descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
 			plot_word_cloud(descriptor_index, descriptor_size, default_ptn_idx, bar_data, height, width);
 		}
@@ -83,10 +80,10 @@ class DetailView extends Component {
 
 			g = d3.select(svg)
 			        .append("g")
-			        .attr("transform", "translate(" + 0 + "," + descriptor_index*300  + ")");		       
+			        .attr("transform", "translate(" + 0 + "," + descriptor_index*250  + ")");		       
 
 			var layout = cloud()
-			    .size([300, 300])
+			    .size([250, 250])
 			    .words(words)
 			    .padding(5)
 			    .rotate(0)
@@ -97,22 +94,28 @@ class DetailView extends Component {
 
 			layout.start();
 			function draw(words) {
-				g.append("svg")
-				.attr("width", layout.size()[0])
-				.attr("height", layout.size()[1])
-				.append("g")
-				.attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
-				.selectAll("text")
-				.data(words)
-				.enter().append("text")
-				.style("font-size", function(d) { return d.size + "px"; })
-				.style("font-family", "Impact")
-				.style("fill", function(d) { return d.color; })
-				.attr("text-anchor", "middle")
-				.attr("transform", function(d) {
-					return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
-				})
-				.text(function(d) { return d.text; });
+				cur_cloud = g.append("svg")
+					.attr("width", layout.size()[0])
+					.attr("height", layout.size()[1])
+					.append("g")
+					.attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+					.selectAll("text")
+					.data(words)
+					.enter().append("text")
+					.style("font-size", function(d) { return d.size + "px"; })
+					.style("font-family", "Impact")
+					.style("fill", function(d) { return d.color; })
+					.attr("text-anchor", "middle")
+					.attr("transform", function(d) {
+						return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+					})
+					.text(function(d) { return d.text; })
+					.on("mouseover", function(d){
+							d3.select('path#bar_' + descriptor_index+ '_'+ d.text).attr("stroke-width", "2px");							
+					})
+					.on("mouseout", function(d){
+							d3.select('path#bar_' + descriptor_index+ '_'+ d.text).attr("stroke-width", "0px");							
+					})
 			}
 
 		};
