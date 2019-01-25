@@ -50,7 +50,7 @@ class DetailView extends Component {
 			select_cnt = selectedPatterns.length,
 			descriptor_size = Object.keys(bar_data).length;
 
-		var g, cur_cloud;
+		var g, cur_cloud, cur_data, word_size, words, layout;
 
 		var margin = {top: 10, right: 10, bottom: 10, left: 10},
 			width = +this.layout.svg.width - margin.left - margin.right,
@@ -65,12 +65,31 @@ class DetailView extends Component {
 
 
 		function plot_word_cloud(descriptor_index, descriptor_size, default_ptn_idx, bar_data, height, width){
-			var cur_data = Object.keys(bar_data[descriptor_index][default_ptn_idx]).filter((d) => d !== 'id').reduce((obj, item) => {
+			/**
+			 * Draws word cloud based on the descriptor
+			 * 
+			 * Because descriptor data includes additonal key 'id', we need to filter this item first
+			 * word color is matched to the descriptor color with axisStroke
+			 * The wordcloud transform, height and width need to be further investigated to make them side by side
+			 *  	with the circular view
+			 * When users mouseover the word, the bar with the same item is highlighted to
+			 * Bug exists when two patterns are selected, see details in code.
+			 * @since      0.0.0
+			 *
+			 * @param {var}   descriptor_index       the descriptor index.
+			 * @param {var}   descriptor_size       the number of descriptor.
+			 * @param {var}   default_ptn_idx       the pattern number to be shown.
+			 * @param {var}   bar_data       the patterns data.
+			 * @param {var}   height       the height of wordcloud.
+			 * @param {var}   width       the width of wordcloud.
+			 * 
+			 */
+			cur_data = Object.keys(bar_data[descriptor_index][default_ptn_idx]).filter((d) => d !== 'id').reduce((obj, item) => {
 				obj[item] = bar_data[descriptor_index][default_ptn_idx][item];
 				return obj;
 			}, {});
-			var word_size = d3.scaleLinear().domain([d3.min(d3.values(cur_data)),d3.max(d3.values(cur_data))]).range([10,30]);
-			var words = Object.keys(cur_data).map(function(key){			
+			word_size = d3.scaleLinear().domain([d3.min(d3.values(cur_data)),d3.max(d3.values(cur_data))]).range([10,30]);
+			words = Object.keys(cur_data).map(function(key){			
 					return {
 							text: key, 
 							size: word_size(cur_data[key]),
@@ -82,7 +101,7 @@ class DetailView extends Component {
 			        .append("g")
 			        .attr("transform", "translate(" + 0 + "," + descriptor_index*250  + ")");		       
 
-			var layout = cloud()
+			layout = cloud()
 			    .size([250, 250])
 			    .words(words)
 			    .padding(5)
@@ -111,16 +130,17 @@ class DetailView extends Component {
 					})
 					.text(function(d) { return d.text; })
 					.on("mouseover", function(d){
-							d3.select('path#bar_' + descriptor_index+ '_'+ d.text).attr("stroke-width", "2px");							
+						// bug when clicked on two patterns for comparison
+						// wrong bars are highlighted
+						console.log(d3.select('path#bar_' + descriptor_index+ '_'+ d.text))
+						d3.select('path#bar_' + descriptor_index+ '_'+ d.text).attr("stroke-width", "4px");							
 					})
 					.on("mouseout", function(d){
-							d3.select('path#bar_' + descriptor_index+ '_'+ d.text).attr("stroke-width", "0px");							
+						d3.select('path#bar_' + descriptor_index+ '_'+ d.text).attr("stroke-width", "0px");							
 					})
 			}
 
 		};
-
-
 
 		function getValuesExclude(dict, exclude_key) {
 			var new_dict = {};
