@@ -2,15 +2,15 @@ import React, { Component } from 'react';
 import * as d3 from 'd3';
 
 
-export function extractItemCoordinates(q_bar_start, items){
+export const extractItemCoordinates = (q_bar_start, items) => {
 
 	const arcStart = q_bar_start.split('M').join(',').split('A').join(',').split('L').join(',').split(' ').join(',').split(','),
 		arcStart_start = arcStart.slice(10,12),
 		arcStart_end = arcStart.slice(17,19);
 
-	return d3.range(items.length).map(function(i) {
+	return d3.range(items.length).map((i) => {
 			// get the flower coordinates and rotation degree
-			const   translate_g_flower = items[i].transform_g_flower.replace('translate(','').replace(')','').split(','),
+			var   translate_g_flower = items[i].transform_g_flower.replace('translate(','').replace(')','').split(','),
 					translate_bar = items[i].transform_bar.replace('translate(','').replace(')','').split(','),				
 			// root of the bar
 					arcEnd = items[i].q_bar_end.split('M').join(',').split('A').join(',').split('L').join(',').split(' ').join(',').split(','),
@@ -19,20 +19,41 @@ export function extractItemCoordinates(q_bar_start, items){
 					start_x = (parseFloat(arcStart_start[0]) + parseFloat(arcStart_end[0]))/2,
 					start_y = (parseFloat(arcStart_start[1]) + parseFloat(arcStart_end[1]))/2,
 					end_x = (parseFloat(arcEnd_start[0]) + parseFloat(arcEnd_end[0]))/2,
-					end_y = (parseFloat(arcEnd_start[1]) + parseFloat(arcEnd_end[1]))/2;
+					end_y = (parseFloat(arcEnd_start[1]) + parseFloat(arcEnd_end[1]))/2,
+					svg_offset_x = parseFloat(translate_bar[0])-parseFloat(translate_g_flower[0]),
+					svg_offset_y = parseFloat(translate_bar[1])-parseFloat(translate_g_flower[1]),
+					start_x_offset = svg_offset_x+start_x, 
+					start_y_offset = svg_offset_y+start_y,
+					end_x_offset = svg_offset_x+end_x, 
+					end_y_offset = svg_offset_y+end_y,
+					slope = (start_y_offset - end_y_offset)/(start_x_offset, end_x_offset),
+					scalar_offset = (1 - (items[i].item_cnt - items[i].idx)/items[i].item_cnt),					
+					control_x_offset = start_x/2. + end_x/2. + (Math.abs(slope) < 1)?svg_offset_x:0,
+					control_y_offset = end_x/2. + end_y/2. + (Math.abs(slope) < 1)?svg_offset_y:0;					
+
 			return {
 
-				start: [parseFloat(translate_bar[0])+start_x-parseFloat(translate_g_flower[0]), parseFloat(translate_bar[1])+start_y-parseFloat(translate_g_flower[1])],
-				end: [parseFloat(translate_bar[0])+end_x-parseFloat(translate_g_flower[0]), parseFloat(translate_bar[1])+end_y-parseFloat(translate_g_flower[1])],
-				control: [parseFloat(translate_bar[0])+start_x/2. + end_x/2.-parseFloat(translate_g_flower[0]), 
-							parseFloat(translate_bar[1])+end_x/2. + end_y/2.-parseFloat(translate_g_flower[1])],
-				similarity: items[i].similarity
+				start: [
+							start_x_offset,
+							start_y_offset
+						],
+				end: [
+						end_x_offset,
+						end_y_offset
+					],
+				control: [
+							control_x_offset,
+							control_y_offset
+						],
+				similarity: items[i].similarity,
+				item: items[i].key
 			};
 		});
 }
 
-export function extractPetalBarCoordinates(petals_path_items){
-	return d3.range(petals_path_items.length).map(function(i) {
+
+export const extractPetalBarCoordinates = (petals_path_items) => {
+	return d3.range(petals_path_items.length).map((i) => {
 			// get the flower coordinates and rotation degree
 			const translate_flower = petals_path_items[i].translate_flower.replace('translate(','').replace(')','').split(','),
 					translate_g_flower = petals_path_items[i].transform_g_flower.replace('translate(','').replace(')','').split(','),

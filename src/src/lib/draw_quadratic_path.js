@@ -39,7 +39,7 @@ export function interpolateQuadraticBezierAngle(start, control, end) {
 }
 
 // draw a quadratic bezier curve
-export function drawQuadratic(g, quadratic, stroke_color, line_width) {
+export function drawQuadratic(g, quadratic, stroke_color, line_opacity) {
 	const gQuadratic = g.append('g')
 		.attr('class', 'quadratic');
 
@@ -65,8 +65,11 @@ export function drawQuadratic(g, quadratic, stroke_color, line_width) {
 		.attr('class', 'curve')
 		.attr('d', quadraticPath(quadratic))
 		.attr("fill", "none")
-		.attr("stroke", stroke_color)
-		.attr("stroke-width", line_width(quadratic.similarity));
+		.attr("stroke-width", "2px")
+		// .attr("stroke-width", line_width(quadratic.similarity));
+		.attr("stroke-opacity", line_opacity(quadratic.similarity))
+		.attr("stroke", stroke_color);
+		
 
 
 	// draw transition
@@ -95,7 +98,7 @@ export function drawQuadratic(g, quadratic, stroke_color, line_width) {
 
 
 
-	// const quadraticAngleInterpolator = interpolateQuadraticBezierAngle(quadratic.start, quadratic.control, quadratic.end);
+	const quadraticAngleInterpolator = interpolateQuadraticBezierAngle(quadratic.start, quadratic.control, quadratic.end);
 
 	// const rotatedPoints = d3.range(3).map((d, i, a) => {
 	// 	const t = d / (a.length - 1);

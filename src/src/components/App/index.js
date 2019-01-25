@@ -12,7 +12,6 @@ import { computeMeanStd } from '../../lib/draw_linechart.js'
 import styles from './styles.scss';
 // import factors_data from '../../data/policy_factors_3_25_sample.json';
 import factors_data from '../../data/nba_factors_3_15_sample.json';
-import team_info from '../../data/Team_Info.json';
 
 // import factors_data from '../../data/purchase_factors_4_18_sample.json';
 // import gs from '../../config/_variables.scss'; // gs (=global style)
