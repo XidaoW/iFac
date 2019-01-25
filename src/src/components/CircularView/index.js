@@ -152,8 +152,6 @@ class CircularView extends Component {
 							} else {
 								if (selectedPatterns.length < this.compare_N) {
 									let petals_path_items = d3.range(descriptor_size).map(function(p){
-										console.log(max_pattern_item[p]);
-										console.log(max_pattern_item[p][d.id]);
 										return {
 											'd_flower': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('d'),
 											'transform_petal': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('transform'),
@@ -513,7 +511,7 @@ class CircularView extends Component {
 			return d3.hcl(i / descriptor_size * 360, 60, 70);
 		};
 
-		function barFill(d, descriptor_index, descriptor_size,bar_opacity) {
+		function barFill(d, descriptor_index, descriptor_size, bar_opacity) {
 			if(d.id >= components_cnt){
 				return axisStroke(descriptor_index, descriptor_size);
 			}  
