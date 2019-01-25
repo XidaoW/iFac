@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import * as d3 from 'd3';
 import Overview from 'components/Overview';
 import CircularView from 'components/CircularView';
-import InspectionView from 'components/InspectionView';
+import DetailView from 'components/DetailView';
+// import InspectionView from 'components/InspectionView';
 import ControlView from 'components/ControlView';
 import { extractItemCoordinates, extractPetalBarCoordinates } from '../../lib/extract_coordinates.js'
 import { computeMeanStd } from '../../lib/draw_linechart.js'
@@ -11,11 +12,13 @@ import { computeMeanStd } from '../../lib/draw_linechart.js'
 import styles from './styles.scss';
 // import factors_data from '../../data/policy_factors_3_25_sample.json';
 import factors_data from '../../data/nba_factors_3_15_sample.json';
+import team_info from '../../data/Team_Info.json';
+
 // import factors_data from '../../data/purchase_factors_4_18_sample.json';
-import gs from '../../config/_variables.scss'; // gs (=global style)
+// import gs from '../../config/_variables.scss'; // gs (=global style)
 
 
-// import factors_data from '../../data/nba_factors_3_20_sample.json';
+// import factors_data from '../../data/nba_factors_3_18_sample.json';
 
 class App extends Component {
 	constructor(props) {
@@ -129,6 +132,7 @@ class App extends Component {
 		 * @param {object} petals_path_items     a object of key-value pair that contains the transform and translates of related items and patterns.
 		 * 
 		 */
+		console.log("clicked:", idx);
 		const newSelectedPattern = idx,
 			factors = factors_data.data,
 			tensor_dims = factors_data.modes.length,			
@@ -451,40 +455,39 @@ class App extends Component {
 				interpretability_data={interpretability_data}								
 				onClickPoint={this.handleClickPoint}				
 			/>
-
-		  <CircularView 
-				className={styles.Overview}
-				data={factors_data}
-				onClickPattern={this.handleClickPattern}
-				onUnClickPattern={this.handleUnClickPattern}
-				onClickItem={this.handleClickItem}
-				onMouseOverPattern={this.handleMouseOverPattern}
-				onMouseOutPattern={this.handleMouseOutPattern}                        
-				onMouseOverItem={this.handleMouseOverItem}
-				onMouseOutItem={this.handleMouseOutItem}                        
-				leastSimilarPatternToSelectedPatternIdx={leastSimilarPatternToSelectedPatternIdx}              
-				mostSimilarPatternToSelectedPatternIdx={mostSimilarPatternToSelectedPatternIdx}          
-				bar_data={bar_data}     
-				max_pattern_item={max_pattern_item}             
-				selectedPatterns={selectedPatterns}
-				components_cnt={components_cnt}
-				arc_positions_bar_petal={arc_positions_bar_petal}
-				item_max_pattern={item_max_pattern}
-				item_similarity={item_similarity}
-				modes={modes}
-				queries={queries}
-				item_links={item_links}
-				mouseOveredDescriptorIdx={mouseOveredDescriptorIdx}
-				similarPatternToQueries={similarPatternToQueries}
-		  />          
-		  <div>
-				<InspectionView 
-					className={styles.InspectionView}
-					mouseOveredPattern={this.state.mouseOveredPatternData} 
-					data={factors_data}              
-					mouseOveredPatternIdx={this.state.mouseOveredPatternIdx}
+			<div className={styles.rowC}>
+			  	<CircularView 
+					className={styles.Overview}
+					data={factors_data}
+					onClickPattern={this.handleClickPattern}
+					onUnClickPattern={this.handleUnClickPattern}
+					onClickItem={this.handleClickItem}
+					onMouseOverPattern={this.handleMouseOverPattern}
+					onMouseOutPattern={this.handleMouseOutPattern}                        
+					onMouseOverItem={this.handleMouseOverItem}
+					onMouseOutItem={this.handleMouseOutItem}                        
+					leastSimilarPatternToSelectedPatternIdx={leastSimilarPatternToSelectedPatternIdx}              
+					mostSimilarPatternToSelectedPatternIdx={mostSimilarPatternToSelectedPatternIdx}          
+					bar_data={bar_data}     
+					max_pattern_item={max_pattern_item}             
+					selectedPatterns={selectedPatterns}
+					components_cnt={components_cnt}
+					arc_positions_bar_petal={arc_positions_bar_petal}
+					item_max_pattern={item_max_pattern}
+					item_similarity={item_similarity}
+					modes={modes}
+					queries={queries}
+					item_links={item_links}
+					mouseOveredDescriptorIdx={mouseOveredDescriptorIdx}
+					similarPatternToQueries={similarPatternToQueries}
+			  />          
+				<DetailView
+					bar_data={bar_data}				
+					selectedPatterns={selectedPatterns}
+					components_cnt={components_cnt}
 				/>
-		  </div>
+			</div>
+
 
 
 		</div>
