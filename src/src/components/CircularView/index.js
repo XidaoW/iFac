@@ -346,19 +346,8 @@ class CircularView extends Component {
 					.attr('id', (d)=> 'bar_' + descriptor_index + '_' + d.key)
 					.attr('fill', (d) => barFill(d, descriptor_index, descriptor_size, bar_opacity))
 					.attr('opacity', (d) => barFillOpacity(d, descriptor_index, descriptor_size, _self.foregroundBarOpacity, _self.backgroundBarOpacity,bar_opacity))       
-					.attr('stroke', 'none')
-					.attr('stroke-width', function(d) { 
-						// bold the stroke for max_items for each descriptor
-						if (typeof max_pattern_item[descriptor_index][d.id] != 'undefined') {
-							if (d.key == max_pattern_item[descriptor_index][d.id]) {
-								return '1px'; 
-							} else {
-								return '0px'; 
-							}
-						} else {
-							return '0px';
-						} 
-					});
+					.attr('stroke', 'black')
+					.attr('stroke-width', "0px");
 
 			// Add the labels     
 			backdrop.selectAll("text.label_bar" + descriptor_index).remove();
@@ -465,13 +454,13 @@ class CircularView extends Component {
 					})
 					.on('mouseover', (d) => {
 						d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("opacity",1);
-						// d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke","black");
 						Object.keys(item_similarity[descriptor_index][d.key]).map(function(key){										
 							d3.select('#query_bar_' + descriptor_index+ '_'+ key).attr("opacity", item_similarity[descriptor_index][d.key][key]);
 						});
+						var cur_key_idx = Object.keys(item_similarity[descriptor_index]).indexOf(d.key);
 						const top_k_item = 5;
 						// Create items array
-						var top_items = Object.keys(item_similarity[descriptor_index][d.key]).map(function(key) {
+						var top_items = Object.keys(item_similarity[descriptor_index][d.key]).map((key) => {
 							return [key, item_similarity[descriptor_index][d.key][key]];
 						});
 						// Sort the array based on the second element
@@ -479,12 +468,14 @@ class CircularView extends Component {
 							return second[1] - first[1];
 						});	
 						top_items = top_items.slice(0, top_k_item);
-						let bars_item = top_items.map(function(key, value){
+						let bars_item = top_items.map((key) => {
 							return {
 								'transform_bar': backdrop.select('g#query_'+descriptor_index+'_barchart').attr('transform'),
 								'q_bar_end': backdrop.select('path#query_bar_'+descriptor_index+'_'+key[0]).attr('d'),
 								'transform_g_flower': backdrop.select('g.g_flowers').attr('transform'),
 								'key': key[0],
+								'idx': cur_key_idx,
+								'item_cnt': Object.keys(item_similarity[descriptor_index][d.key]).length+1,
 								'similarity': item_similarity[descriptor_index][d.key][key[0]]
 							}
 						}),q_bar_start = backdrop.select('path#query_bar_'+descriptor_index+'_'+d.key).attr('d');
@@ -500,9 +491,10 @@ class CircularView extends Component {
 						});
 						_self.props.onMouseOutItem();
 					});			
-			// Draw the link between similar items
+
 			for(let link_id = 0; link_id < item_links.length; link_id++){
-				quadPath.drawQuadratic(gFlowers, item_links[link_id], axisStroke(mouseOveredDescriptorIdx, descriptor_size), line_width);
+				bar_opacity.domain([d3.min(item_links, (d) => d.similarity), d3.max(item_links, (d) => d.similarity)])
+				quadPath.drawQuadratic(gFlowers, item_links[link_id], axisStroke(mouseOveredDescriptorIdx, descriptor_size), bar_opacity);
 			}
 
 		}		
