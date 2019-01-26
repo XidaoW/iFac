@@ -28,38 +28,73 @@ class ControlView extends Component {
 		// adapted from https://bl.ocks.org/NGuernse/8dc8b9e96de6bedcb6ad2c5467f5ef9a
 		const _self = this;
 		const { components_cnt, descriptors_text, 
-			error_data,  stability_data, interpretability_data, onClickPoint} = this.props;
-
+			error_data,  stability_data, fit_data, entropy_data, normalized_entropy_data,
+			gini_data, theil_data, pctnonzeros_data, onClickPoint} = this.props;
+		console.log(pctnonzeros_data);
 		var n = error_data.length, 
 			title = '',
-			margin = {top: 15, right: 15, bottom: 25, left: 15},
+			labels = '',
+			margin = {top: 15, right: 5, bottom: 25, left: 20},
 		  	width = this.layout.width - margin.left - margin.right, // Use the window's width 
 		  	height = this.layout.height - margin.top - margin.bottom; // Use the window's height
 
 		this.svg_error = new ReactFauxDOM.Element('svg');
-		this.svg_stability = new ReactFauxDOM.Element('svg');
-		this.svg_interpretability = new ReactFauxDOM.Element('svg');
+		// this.svg_stability = new ReactFauxDOM.Element('svg');
+		this.svg_fit = new ReactFauxDOM.Element('svg');
+		this.svg_entropy = new ReactFauxDOM.Element('svg');
+		this.svg_normalized_entropy = new ReactFauxDOM.Element('svg');
+		this.svg_gini = new ReactFauxDOM.Element('svg');
+		this.svg_theil = new ReactFauxDOM.Element('svg');
+		this.svg_pctnonzeros = new ReactFauxDOM.Element('svg');
 
 		this.svg_error.setAttribute('width', width + margin.left + margin.right);
 		this.svg_error.setAttribute('height', height + margin.top + margin.bottom);
-		this.svg_stability.setAttribute('width', width + margin.left + margin.right);
-		this.svg_stability.setAttribute('height', height + margin.top + margin.bottom);
-		this.svg_interpretability.setAttribute('width', width + margin.left + margin.right);		
-		this.svg_interpretability.setAttribute('height', height + margin.top + margin.bottom);
+		// this.svg_stability.setAttribute('width', width + margin.left + margin.right);
+		// this.svg_stability.setAttribute('height', height + margin.top + margin.bottom);
+		this.svg_fit.setAttribute('width', width + margin.left + margin.right);		
+		this.svg_fit.setAttribute('height', height + margin.top + margin.bottom);
+		this.svg_entropy.setAttribute('width', width + margin.left + margin.right);		
+		this.svg_entropy.setAttribute('height', height + margin.top + margin.bottom);
+		this.svg_normalized_entropy.setAttribute('width', width + margin.left + margin.right);		
+		this.svg_normalized_entropy.setAttribute('height', height + margin.top + margin.bottom);
+		this.svg_gini.setAttribute('width', width + margin.left + margin.right);		
+		this.svg_gini.setAttribute('height', height + margin.top + margin.bottom);
+		this.svg_theil.setAttribute('width', width + margin.left + margin.right);		
+		this.svg_theil.setAttribute('height', height + margin.top + margin.bottom);
+		this.svg_pctnonzeros.setAttribute('width', width + margin.left + margin.right);		
+		this.svg_pctnonzeros.setAttribute('height', height + margin.top + margin.bottom);
+
+
+
 		this.svg_error.setAttribute('transform', "translate(" + margin.left + "," + margin.top + ")");
-		this.svg_stability.setAttribute('transform', "translate(" + (margin.left + (width)*1) + "," + margin.top + ")");
-		this.svg_interpretability.setAttribute('transform', "translate(" + (margin.left + (width)*2) + "," + margin.top + ")");		
+		// this.svg_stability.setAttribute('transform', "translate(" + (margin.left + (width)*1) + "," + margin.top + ")");
+		this.svg_fit.setAttribute('transform', "translate(" + (margin.left + (width)*0.2) + "," + margin.top + ")");		
+		this.svg_entropy.setAttribute('transform', "translate(" + (margin.left + (width)*0.4) + "," + margin.top + ")");		
+		this.svg_normalized_entropy.setAttribute('transform', "translate(" + (margin.left + (width)*0.6) + "," + margin.top + ")");		
+		this.svg_gini.setAttribute('transform', "translate(" + (margin.left + (width)*0.8) + "," + margin.top + ")");		
+		this.svg_theil.setAttribute('transform', "translate(" + (margin.left + (width)*1) + "," + margin.top + ")");		
+		this.svg_pctnonzeros.setAttribute('transform', "translate(" + (margin.left + (width)*1.2) + "," + margin.top + ")");		
 
 		
 		
-		plot_linechart(this.svg_error, error_data, margin, width, height, n, title = "Reconstruction Error");
-		plot_linechart(this.svg_stability, stability_data, margin, width, height, n, title = "Model Stability");
-		plot_linechart(this.svg_interpretability, interpretability_data, margin, width, height, n, title = "Pattern interpretability");
-		
+		plot_linechart(this.svg_error, error_data, margin, width, height, n, title = "Reconstruction Error", labels = ["bad", "good"]);
+		// plot_linechart(this.svg_stability, stability_data, margin, width, height, n, title = "Model Stability");
+		plot_linechart(this.svg_fit, fit_data, margin, width, height, n, title = "Model Fit", labels = ["good", "bad"]);
+		plot_linechart(this.svg_entropy, entropy_data, margin, width, height, n, title = "Model Entropy", labels = ["bad", "good"]);
+		plot_linechart(this.svg_normalized_entropy, normalized_entropy_data, margin, width, height, n, title = "Normalized Entropy", labels = ["bad", "good"]);
+		plot_linechart(this.svg_gini, gini_data, margin, width, height, n, title = "Gini Index", labels = ["good", "bad"]);
+		plot_linechart(this.svg_theil, theil_data, margin, width, height, n, title = "Theil Index", labels = ["good", "bad"]);
+		plot_linechart(this.svg_pctnonzeros, pctnonzeros_data, margin, width, height, n, title = "Sparsity", labels = ["good", "bad"]);
+
 
 		this.svg = new ReactFauxDOM.Element('svg')
 		this.svg.setAttribute('width',  "100%");
 		this.svg.setAttribute('height', 30);
+
+
+				// {this.svg_error.toReact()}
+				// {this.svg_stability.toReact()}				
+				// {this.svg_interpretability.toReact()}							
 
 		// add the red line legend
 		d3.select(this.svg).append("text")
@@ -87,8 +122,13 @@ class ControlView extends Component {
 				<div>#Descriptors: {descriptors_text.join(', ')}</div>	
 				<div id="scree_charts">
 				{this.svg_error.toReact()}
-				{this.svg_stability.toReact()}				
-				{this.svg_interpretability.toReact()}							
+				{this.svg_fit.toReact()}				
+				{this.svg_entropy.toReact()}							
+				{this.svg_normalized_entropy.toReact()}							
+				{this.svg_gini.toReact()}							
+				{this.svg_theil.toReact()}							
+				{this.svg_pctnonzeros.toReact()}							
+
 				</div>							
 			</div>
 		);

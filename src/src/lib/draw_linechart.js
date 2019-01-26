@@ -9,11 +9,11 @@ export function computeMeanStd(array_list){
 }
 
 
-export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title = ""){
+export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title = "", labels = ["good", "bad"]){
 		var start_index = 2,
 			error_cap_size = 2,
-			title1 = "good",
-			title2 = "bad",
+			title1 = labels[0], 
+			title2 = labels[1],
 			svg = d3.select(cur_svg).append("g")					
 					.attr("transform", "translate(" + margin.left + "," + margin.top + ")"),
 			xScale = d3.scaleLinear()
@@ -29,10 +29,7 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 		    .y(function(d) { return yScale(d.y); }) // set the y values for the line generator 
 		    .curve(d3.curveMonotoneX); // apply smoothing to the line
 
-		if(title == "Model Stability"){
-			title1 = "bad"
-			title2 = "good"
-		}
+
 		// 3. Call the x axis in a group tag
 		svg.append("g")
 		    .attr("class", "x axis")
@@ -89,7 +86,8 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 			.append("line")
 			.attr("class", "error-line")
 			.attr("stroke", "#b30059")
-			.attr("stroke-dasharray", "1.2")			
+			.attr("stroke-dasharray", "1.2")
+			.attr("stroke-opacity", 0.2)
 			.attr("x1", function(d, i) {
 				return xScale(d.x);
 			})
@@ -110,7 +108,8 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 			.attr("class", "error-cap")
 			.attr("stroke", "#b30059")
 			.attr("stroke-width", "1px")
-			.attr("stroke-type", "solid")			
+			.attr("stroke-type", "solid")
+			.attr("stroke-opacity", 0.2)			
 			.attr("x1", function(d, i) {
 				return xScale(d.x) - error_cap_size;
 			})
@@ -131,7 +130,8 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 			.attr("class", "error-cap")
 			.attr("stroke", "#b30059")
 			.attr("stroke-width", "2px")
-			.attr("stroke-type", "solid")						
+			.attr("stroke-type", "solid")	
+			.attr("stroke-opacity", 0.2)					
 			.attr("x1", function(d, i) {
 				return xScale(d.x) - error_cap_size;
 			})
@@ -160,7 +160,7 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 			.attr("class", (d) => "rank"+d.x.toString())
 			.on("mouseover", function(d){
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "#ffab00");
-				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke-width", "2px");
+				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke-width", "6px");
 			})
 			.on("mouseout", function(d){
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "none");
