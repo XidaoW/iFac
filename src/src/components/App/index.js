@@ -11,7 +11,7 @@ import { computeMeanStd } from '../../lib/draw_linechart.js'
 
 import styles from './styles.scss';
 // import factors_data from '../../data/policy_factors_3_25_sample.json';
-import factors_data from '../../data/nba_factors_3_15_sample.json';
+import factors_data from '../../data/nba_factors_3_15_sample_fit.json';
 
 // import factors_data from '../../data/purchase_factors_4_18_sample.json';
 // import gs from '../../config/_variables.scss'; // gs (=global style)
@@ -398,15 +398,39 @@ class App extends Component {
 		// compute scree data
 		screeData['error'] = screeData['error'].filter(Boolean);
 		screeData['stability'] = screeData['stability'].filter(Boolean);
-		screeData['interpretability'] = screeData['interpretability'].filter(Boolean);
+		screeData['fit'] = screeData['fit'].filter(Boolean);
+		screeData['entropy'] = screeData['entropy'].filter(Boolean);
+		screeData['normalized_entropy'] = screeData['normalized_entropy'].filter(Boolean);
+		screeData['gini'] = screeData['gini'].filter(Boolean);
+		screeData['theil'] = screeData['theil'].filter(Boolean);
+		screeData['pctnonzeros'] = screeData['pctnonzeros'].filter(Boolean);
+
+
 		var error_data = d3.range(screeData['error'].length).map(function(d, i) {
 			var rst = computeMeanStd(screeData.error[d]);
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
-		}), stability_data = d3.range(screeData.stability.length).map(function(d, i) {
-			var rst = computeMeanStd(screeData.stability[d]);
+		})
+		// , stability_data = d3.range(screeData.stability.length).map(function(d, i) {
+		// 	var rst = computeMeanStd(screeData.stability[d]);
+		// 	return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		// })
+		, fit_data = d3.range(screeData.fit.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.fit[d]);
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
-		}), interpretability_data = d3.range(screeData.interpretability.length).map(function(d, i) {
-			var rst = computeMeanStd(screeData.interpretability[d]);
+		}), entropy_data = d3.range(screeData.entropy.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.entropy[d]);
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		}), normalized_entropy_data = d3.range(screeData.normalized_entropy.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.normalized_entropy[d]);
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		}), gini_data = d3.range(screeData.gini.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.fit[d]);
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		}), theil_data = d3.range(screeData.theil.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.theil[d]);
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		}), pctnonzeros_data = d3.range(screeData.pctnonzeros.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.pctnonzeros[d]);
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		})
 
@@ -422,8 +446,13 @@ class App extends Component {
 			modes: factors_data.modes,
 			queries: queries,
 			error_data: error_data,
-			stability_data: stability_data,
-			interpretability_data: interpretability_data,
+			stability_data: [],
+			fit_data: fit_data,
+			entropy_data: entropy_data,
+			normalized_entropy_data: normalized_entropy_data,
+			gini_data: gini_data,
+			theil_data: theil_data,
+			pctnonzeros_data: pctnonzeros_data
 		});    
 	}
 
@@ -436,7 +465,9 @@ class App extends Component {
 			mostSimilarPatternToSelectedPatternIdx,leastSimilarPatternToSelectedPatternIdx,
 			descriptors, descriptors_text,screeData, max_pattern_item, arc_positions_bar_petal, 
 			item_max_pattern,queries,similarPatternToQueries, item_links, mouseOveredDescriptorIdx, 
-			item_similarity, error_data, stability_data,  interpretability_data} = this.state;
+			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
+			gini_data, theil_data, pctnonzeros_data
+		} = this.state;
 
 	const components_cnt = factors_data.length;
 
@@ -451,7 +482,12 @@ class App extends Component {
 				descriptors_text={descriptors_text}				
 				error_data={error_data}
 				stability_data={stability_data}
-				interpretability_data={interpretability_data}								
+				fit_data={fit_data}								
+				entropy_data={entropy_data}								
+				normalized_entropy_data={normalized_entropy_data}								
+				gini_data={gini_data}								
+				theil_data={theil_data}								
+				pctnonzeros_data={pctnonzeros_data}												
 				onClickPoint={this.handleClickPoint}				
 			/>
 			<div className={styles.rowC}>
