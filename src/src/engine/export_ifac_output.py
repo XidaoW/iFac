@@ -19,7 +19,7 @@ import scipy
 import numpy as np
 import pandas as pd
 from scipy import stats
-from scipy.special import entr
+# from scipy.special import entr
 from scipy import spatial
 
 import sys
@@ -126,6 +126,17 @@ class iFacData():
 		srcHistSum = np.sum(srcHist*srcHist)
 		return diffHistSum/srcHistSum
 
+	def computeFit(self, ntfInstance, hist):
+		dstHist = ntfInstance.reconstruct()
+		mean_hist = np.full(hist.shape, np.mean(hist))
+		mean_hist_diff = (mean_hist - hist)
+		residual_hist = dstHist - hist
+		ss_total = np.sum(mean_hist_diff*mean_hist_diff)		
+		ss_res = np.sum(residual_hist*residual_hist)		
+		return 1 - ss_res*1. / ss_total
+
+
+
 
 	def getFitForRanks(self, bases, trials = 5):
 		"""
@@ -133,12 +144,44 @@ class iFacData():
 		type bases: int: max number of components
 		type trials: int: number of independent trials
 		"""
+
+		def pctnonzero(arr):
+			return (len(arr) - np.count_nonzero(arr))*1./len(arr)
+
+		def gini(arr):
+			# (Warning: This is a concise implementation, but it is O(n**2)
+			# in time and memory, where n = len(x).  *Don't* pass in huge
+			# samples!)
+			# Mean absolute difference
+			mad = np.abs(np.subtract.outer(arr, arr)).mean()
+			# Relative mean absolute difference
+			rmad = mad/np.mean(arr)
+			# Gini coefficient
+			g = 0.5 * rmad
+			return g		
+
+		def normalized_entropy(arr):			
+			return stats.entropy(arr) *1. / np.log(len(arr))
+
+		def theil(arr): 
+			# natural logarithm is default
+			redundancy = np.log(len(arr)) - stats.entropy(arr)
+			# inequality = 1 - exp(-redundancy)
+			return redundancy
+
+
+
 		self.base = bases
 		self.trials = trials
 		self.all_trials = []
 		self.metrics = {"error":[None]*self.base, 
+						"fit":[None]*self.base, 
 						"stability": [None]*self.base, 
-						"interpretability": [None]*self.base, 
+						"entropy": [None]*self.base, 
+						"normalized_entropy": [None]*self.base, 
+						"pctnonzeros": [None]*self.base, 
+						"gini": [None]*self.base, 
+						"theil": [None]*self.base, 
 						"min_error_index": [None]*self.base}
 		
 		self.weights_all = [None]*self.base
@@ -166,27 +209,39 @@ class iFacData():
 				self.all_trials.append(each_rank_trials)
 				_log.info("Getting Metric for rank: {}".format(self.base_cnt))
 				self.metrics["error"][self.base_cnt-self.start_index] = []
+				self.metrics["fit"][self.base_cnt-self.start_index] = []
 				self.metrics["stability"][self.base_cnt-self.start_index] = []
-				self.metrics["interpretability"][self.base_cnt-self.start_index] = []            
+				self.metrics["entropy"][self.base_cnt-self.start_index] = []            
+				self.metrics["normalized_entropy"][self.base_cnt-self.start_index] = []
+				self.metrics["gini"][self.base_cnt-self.start_index] = []            
+				self.metrics["theil"][self.base_cnt-self.start_index] = []            
+				self.metrics["pctnonzeros"][self.base_cnt-self.start_index] = []
 				self.weights_all[self.base_cnt-self.start_index] = []
 				self.factors_all[self.base_cnt-self.start_index] = []            
 				for random_seed in range(self.trials):
 					_log.info("Getting Metric for Trial: {}".format(random_seed))				
 					ntfInstance = self.all_trials[self.base_cnt-self.start_index][random_seed]            
 					self.metrics["error"][self.base_cnt-self.start_index].append(self.computeReconstructionError(ntfInstance,self.hist))
+					self.metrics["fit"][self.base_cnt-self.start_index].append(self.computeFit(ntfInstance,self.hist))
 					weights, factors = ntfInstance.getNormalizedFactor()
 					self.weights_all[self.base_cnt-self.start_index].append(weights)
 					self.factors_all[self.base_cnt-self.start_index].append(factors)
-					self.metrics["interpretability"][self.base_cnt-self.start_index].append(np.mean([entr(factors[i][j]).sum(axis = 0) for i in range(len(factors)) for j in range(len(factors[0]))]))
+					self.metrics["entropy"][self.base_cnt-self.start_index].append(np.mean([stats.entropy(factors[i][j]) for i in range(len(factors)) for j in range(len(factors[0]))]))
+					self.metrics["normalized_entropy"][self.base_cnt-self.start_index].append(np.mean([normalized_entropy(factors[i][j]) for i in range(len(factors)) for j in range(len(factors[0]))]))				
+					self.metrics["pctnonzeros"][self.base_cnt-self.start_index].append(np.mean([pctnonzero(factors[i][j]) for i in range(len(factors)) for j in range(len(factors[0]))]))
+					self.metrics["theil"][self.base_cnt-self.start_index].append(np.mean([theil(factors[i][j]) for i in range(len(factors)) for j in range(len(factors[0]))]))
+					self.metrics["gini"][self.base_cnt-self.start_index].append(np.mean([gini(factors[i][j]) for i in range(len(factors)) for j in range(len(factors[0]))]))
+					
+
 				best_fit_index = np.argmin(self.metrics["error"][self.base_cnt-self.start_index])
 				self.metrics["min_error_index"][self.base_cnt-self.start_index] = int(best_fit_index)
 				self.best_factors = self.factors_all[self.base_cnt-self.start_index][best_fit_index]
 				self.best_weights = self.weights_all[self.base_cnt-self.start_index][best_fit_index]
-				for random_seed in range(self.trials):
-					_log.info("Getting Similarity for Trial: {}".format(random_seed))				
-					self.cur_factors = self.factors_all[self.base_cnt-self.start_index][random_seed]
-					self.cur_weights = self.weights_all[self.base_cnt-self.start_index][random_seed]
-					self.metrics["stability"][self.base_cnt-self.start_index].append(self.maxFactorSimilarity(self.cur_factors, self.cur_weights, self.best_factors, self.best_weights, self.base_cnt))   
+				# for random_seed in range(self.trials):
+				# 	_log.info("Getting Similarity for Trial: {}".format(random_seed))				
+				# 	self.cur_factors = self.factors_all[self.base_cnt-self.start_index][random_seed]
+				# 	self.cur_weights = self.weights_all[self.base_cnt-self.start_index][random_seed]
+				# 	self.metrics["stability"][self.base_cnt-self.start_index].append(self.maxFactorSimilarity(self.cur_factors, self.cur_weights, self.best_factors, self.best_weights, self.base_cnt))   
 				self.cur_base = self.base_cnt                 
 				self.saveAttributes()
 			except:
@@ -291,7 +346,7 @@ class iFacData():
 		"""
 		self.entropies = []
 		for j in range(len(self.factors[0])):
-			self.entropies.append([entr(self.factors[i][j]).sum(axis = 0) for i in range(len(self.factors))])
+			self.entropies.append([stats.entropy(self.factors[i][j]) for i in range(len(self.factors))])
 		self.max_entropy = np.max(self.entropies, axis = 1).tolist()
 		self.min_entropy = np.min(self.entropies, axis = 1).tolist()
 
@@ -386,7 +441,7 @@ class iFacData():
 			
 	def saveOutput(self):
 		
-		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'_factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample.json', 'w') as fp:
+		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'_factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit.json', 'w') as fp:
 			json.dump(self.data_output, fp)
 
 	def saveAttributes(self):
