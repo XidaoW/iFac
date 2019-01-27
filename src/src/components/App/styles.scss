@@ -11,5 +11,9 @@
 
 .title { font-size: 1.5em; }
 
-.rowC { display:flex; flex-direction:row; }
+.rowC { 
+	display:flex; 
+	flex-direction:row; 
+	width: 100%;
+}
 

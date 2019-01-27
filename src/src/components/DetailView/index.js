@@ -156,7 +156,7 @@ class DetailView extends Component {
 		  
 
 		return (
-				<div className={styles.PatternOverview}>
+				<div className={styles.DetailView}>
 					{svg.toReact()}
 				</div>
 		);
