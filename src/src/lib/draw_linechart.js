@@ -48,6 +48,7 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 		    .attr("d", line) // 11. Calls the line generator 
 		    .attr("fill", "none")
 		    .attr("stroke", "#ffab00")
+		    .attr("stroke-opacity", 0.3)
 		    .attr("stroke-width", 1);
 
 
@@ -158,6 +159,7 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 			})
 			.attr("r", 2)
 			.attr("class", (d) => "rank"+d.x.toString())
+			.attr("opacity", 0.3)
 			.on("mouseover", function(d){
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "#ffab00");
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke-width", "6px");

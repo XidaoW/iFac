@@ -52,7 +52,7 @@ class DetailView extends Component {
 
 		var g, cur_cloud, cur_data, word_size, words, layout;
 
-		var margin = {top: 10, right: 10, bottom: 10, left: 10},
+		var margin = {top: 5, right: 5, bottom: 0, left: 5},
 			width = +this.layout.svg.width - margin.left - margin.right,
 			height = +this.layout.svg.height - margin.top - margin.bottom;
 
@@ -99,7 +99,16 @@ class DetailView extends Component {
 
 			g = d3.select(svg)
 			        .append("g")
-			        .attr("transform", "translate(" + 0 + "," + descriptor_index*250  + ")");		       
+			        .attr("transform", "translate(" + 0 + "," + descriptor_index*250  + ")");	
+	       g.append("rect")
+       			.attr("x", 0)
+       			.attr("y", 0)
+       			.attr("height", 250)
+       			.attr("width", 250)
+       			.style("stroke", "black")
+       			.style("fill", "none")
+       			.style("stroke-width", 1);
+
 
 			layout = cloud()
 			    .size([250, 250])
@@ -132,7 +141,6 @@ class DetailView extends Component {
 					.on("mouseover", function(d){
 						// bug when clicked on two patterns for comparison
 						// wrong bars are highlighted
-						console.log(d3.select('path#bar_' + descriptor_index+ '_'+ d.text))
 						d3.select('path#bar_' + descriptor_index+ '_'+ d.text).attr("stroke-width", "4px");							
 					})
 					.on("mouseout", function(d){
@@ -141,29 +149,17 @@ class DetailView extends Component {
 			}
 
 		};
-
-		function getValuesExclude(dict, exclude_key) {
-			var new_dict = {};
-			for (var key in dict) {
-				if(exclude_key == key){
-					continue
-				}
-				new_dict[key] = dict[key]
-			};
-			return new_dict;
-		}		
-		
-
+	
 		function axisStroke(i, descriptor_size) {
 			return d3.hcl(i / descriptor_size * 360, 60, 70);
 		};
 		  
 
-	  return (
-      <div className={styles.PatternOverview}>
-				{svg.toReact()}
-      </div>
-	  );
+		return (
+				<div className={styles.PatternOverview}>
+					{svg.toReact()}
+				</div>
+		);
 
 	}
 }
