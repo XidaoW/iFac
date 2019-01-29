@@ -81,6 +81,19 @@ class iFacData():
 				each_label = policy_group1.fillna(0).axes[i].tolist()
 				each_label = [str(each_one).replace('!', '').replace('(','').replace(')','').replace(' ','') for each_one in each_label]
 				self.labels.append(each_label)            
+
+		elif self.domain == "picso":
+			policy = pd.read_csv("data/picso.csv", header=None)
+			columns = ['member', 'year', 'keyword', 'value']
+			policy.columns = columns
+			self.column = columns[:3]
+			policy_group = policy.groupby(self.column)['value'].sum()
+			policy_group1 = policy_group.unstack(fill_value=0).to_panel()
+			self.hist = policy_group1.fillna(0).values
+			for i in range(len(self.column)):
+				each_label = policy_group1.fillna(0).axes[i].tolist()
+				each_label = [str(each_one) for each_one in each_label]
+				self.labels.append(each_label)  
 				
 		elif self.domain == "purchase":
 			couponAreaTest, couponAreaTrain, couponDetailTrain,                 couponListTest, couponListTrain,                 couponVisitTrain, userList = readPonpareData(valuePrefixed=True)
@@ -237,14 +250,15 @@ class iFacData():
 				self.metrics["min_error_index"][self.base_cnt-self.start_index] = int(best_fit_index)
 				self.best_factors = self.factors_all[self.base_cnt-self.start_index][best_fit_index]
 				self.best_weights = self.weights_all[self.base_cnt-self.start_index][best_fit_index]
-				# for random_seed in range(self.trials):
-				# 	_log.info("Getting Similarity for Trial: {}".format(random_seed))				
-				# 	self.cur_factors = self.factors_all[self.base_cnt-self.start_index][random_seed]
-				# 	self.cur_weights = self.weights_all[self.base_cnt-self.start_index][random_seed]
-				# 	self.metrics["stability"][self.base_cnt-self.start_index].append(self.maxFactorSimilarity(self.cur_factors, self.cur_weights, self.best_factors, self.best_weights, self.base_cnt))   
+				for random_seed in range(self.trials):
+					_log.info("Getting Similarity for Trial: {}".format(random_seed))				
+					self.cur_factors = self.factors_all[self.base_cnt-self.start_index][random_seed]
+					self.cur_weights = self.weights_all[self.base_cnt-self.start_index][random_seed]
+					self.metrics["stability"][self.base_cnt-self.start_index].append(self.maxFactorSimilarity(self.cur_factors, self.cur_weights, self.best_factors, self.best_weights, self.base_cnt))   
 				self.cur_base = self.base_cnt                 
 				self.saveAttributes()
 			except:
+				# raise
 				continue
 					
 
@@ -489,7 +503,7 @@ if __name__ == '__main__':
 	iFac = iFacData()
 	base = 30
 	iFac.start_index = 2
-	domain = "policy"
+	domain = "policy"	
 	nb_trials = 5
 
 	base = int(sys.argv[1])

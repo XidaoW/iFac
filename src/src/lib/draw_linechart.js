@@ -10,6 +10,7 @@ export function computeMeanStd(array_list){
 
 
 export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title = "", labels = ["good", "bad"]){
+
 		var start_index = 2,
 			error_cap_size = 2,
 			title1 = labels[0], 
@@ -29,7 +30,9 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 		    .y(function(d) { return yScale(d.y); }) // set the y values for the line generator 
 		    .curve(d3.curveMonotoneX); // apply smoothing to the line
 
-
+		var tooltip = svg.append("div")
+			.attr("class", "tooltip")
+			.style("opacity", 0);
 		// 3. Call the x axis in a group tag
 		svg.append("g")
 		    .attr("class", "x axis")
@@ -60,7 +63,22 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 			.style("text-anchor", "middle")
 	        .style("text-decoration", "underline")  				
 			.text(title)
-			.attr("class", "y axis label");
+			.attr("class", "y axis label")
+	     .on("mouseover", function(d) {
+	       tooltip.transition()
+	         .duration(200)
+	         .style("opacity", .9);
+	       tooltip.html("test" + "<br/>")
+	         .style("left", (d3.event.pageX) + "px")
+	         .style("top", (d3.event.pageY - 28) + "px");
+	         	     	console.log(tooltip)
+
+	       })
+	     .on("mouseout", function(d) {
+	       // tooltip.transition()
+	       //   .duration(500)
+	       //   .style("opacity", 1);
+	       });			
 
 		svg.append("text")
 			// .attr("transform", "rotate(-90)")

@@ -10,13 +10,15 @@ import { computeMeanStd } from '../../lib/draw_linechart.js'
 
 
 import styles from './styles.scss';
-// import factors_data from '../../data/policy_factors_3_25_sample.json';
-import factors_data from '../../data/nba_factors_3_15_sample_fit.json';
+// import factors_data from '../../data/policy_factors_3_30_sample_fit.json';
+// import factors_data from '../../data/nba_factors_3_20_sample_fit.json';
+import factors_data from '../../data/picso_factors_3_17_sample_fit.json';
 
 // import factors_data from '../../data/purchase_factors_4_18_sample.json';
 // import gs from '../../config/_variables.scss'; // gs (=global style)
 
 
+// import factors_data from '../../data/policy_factors_3_25_sample_fit.json';
 // import factors_data from '../../data/nba_factors_3_18_sample.json';
 
 class App extends Component {
@@ -409,12 +411,10 @@ class App extends Component {
 		var error_data = d3.range(screeData['error'].length).map(function(d, i) {
 			var rst = computeMeanStd(screeData.error[d]);
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
-		})
-		// , stability_data = d3.range(screeData.stability.length).map(function(d, i) {
-		// 	var rst = computeMeanStd(screeData.stability[d]);
-		// 	return {"x": d+start_index, "y": rst[0], "e":rst[1]};
-		// })
-		, fit_data = d3.range(screeData.fit.length).map(function(d, i) {
+		}), stability_data = d3.range(screeData.stability.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.stability[d]);
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		}), fit_data = d3.range(screeData.fit.length).map(function(d, i) {
 			var rst = computeMeanStd(screeData.fit[d]);
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		}), entropy_data = d3.range(screeData.entropy.length).map(function(d, i) {
@@ -446,7 +446,7 @@ class App extends Component {
 			modes: factors_data.modes,
 			queries: queries,
 			error_data: error_data,
-			stability_data: [],
+			stability_data: stability_data,
 			fit_data: fit_data,
 			entropy_data: entropy_data,
 			normalized_entropy_data: normalized_entropy_data,
@@ -468,6 +468,8 @@ class App extends Component {
 			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
 			gini_data, theil_data, pctnonzeros_data
 		} = this.state;
+
+
 
 	const components_cnt = factors_data.length;
 

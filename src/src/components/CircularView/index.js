@@ -210,7 +210,7 @@ class CircularView extends Component {
 				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, this.layout.detailView.margin, width, height);
 				// only show the line pointer (dominating items) when one pattern is selected.
 				if (selected_pattern_cnt == 1) {
-					draw_line_pointer(descriptor_index, arc_positions_bar_petal);
+					// draw_line_pointer(descriptor_index, arc_positions_bar_petal);
 				}
 			}	  
 			// when two patterns are selected for comparison, the query bar also needs to or-ordered. 
