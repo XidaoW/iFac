@@ -8,6 +8,7 @@
   border: 1px solid #e0dfdf;
 }
 
+
 .line {
     fill: none;
     stroke: #ffab00;
@@ -26,11 +27,9 @@ div.tooltip {
   width: 150px;
   height: 100px;
   padding: 2px;
-  font: 12px sans-serif;
+  font: 10px sans-serif;
   background: lightsteelblue;
   border: 0px;
   border-radius: 8px;
-
-
-
+  pointer-events: none;
 }
