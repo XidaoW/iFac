@@ -27,8 +27,6 @@ import json
 from pyspark import SparkConf, SparkContext
 import itertools
 
-
-
 import logging
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger('JNTF')
@@ -281,8 +279,8 @@ class iFacData():
 				self.cur_base = self.base_cnt                 
 				self.saveAttributes()
 			except:
-				raise
-				# continue
+				# raise
+				continue
 					
 
 	def maxFactorSimilarity(self, cur_factors, cur_weights, best_factors, best_weights, base_cnt):
@@ -485,10 +483,10 @@ class iFacData():
 			
 	def saveOutput(self):
 		
-		with open('/home/xidao/project/thesis/iFac/src/src/data/tmp/'+self.domain+'_factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit.json', 'w') as fp:
+		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit.json', 'w') as fp:
 			json.dump(self.data_output, fp)
 
-		with open('/home/xidao/project/thesis/iFac/src/src/data/tmp/'+self.domain+'_factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit_metrics.json', 'w') as fp:
+		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit_metrics.json', 'w') as fp:
 			json.dump(self.metrics, fp)			
 
 	def saveAttributes(self):

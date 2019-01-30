@@ -15,10 +15,10 @@ class DetailView extends Component {
 
 		this.layout = {
 			width: 500,
-			height: 850,
+			height: 1000,
 			svg: {
 				width: 500, // 90% of whole layout
-				height: 850 // 100% of whole layout
+				height: 1000 // 100% of whole layout
 			},
 			detailView: {
 				margin: {
@@ -50,6 +50,8 @@ class DetailView extends Component {
 		var wordcloud_color = d3.scaleLinear().domain([-1, 1]).range(['#ffff99', '#beaed4']).interpolate(d3.interpolateHcl);
 
 		var default_ptn_idx = components_cnt,
+			wordcloud_height = 250,
+			wordcloud_width = 250,
 			select_cnt = selectedPatterns.length,
 			descriptor_size = Object.keys(bar_data).length;
 
@@ -103,19 +105,19 @@ class DetailView extends Component {
 
 			g = d3.select(svg)
 			        .append("g")
-			        .attr("transform", "translate(" + 0 + "," + descriptor_index*250  + ")");	
-	       g.append("rect")
+			        .attr("transform", "translate(" + 0 + "," + descriptor_index*wordcloud_height  + ")");	
+	       	g.append("rect")
        			.attr("x", 0)
        			.attr("y", 0)
-       			.attr("height", 250)
-       			.attr("width", 250)
+       			.attr("height", wordcloud_height)
+       			.attr("width", wordcloud_width)
        			.style("stroke", "black")
        			.style("fill", "none")
        			.style("stroke-width", 1);
 
 
 			layout = cloud()
-			    .size([250, 250])
+			    .size([wordcloud_width, wordcloud_height])
 			    .words(words)
 			    .padding(5)
 			    .rotate(0)
