@@ -177,7 +177,7 @@ export	function plot_linechart(onClickPoint, cur_svg, dataset, margin, width, he
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "#ffab00");
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke-width", "6px");
 
-                tooltip.html('<div class="tooltip">Rank: ' + d.x + '</div>');
+                tooltip.html('<div class="tooltip">rank: ' + d.x + '</div>'+ '<div class="tooltip">value: ' + d3.format(".0%")(d.y) + '</div>');
                 tooltip.show();
 
 			})
