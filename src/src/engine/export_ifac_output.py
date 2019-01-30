@@ -485,10 +485,10 @@ class iFacData():
 			
 	def saveOutput(self):
 		
-		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'_factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit.json', 'w') as fp:
+		with open('/home/xidao/project/thesis/iFac/src/src/data/tmp/'+self.domain+'_factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit.json', 'w') as fp:
 			json.dump(self.data_output, fp)
 
-		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'_factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit_metrics.json', 'w') as fp:
+		with open('/home/xidao/project/thesis/iFac/src/src/data/tmp/'+self.domain+'_factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit_metrics.json', 'w') as fp:
 			json.dump(self.metrics, fp)			
 
 	def saveAttributes(self):
