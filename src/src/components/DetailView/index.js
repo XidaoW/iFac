@@ -46,6 +46,9 @@ class DetailView extends Component {
 		svg.setAttribute('width', this.layout.svg.width);
 		svg.setAttribute('height', this.layout.svg.height);
 		
+
+		var wordcloud_color = d3.scaleLinear().domain([-1, 1]).range(['#ffff99', '#beaed4']).interpolate(d3.interpolateHcl);
+
 		var default_ptn_idx = components_cnt,
 			select_cnt = selectedPatterns.length,
 			descriptor_size = Object.keys(bar_data).length;
@@ -84,6 +87,7 @@ class DetailView extends Component {
 			 * @param {var}   width       the width of wordcloud.
 			 * 
 			 */
+
 			cur_data = Object.keys(bar_data[descriptor_index][default_ptn_idx]).filter((d) => d !== 'id').reduce((obj, item) => {
 				obj[item] = bar_data[descriptor_index][default_ptn_idx][item];
 				return obj;
