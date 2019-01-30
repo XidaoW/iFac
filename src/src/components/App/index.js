@@ -22,8 +22,18 @@ import styles from './styles.scss';
 // import factors_data from '../../data/policy_factors_3_25_sample_fit.json';
 // import factors_data from '../../data/nba_factors_3_18_sample.json';
 
-import metrics from '../../data/nbaplayer_factors_3_19_sample_fit_metrics.json';
-import factors_data from '../../data/nbaplayer_factors_3_19_sample_fit.json';
+
+// const best_config = {
+// 						"nbaplayer": {"rank": 19, "dim": 3}, 
+// 						"picso": {"rank": 17, "dim": 3}, 
+// 						"nbaplayer": {"rank": 19, "dim": 3}, 
+// 						"nbaplayer": {"rank": 19, "dim": 3}, }
+
+import metrics from '../../data/nbaplayer/factors_3_19_sample_fit_metrics.json';
+import factors_data from '../../data/nbaplayer/factors_3_19_sample_fit.json';
+
+// import metrics from '../../data/picso/factors_3_17_sample_fit_metrics.json';
+// import factors_data from '../../data/picso/factors_3_17_sample_fit.json';
 
 // import metrics from '../../data/picso_factors_3_17_sample_fit_metrics.json';
 // import factors_data from '../../data/picso_factors_3_17_sample_fit.json';
@@ -56,8 +66,8 @@ class App extends Component {
 			item_links: [],
 			error_data: [],
 			stability_data: [],
-			interpretability_data: []
-
+			interpretability_data: [],
+			domain: "nbaplayer"
 		};
 
 		this.handleClickPattern = this.handleClickPattern.bind(this);
@@ -104,7 +114,9 @@ class App extends Component {
 		 * @param {var}   idx           the rank.
 		 * 
 		 */
-		var new_data = require("../../data/nbaplayer_factors_3_" + rank.toString() + "_sample_fit");
+		var domain = this.state.domain;
+		var new_data = require("../../data/"+domain+"/factors_3_" + rank.toString() + "_sample_fit");
+		// var new_data = require("../../data/nbaplayer_factors_3_" + rank.toString() + "_sample_fit");
 
 
 		let bar_data = {},
