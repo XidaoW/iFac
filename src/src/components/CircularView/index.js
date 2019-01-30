@@ -5,6 +5,7 @@ import {scaleRadial} from '../../lib/draw_radial.js'
 import * as quadPath from '../../lib/draw_quadratic_path.js'	
 import * as petal from '../../lib/draw_petals.js'
 
+
 import _ from 'lodash';
 import styles from './styles.scss';
 import index from '../../index.css';
@@ -203,9 +204,9 @@ class CircularView extends Component {
 		// DRAW THE RADIAL BAR CHART
 		for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
 			let selected_pattern_cnt = selectedPatterns.length;
-			// draw the bar for the default values that show the average of the patterns.
-			draw_bars_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, this.layout.detailView.margin, width, height)
 
+
+			
 			// when selected more than one pattern, show the distribution of selected patterns.
 			if(selected_pattern_cnt > 0) {
 				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, this.layout.detailView.margin, width, height);
@@ -213,7 +214,10 @@ class CircularView extends Component {
 				if (selected_pattern_cnt == 1) {
 					draw_line_pointer(descriptor_index, arc_positions_bar_petal);
 				}
-			}	  
+			}else{
+				// draw the bar for the default values that show the average of the patterns.
+				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, this.layout.detailView.margin, width, height);
+			}
 			// when two patterns are selected for comparison, the query bar also needs to or-ordered. 
 			reorder_item = (selected_pattern_cnt == 2)? true : false;
 			draw_query_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, this.layout.detailView.margin, width, height, reorder_item = reorder_item);				
@@ -305,8 +309,6 @@ class CircularView extends Component {
 								.sort((first, second) => second[1] - first[1]);
 				items = items1.map((key) => key[0]);				
 			}
-
-
 			// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
 			const x = d3.scaleBand()
 							.range([2*Math.PI*(descriptor_index+1)/descriptor_size-0.2,  2*Math.PI*(descriptor_index+2)/descriptor_size-0.4])    
