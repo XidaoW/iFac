@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
+import d3tooltip from 'd3-tooltip';
+
+const tooltip = d3tooltip(d3);
 
 export function computeMeanStd(array_list){
 	var n = array_list.length
@@ -30,9 +33,7 @@ export	function plot_linechart(onClickPoint, cur_svg, dataset, margin, width, he
 		    .y(function(d) { return yScale(d.y); }) // set the y values for the line generator 
 		    .curve(d3.curveMonotoneX); // apply smoothing to the line
 
-		var tooltip = svg.append("div")
-			.attr("class", "tooltip")
-			.style("opacity", 0);
+
 		// 3. Call the x axis in a group tag
 		svg.append("g")
 		    .attr("class", "x axis")
@@ -61,17 +62,11 @@ export	function plot_linechart(onClickPoint, cur_svg, dataset, margin, width, he
 			.attr("dy", "1em")
 			.attr("font-size", "10px")
 			.style("text-anchor", "middle")
+    		.attr('font-family', 'FontAwesome')			
 	        .style("text-decoration", "underline")  				
 			.text(title)
 			.attr("class", "y axis label")
 	     .on("mouseover", function(d) {
-	       tooltip.transition()
-	         .duration(200)
-	         .style("opacity", .9);
-	       tooltip.html("test" + "<br/>")
-	         .style("left", (d3.event.pageX) + "px")
-	         .style("top", (d3.event.pageY - 28) + "px");
-	         	     	console.log(tooltip)
 
 	       })
 	     .on("mouseout", function(d) {
@@ -181,9 +176,14 @@ export	function plot_linechart(onClickPoint, cur_svg, dataset, margin, width, he
 			.on("mouseover", function(d){
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "#ffab00");
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke-width", "6px");
+
+                tooltip.html('<div class="tooltip">Rank: ' + d.x + '</div>');
+                tooltip.show();
+
 			})
 			.on("mouseout", function(d){
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "none");
+				tooltip.hide();
 			})			
 			.on("click", function(d){
 				onClickPoint(d.x);
