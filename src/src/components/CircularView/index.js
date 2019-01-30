@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
 import ReactFauxDOM from 'react-faux-dom';
+import d3tooltip from 'd3-tooltip';
 import {scaleRadial} from '../../lib/draw_radial.js'
 import * as quadPath from '../../lib/draw_quadratic_path.js'	
 import * as petal from '../../lib/draw_petals.js'
@@ -11,6 +12,7 @@ import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 
+const tooltip = d3tooltip(d3);
 
 /* props: this.props.ranking
   => selected ranking data
@@ -141,6 +143,14 @@ class CircularView extends Component {
 						.attr('id', (d) => 'pattern_' + d.id)                
 						.attr('transform', (d, i) => 'translate(' + _self.circle_position_x(d.tsne_coord.x) + ',' 
 									+ _self.circle_position_y(d.tsne_coord.y) + ')')
+						.on("mouseover", function(d){
+							tooltip.html('<div class="tooltip">pattern#' + d.id + '</div>'+ 
+								'<div class="tooltip">dominance: ' + d3.format(".0%")(d.weight) + '</div>');
+							tooltip.show();
+						})
+						.on("mouseout", function(d){
+							tooltip.hide();
+						})									
 						.on('click', (d) => {
 							if (d3.select('#pattern_' + d.id).classed('selected')) {
 								_self.props.onUnClickPattern(d.id);
@@ -197,6 +207,17 @@ class CircularView extends Component {
 					.attr('stroke-width', function(d) {   
 					})
 					.attr('stroke', function(d) {   
+					})
+					.on("mouseover", function(d, i){
+						console.log(d)
+						console.log(i)
+						tooltip.html('<div class="tooltip">descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
+							'<div class="tooltip">informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
+							'<div class="tooltip">similarity: ' + d3.format(".0%")(d.data.width) + '</div>');
+						tooltip.show();
+					})
+					.on("mouseout", function(d){
+						tooltip.hide();
 					})
 					.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
 					.style('fill-opacity', 0.6);
@@ -350,7 +371,20 @@ class CircularView extends Component {
 					.attr('fill', (d) => barFill(d, descriptor_index, descriptor_size, bar_opacity))
 					.attr('opacity', (d) => barFillOpacity(d, descriptor_index, descriptor_size, _self.foregroundBarOpacity, _self.backgroundBarOpacity,bar_opacity))       
 					.attr('stroke', 'black')
-					.attr('stroke-width', "0px");
+					.attr('stroke-width', "0px")
+					.on("mouseover", function(d){
+						// d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "#ffab00");
+						// d3.selectAll("circle.rank"+d.x.toString()).attr("stroke-width", "6px");
+
+						tooltip.html('<span>' + d.key + "(" + d3.format(".0%")(d.value) + ")"+ '</span>');
+						tooltip.show();
+
+					})
+					.on("mouseout", function(d){
+						// d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "none");
+						tooltip.hide();
+					})			
+
 
 			// Add the labels     
 			backdrop.selectAll("text.label_bar" + descriptor_index).remove();
