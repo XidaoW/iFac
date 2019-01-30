@@ -9,7 +9,7 @@ export function computeMeanStd(array_list){
 }
 
 
-export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title = "", labels = ["good", "bad"]){
+export	function plot_linechart(onClickPoint, cur_svg, dataset, margin, width, height, n, title = "", labels = ["good", "bad"]){
 
 		var start_index = 2,
 			error_cap_size = 2,
@@ -186,7 +186,7 @@ export	function plot_linechart(cur_svg, dataset, margin, width, height, n, title
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "none");
 			})			
 			.on("click", function(d){
-				// _self.props.onClickPoint(d.x);
+				onClickPoint(d.x);
 			});
 
 	}

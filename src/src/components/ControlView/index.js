@@ -30,7 +30,6 @@ class ControlView extends Component {
 		const { components_cnt, descriptors_text, 
 			error_data,  stability_data, fit_data, entropy_data, normalized_entropy_data,
 			gini_data, theil_data, pctnonzeros_data, onClickPoint} = this.props;
-		console.log(pctnonzeros_data);
 		var n = error_data.length, 
 			title = '',
 			labels = '',
@@ -82,11 +81,11 @@ class ControlView extends Component {
 		var labels_a = ["good", "bad"],
 			labels_b = ["bad", "good"];
 
-		plot_linechart(this.svg_error, error_data, margin, width, height, n, title = "Reconstruction Error", labels = labels_a);
-		plot_linechart(this.svg_fit, fit_data, margin, width, height, n, title = "Model Fit", labels = labels_b);
-		plot_linechart(this.svg_stability, stability_data, margin, width, height, n, title = "Model Stability", labels = labels_b);		
-		plot_linechart(this.svg_normalized_entropy, normalized_entropy_data, margin, width, height, n, title = "Normalized Entropy", labels = labels_a);
-		plot_linechart(this.svg_pctnonzeros, pctnonzeros_data, margin, width, height, n, title = "Sparsity", labels = labels_b);
+		plot_linechart(onClickPoint, this.svg_error, error_data, margin, width, height, n, title = "Reconstruction Error", labels = labels_a);
+		plot_linechart(onClickPoint, this.svg_fit, fit_data, margin, width, height, n, title = "Model Fit", labels = labels_b);
+		plot_linechart(onClickPoint, this.svg_stability, stability_data, margin, width, height, n, title = "Model Stability", labels = labels_b);		
+		plot_linechart(onClickPoint, this.svg_normalized_entropy, normalized_entropy_data, margin, width, height, n, title = "Normalized Entropy", labels = labels_a);
+		plot_linechart(onClickPoint, this.svg_pctnonzeros, pctnonzeros_data, margin, width, height, n, title = "Sparsity", labels = labels_b);
 
 		// plot_linechart(this.svg_entropy, entropy_data, margin, width, height, n, title = "Model Entropy", labels = labels_a);
 		// plot_linechart(this.svg_gini, gini_data, margin, width, height, n, title = "Gini Index", labels = labels_b);

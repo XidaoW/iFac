@@ -12,7 +12,8 @@ import { computeMeanStd } from '../../lib/draw_linechart.js'
 import styles from './styles.scss';
 // import factors_data from '../../data/policy_factors_3_30_sample_fit.json';
 // import factors_data from '../../data/nba_factors_3_20_sample_fit.json';
-import factors_data from '../../data/picso_factors_3_17_sample_fit.json';
+// import factors_data from '../../data/picso_factors_3_17_sample_fit.json';
+
 
 // import factors_data from '../../data/purchase_factors_4_18_sample.json';
 // import gs from '../../config/_variables.scss'; // gs (=global style)
@@ -21,6 +22,9 @@ import factors_data from '../../data/picso_factors_3_17_sample_fit.json';
 // import factors_data from '../../data/policy_factors_3_25_sample_fit.json';
 // import factors_data from '../../data/nba_factors_3_18_sample.json';
 
+import metrics from '../../data/nbaplayer_factors_3_19_sample_fit_metrics.json';
+import factors_data from '../../data/nbaplayer_factors_3_19_sample_fit.json';
+
 class App extends Component {
 	constructor(props) {
 		super(props);
@@ -28,7 +32,7 @@ class App extends Component {
 			screeData: factors_data.scree,
 			factors_data: factors_data.data,
 			descriptors: factors_data.descriptors,
-			screeData: factors_data.metrics,
+			screeData: metrics,
 			descriptors_mean: factors_data.average,
 			item_max_pattern: factors_data.item_max_pattern,
 			item_similarity: factors_data.itemSimilarity,
@@ -96,8 +100,25 @@ class App extends Component {
 		 *
 		 * @param {var}   idx           the rank.
 		 * 
-		 */		
-		console.log(rank); 
+		 */
+	// d3.json('../../data/nbaplayer_factors_3_19_sample_fit.json', function(err, json) {
+ //      // for (a in json.data) {
+ //      //     result.innerText = result.innerText + json.data[a].hora + "\n";
+ //      // }		
+	// 	console.log(json); 
+	// });
+		console.log(rank)
+		// d3.json('../../data/nbaplayer_factors_3_19_sample_fit.json').then(function(error, data){
+		   
+		//    // if (error) {
+		//      console.log(error)
+		//    // } else {
+		     
+		//     console.log(data)
+
+		//    // }
+		    
+		//  });
 		// d3.json('../../data/purchase_factors_4_'+rank.toString()+'_sample.json', function(data){
 		// 	console.log(data)
 		// });
@@ -356,7 +377,7 @@ class App extends Component {
 		*/		
 		const _self = this,
 			factors = factors_data.data,
-			screeData = factors_data.metrics,
+			screeData = metrics,
 			start_index = 2,
 			queries = d3.range(factors[0].dims).reduce((obj, item) => {
 				obj[item] = [];
