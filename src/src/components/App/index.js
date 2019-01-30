@@ -25,6 +25,9 @@ import styles from './styles.scss';
 import metrics from '../../data/nbaplayer_factors_3_19_sample_fit_metrics.json';
 import factors_data from '../../data/nbaplayer_factors_3_19_sample_fit.json';
 
+// import metrics from '../../data/picso_factors_3_17_sample_fit_metrics.json';
+// import factors_data from '../../data/picso_factors_3_17_sample_fit.json';
+
 class App extends Component {
 	constructor(props) {
 		super(props);
@@ -74,7 +77,7 @@ class App extends Component {
 
 		this.setState(prevState => ({
 		  mouseOveredPatternIdx: newMouseOverPatternIdx,
-		  mouseOveredPatternData: factors_data[idx]
+		  mouseOveredPatternData: this.state.factors_data[idx]
 		}));
 	}
 	// depricated
@@ -101,35 +104,59 @@ class App extends Component {
 		 * @param {var}   idx           the rank.
 		 * 
 		 */
-	// d3.json('../../data/nbaplayer_factors_3_19_sample_fit.json', function(err, json) {
- //      // for (a in json.data) {
- //      //     result.innerText = result.innerText + json.data[a].hora + "\n";
- //      // }		
-	// 	console.log(json); 
-	// });
-		console.log(rank)
-		// d3.json('../../data/nbaplayer_factors_3_19_sample_fit.json').then(function(error, data){
-		   
-		//    // if (error) {
-		//      console.log(error)
-		//    // } else {
-		     
-		//     console.log(data)
+		var new_data = require("../../data/nbaplayer_factors_3_" + rank.toString() + "_sample_fit");
 
-		//    // }
-		    
-		//  });
-		// d3.json('../../data/purchase_factors_4_'+rank.toString()+'_sample.json', function(data){
-		// 	console.log(data)
-		// });
-		// this.setState(prevState => ({
-		// 	factors_data: factors_data.data,
-		// 	descriptors: factors_data.descriptors,
-		// 	screeData: factors_data.metrics,
-		// 	descriptors_mean: factors_data.average,
-		// 	item_max_pattern: factors_data.item_max_pattern,
-		// 	item_similarity: factors_data.itemSimilarity,
-		// }));
+
+		let bar_data = {},
+			max_pattern_item = {},
+			descriptors_text = [],
+			queries = d3.range(new_data.data[0].dims).reduce((obj, item) => {
+				obj[item] = [];
+				return obj;
+			}, {});			
+
+		new_data.data.forEach(function(d, id) {
+			d.petals = d3.range(d.dims).map(function(i) { 
+				return {
+					"id": id, "length": 1 - d.factors[i].entropy,
+					"width": d.factors[i].similarity.average
+				}; 
+			});
+			d.circles = {
+				"dominance": d.weight, 
+				"radius": 6
+			};     
+		});	
+
+		for(let i = 0; i < new_data.data[0].dims; i++){
+			bar_data[i] = [];
+			max_pattern_item[i] = [];
+			let pattern_cnt = new_data.data.length;
+			for(let j = 0; j < pattern_cnt; j++) {
+				bar_data[i].push(new_data.data[j].factors[i].values); 
+				max_pattern_item[i].push(new_data.data[j].factors[i].max_item);         
+			}      
+			bar_data[i].push(new_data.average[i]); 
+		}
+
+		for (let key in new_data.descriptors) {
+			if (new_data.descriptors.hasOwnProperty(key)) {
+				descriptors_text.push(key + '(' + new_data.descriptors[key].length + ')');
+			}
+		}
+	
+		this.setState(prevState => ({
+			factors_data: new_data.data,
+			descriptors: new_data.descriptors,
+			descriptors_mean: new_data.average,
+			item_max_pattern: new_data.item_max_pattern,
+			item_similarity: new_data.itemSimilarity,
+			bar_data: bar_data,      
+			max_pattern_item: max_pattern_item,
+			modes: new_data.modes,
+			queries: queries,
+		}));		
+		
 	}
 
 	handleClickPattern(idx, petals_path_items) { 
@@ -156,10 +183,12 @@ class App extends Component {
 		 */
 		console.log("clicked:", idx);
 		const newSelectedPattern = idx,
-			factors = factors_data.data,
-			tensor_dims = factors_data.modes.length,			
+			factors = this.state.factors_data,
+			tensor_dims = this.state.modes.length,			
 			prev_selected_patterns = this.state.selectedPatterns,
 			selectedPatternCnt = prev_selected_patterns.length + 1;
+
+		console.log(this.state);
 
 		let mostSimilarPattern = [],
 			max_ids = [],
@@ -176,7 +205,7 @@ class App extends Component {
 			});
 		});
 
-		for(var i = 0; i < factors_data.data[0].dims; i++){
+		for(var i = 0; i < this.state.factors_data[0].dims; i++){
 			max_ids.push(factors[idx].factors[i].similarity.max_idx);
 			min_ids.push(factors[idx].factors[i].similarity.min_idx);
 		}
@@ -193,7 +222,7 @@ class App extends Component {
 		this.setState(prevState => ({
 			selectedPatterns: [...prevState.selectedPatterns, newSelectedPattern],
 			currentSelectedPatternIdx: newSelectedPattern,
-			factors_data: factors_data.data,
+			factors_data: factors,
 			bar_data: bar_data_cur,
 			arc_positions_bar_petal: extractPetalBarCoordinates(petals_path_items),
 			mostSimilarPatternToSelectedPatternIdx: max_ids,
@@ -219,7 +248,7 @@ class App extends Component {
 		 * 
 		 */
 		const newSelectedPattern = idx,
-			factors = factors_data.data;
+			factors = this.state.factors_data;
 
 		factors.forEach(function(d, id) {
 			d.petals = d3.range(d.dims).map(function(i) { 
@@ -233,7 +262,7 @@ class App extends Component {
 		this.setState(prevState => ({
 			selectedPatterns: prevState.selectedPatterns.filter((d) => d !== newSelectedPattern),
 			currentSelectedPatternIdx: '',
-			factors_data: factors_data.data
+			factors_data: factors
 		}));
 	}
 
@@ -257,9 +286,10 @@ class App extends Component {
 		 * @param {var}   top_k         the number of top patterns.
 		 * 
 		 */
-		const pattern_cnt = factors_data.data.length;
+		const factors = this.state.factors_data,
+			pattern_cnt = factors.length;
 		// p(item1_descriptor1/pattern)*p(item2_descriptor1/pattern)*p(item3_descriptor2/pattern)*p(item4_descriptor3/pattern)
-		let similarPatternToQueries = this.calculateSimilarityBtnPatternToQueries(pattern_cnt, new_queries),
+		let similarPatternToQueries = this.calculateSimilarityBtnPatternToQueries(pattern_cnt, new_queries, factors),
 			pattern_idx,
 			relevance_score,
 			coordinates;
@@ -273,7 +303,7 @@ class App extends Component {
 					"rank": i,
 					"pattern_idx": similarPatternToQueries[i][0],
 					"relevance_score":similarPatternToQueries[i][1],
-					"tsne_coord":factors_data.data[similarPatternToQueries[i][0]].tsne_coord
+					"tsne_coord":factors[similarPatternToQueries[i][0]].tsne_coord
 				};
 		});
 
@@ -283,7 +313,7 @@ class App extends Component {
 		});
 	}
 
-	calculateSimilarityBtnPatternToQueries(pattern_cnt, new_queries) {
+	calculateSimilarityBtnPatternToQueries(pattern_cnt, new_queries, all_factors) {
 		/**
 		 * Caculates the similarity between patterns and the query.
 		 *
@@ -309,7 +339,7 @@ class App extends Component {
 			let query_result = 	Object.keys(new_queries).map(function(key, index){
 					let query_result_each_key = new_queries[key].map(function(queryKey){					
 						// obtain p_{di} from factors_data
-						return factors_data.data[i].factors[key].values[queryKey];
+						return all_factors[i].factors[key].values[queryKey];
 					});				
 					// multiply each probability if there are more than one item, otherwise use the probability of that item.
 					// p_d = \prod_{i\in I^{'}} ~p_{di}
@@ -362,6 +392,7 @@ class App extends Component {
 		}));
 	}
 
+
 	componentWillMount() {
 		/**
 		 * Being called before rendering (preparing data to pass it to children)
@@ -376,7 +407,7 @@ class App extends Component {
 		 * 
 		*/		
 		const _self = this,
-			factors = factors_data.data,
+			factors = this.state.factors_data,
 			screeData = metrics,
 			start_index = 2,
 			queries = d3.range(factors[0].dims).reduce((obj, item) => {
@@ -400,20 +431,20 @@ class App extends Component {
 			};     
 		});
 
-		for(let i = 0; i < factors_data.data[0].dims; i++){
+		for(let i = 0; i < factors[0].dims; i++){
 			bar_data[i] = [];
 			max_pattern_item[i] = [];
-			let pattern_cnt = factors_data.data.length;
+			let pattern_cnt = factors.length;
 			for(let j = 0; j < pattern_cnt; j++) {
-				bar_data[i].push(factors_data.data[j].factors[i].values); 
-				max_pattern_item[i].push(factors_data.data[j].factors[i].max_item);         
+				bar_data[i].push(factors[j].factors[i].values); 
+				max_pattern_item[i].push(factors[j].factors[i].max_item);         
 			}      
-			bar_data[i].push(factors_data.average[i]); 
+			bar_data[i].push(this.state.descriptors_mean[i]); 
 		}
 
-		for (let key in factors_data.descriptors) {
-			if (factors_data.descriptors.hasOwnProperty(key)) {
-				descriptors_text.push(key + '(' + factors_data.descriptors[key].length + ')');
+		for (let key in this.state.descriptors) {
+			if (this.state.descriptors.hasOwnProperty(key)) {
+				descriptors_text.push(key + '(' + this.state.descriptors[key].length + ')');
 			}
 		}
 
@@ -457,14 +488,10 @@ class App extends Component {
 
 
 		this.setState({
-			item_max_pattern: factors_data.item_max_pattern,
-			descriptors: factors_data.descriptors,      
-			factors_data: factors_data.data,
+			factors_data: factors,
 			descriptors_text: descriptors_text,
 			bar_data: bar_data,      
 			max_pattern_item: max_pattern_item,
-			descriptors_mean: factors_data.average,
-			modes: factors_data.modes,
 			queries: queries,
 			error_data: error_data,
 			stability_data: stability_data,
@@ -489,7 +516,6 @@ class App extends Component {
 			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
 			gini_data, theil_data, pctnonzeros_data
 		} = this.state;
-
 
 
 	const components_cnt = factors_data.length;
