@@ -139,12 +139,10 @@ class DetailView extends Component {
 					})
 					.text(function(d) { return d.text; })
 					.on("mouseover", function(d){
-						// bug when clicked on two patterns for comparison
-						// wrong bars are highlighted
-						d3.select('path#bar_' + descriptor_index+ '_'+ d.text).attr("stroke-width", "4px");							
+						d3.selectAll('path#bar_' + descriptor_index+ '_'+ d.text).attr("stroke-width", "2px");							
 					})
 					.on("mouseout", function(d){
-						d3.select('path#bar_' + descriptor_index+ '_'+ d.text).attr("stroke-width", "0px");							
+						d3.selectAll('path#bar_' + descriptor_index+ '_'+ d.text).attr("stroke-width", "0px");							
 					})
 			}
 
