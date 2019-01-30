@@ -68,6 +68,29 @@ class iFacData():
 				each_label = [str(each_one).replace('!', '').replace('(','').replace(')','').replace(' ','') for each_one in each_label]
 				self.labels.append(each_label)
 			
+		if self.domain == "nbaplayer":
+			top_cnt = 15
+			shots = pd.read_csv("data/NBA_shots_201415.csv")
+			shots = shots[['PLAYER_ID','PLAYER_NAME','TEAM_ID','TEAM_NAME','ZoneName','PERIOD','SHOT_ATTEMPTED_FLAG','SHOT_MADE_FLAG']]
+			shots.PERIOD[shots.PERIOD > 4] = 5
+
+			self.column = ['PERIOD','PLAYER_NAME','ZoneName']
+
+			shots_total = shots.groupby(['PLAYER_NAME'])['SHOT_ATTEMPTED_FLAG'].sum()
+			top_players = list(shots_total.sort_values(ascending=False).iloc[:top_cnt].index)
+
+			shots = shots[shots.PLAYER_NAME.isin(top_players)]
+			shots_group_data_attempted = shots.groupby(self.column)['SHOT_ATTEMPTED_FLAG'].sum()
+			shots_group_data_made = shots.groupby(self.column)['SHOT_MADE_FLAG'].sum()
+			shots_group_data_attempted = shots_group_data_made.div(shots_group_data_attempted, level=0)
+			shots_group_data_attempted1 = shots_group_data_attempted.unstack(fill_value=0).to_panel()
+			self.hist = shots_group_data_attempted1.fillna(0).values
+
+			for i in range(len(self.column)):
+				each_label = shots_group_data_attempted1.fillna(0).axes[i].tolist()
+				each_label = [str(each_one).replace('!', '').replace('(','').replace(')','').replace(' ','') for each_one in each_label]
+				self.labels.append(each_label)
+
 		elif self.domain == "policy":
 			policy = pd.read_csv("data/policy_adoption.csv")
 			policy['adoption'] = 1
@@ -258,8 +281,8 @@ class iFacData():
 				self.cur_base = self.base_cnt                 
 				self.saveAttributes()
 			except:
-				# raise
-				continue
+				raise
+				# continue
 					
 
 	def maxFactorSimilarity(self, cur_factors, cur_weights, best_factors, best_weights, base_cnt):
@@ -332,6 +355,7 @@ class iFacData():
 		"""
 		compute the pairwise item similarity
 		"""
+		import math
 		self.itemSimilarity = {}
 		for k in range(len(self.data)):
 			self.itemSimilarity[k] = {}
@@ -341,9 +365,15 @@ class iFacData():
 					if i == j:
 						continue
 					dataSetI = self.data[k].T[i]
-					dataSetII = self.data[k].T[j]                    
+					dataSetII = self.data[k].T[j]
+					# import pdb
+					# pdb.set_trace()
 					result = scipy.stats.spearmanr(dataSetI.T, dataSetII.T)
-					self.itemSimilarity[k][self.labels[k][i]][self.labels[k][j]] = result.correlation
+					# print(result)
+					if not math.isnan(result.correlation):
+						self.itemSimilarity[k][self.labels[k][i]][self.labels[k][j]] = result.correlation
+					else:
+						self.itemSimilarity[k][self.labels[k][i]][self.labels[k][j]] = 0
 
 				max_item = self.itemSimilarity[k][self.labels[k][i]][max(self.itemSimilarity[k][self.labels[k][i]], 
 																		 key=self.itemSimilarity[k][self.labels[k][i]].get)]
@@ -403,7 +433,7 @@ class iFacData():
 		self.data_output = {"descriptors": dict(zip(self.column, self.labels)),
 							"average":self.data_mean_descriptor, 
 							"itemSimilarity":self.itemSimilarity,
-							"metrics":self.metrics,
+							# "metrics":self.metrics,
 							# "item_max_pattern": self.item_max_pattern,
 							"item_max_pattern": '',
 							"start_index":str(self.start_index),
@@ -458,6 +488,9 @@ class iFacData():
 		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'_factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit.json', 'w') as fp:
 			json.dump(self.data_output, fp)
 
+		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'_factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit_metrics.json', 'w') as fp:
+			json.dump(self.metrics, fp)			
+
 	def saveAttributes(self):
 		_log.info("Factorize Tensor")   
 		self.factorizeTensor(ones = False, random_seed = iFac.metrics["min_error_index"][self.cur_base-self.start_index])
@@ -472,6 +505,7 @@ class iFacData():
 		try:
 			self.getEmbedding()
 		except:
+			_log.info("running embedding again...")
 			self.rd_state += 1
 			self.getEmbedding(rd_state = self.rd_state)
 		_log.info("Saving Output")                              
@@ -513,6 +547,8 @@ if __name__ == '__main__':
 	iFac.readData(domain = domain)
 	_log.info("Fitting Different Ranks up to {}".format(base))
 	iFac.getFitForRanks(base, trials = nb_trials)
+
+
 
 
 
