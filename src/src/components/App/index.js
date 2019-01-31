@@ -10,6 +10,7 @@ import { computeMeanStd } from '../../lib/draw_linechart.js'
 
 
 import styles from './styles.scss';
+import index from '../../index.css';
 // import factors_data from '../../data/policy_factors_3_30_sample_fit.json';
 // import factors_data from '../../data/nba_factors_3_20_sample_fit.json';
 // import factors_data from '../../data/picso_factors_3_17_sample_fit.json';
