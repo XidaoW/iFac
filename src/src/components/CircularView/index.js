@@ -119,7 +119,8 @@ class CircularView extends Component {
 		// draw the backdrop
 		const backdrop = d3.select(svg)
 						.append('g')
-						.attr('class', 'background'),
+						.attr('class', 'background')
+						.attr('transform', 'translate(50,50)'),
 			gFlowers = backdrop
 				.append('g')
 				.attr('transform', 'translate(' + ((width)/2-(innerRadius)/2) + ',' + ((height)/2-( innerRadius)/2) + ')')
@@ -556,7 +557,8 @@ class CircularView extends Component {
 		};
 
 		return (
-			<div className={styles.CircularOverview}>			
+			<div className={styles.CircularOverview}>		
+				<div className={index.title}>Circular View</div>
 				{svg.toReact()}
 			</div>
 		);

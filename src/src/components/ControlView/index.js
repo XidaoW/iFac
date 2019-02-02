@@ -68,11 +68,11 @@ class ControlView extends Component {
 
 
 
-		this.svg_error.setAttribute('transform', "translate(" + margin.left + "," + margin.top + ")");
-		this.svg_fit.setAttribute('transform', "translate(" + (margin.left + (width)*0.2) + "," + margin.top + ")");		
-		this.svg_stability.setAttribute('transform', "translate(" + (margin.left + (width)*0.4) + "," + margin.top + ")");		
-		this.svg_normalized_entropy.setAttribute('transform', "translate(" + (margin.left + (width)*0.6) + "," + margin.top + ")");		
-		this.svg_pctnonzeros.setAttribute('transform', "translate(" + (margin.left + (width)*0.8) + "," + margin.top + ")");		
+		this.svg_error.setAttribute('transform', "translate(0," + margin.top + ")");
+		this.svg_fit.setAttribute('transform', "translate(0," + margin.top + ")");		
+		this.svg_stability.setAttribute('transform', "translate(0," + margin.top + ")");		
+		this.svg_normalized_entropy.setAttribute('transform', "translate(0," + margin.top + ")");		
+		this.svg_pctnonzeros.setAttribute('transform', "translate(0," + margin.top + ")");		
 
 		// this.svg_gini.setAttribute('transform', "translate(" + (margin.left + (width)*0.8) + "," + margin.top + ")");		
 		// this.svg_theil.setAttribute('transform', "translate(" + (margin.left + (width)*1) + "," + margin.top + ")");		
@@ -82,11 +82,11 @@ class ControlView extends Component {
 		var labels_a = ["good", "bad"],
 			labels_b = ["bad", "good"];
 
-		plot_linechart(onClickPoint, this.svg_error, error_data, margin, width, height, n, title = "Reconstruction Error", labels = labels_a);
-		plot_linechart(onClickPoint, this.svg_fit, fit_data, margin, width, height, n, title = "Model Fit", labels = labels_b);
-		plot_linechart(onClickPoint, this.svg_stability, stability_data, margin, width, height, n, title = "Model Stability", labels = labels_b);		
-		plot_linechart(onClickPoint, this.svg_normalized_entropy, normalized_entropy_data, margin, width, height, n, title = "Normalized Entropy", labels = labels_a);
-		plot_linechart(onClickPoint, this.svg_pctnonzeros, pctnonzeros_data, margin, width, height, n, title = "Sparsity", labels = labels_b);
+		plot_linechart(onClickPoint, this.svg_error, error_data, margin, width, height, n, title = "", labels = labels_a);
+		plot_linechart(onClickPoint, this.svg_fit, fit_data, margin, width, height, n, title = "", labels = labels_b);
+		plot_linechart(onClickPoint, this.svg_stability, stability_data, margin, width, height, n, title = "", labels = labels_b);		
+		plot_linechart(onClickPoint, this.svg_normalized_entropy, normalized_entropy_data, margin, width, height, n, title = "", labels = labels_a);
+		plot_linechart(onClickPoint, this.svg_pctnonzeros, pctnonzeros_data, margin, width, height, n, title = "", labels = labels_b);
 
 		// plot_linechart(this.svg_entropy, entropy_data, margin, width, height, n, title = "Model Entropy", labels = labels_a);
 		// plot_linechart(this.svg_gini, gini_data, margin, width, height, n, title = "Gini Index", labels = labels_b);
@@ -136,14 +136,35 @@ class ControlView extends Component {
 
 		return (
 			<div className={styles.infoPanel}>
-				{this.svg.toReact()}
-				<div id="scree_charts">
-				{this.svg_error.toReact()}
-				{this.svg_fit.toReact()}				
-				{this.svg_stability.toReact()}											
-				{this.svg_normalized_entropy.toReact()}							
-				{this.svg_pctnonzeros.toReact()}							
-				</div>							
+				<div className={styles.dataInspector}>
+					<div class={index.title}>Dataset</div>
+					<div>...</div>
+				</div>
+				<div className={styles.modelInspector}>
+					<div class={index.title}>Model Inspection</div>
+					<div className={styles.screeCharts}>
+						<div className={styles.screeChart}>
+							<div className={styles.screeChartName}>Reconstruction error</div>
+							{this.svg_error.toReact()}
+						</div>
+						<div className={styles.screeChart}>
+							<div className={styles.screeChartName}>Model fit</div>
+							{this.svg_fit.toReact()}
+						</div>
+						<div className={styles.screeChart}>
+							<div className={styles.screeChartName}>Model stability</div>
+							{this.svg_stability.toReact()}
+						</div>
+						<div className={styles.screeChart}>
+							<div className={styles.screeChartName}>Normalized entropy</div>
+							{this.svg_normalized_entropy.toReact()}
+						</div>
+						<div className={styles.screeChart}>
+							<div className={styles.screeChartName}>Sparsity</div>
+							{this.svg_pctnonzeros.toReact()}
+						</div>
+					</div>
+				</div>				
 			</div>
 		);
 

@@ -1,6 +1,22 @@
-.tooltip_mouseovered {
-  opacity: 1 !important;
+body {
+  background-color: #f6f5f5;
+  color: dimgrey;
 }
+
+#root {
+  max-width: 1200px;
+  max-height: 1100px;
+  margin: 0 auto;
+  background-color: white;
+}
+
+.g_x_axis line { stroke: gray; stroke-width: 2px; }
+.g_x_axis path { stroke: gray; stroke-width: 2px; }
+.g_x_axis text { fill: gray; }
+
+.g_y_axis line { stroke: gray; stroke-width: 2px; }
+.g_y_axis path { stroke: gray; stroke-width: 2px; }
+.g_y_axis text { fill: gray; }
 
 .d3-tooltip {
   line-height: 1.5;

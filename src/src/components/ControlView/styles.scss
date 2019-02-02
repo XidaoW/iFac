@@ -2,12 +2,46 @@
 .infoPanel { 
   grid-area: i;
   margin: 10px;
+  margin-bottom: 20px;
   padding: 10px;
-  width: 90%;
-  background-color: #f1f1f1;
-  border: 1px solid #e0dfdf;
+  display: flex;
 }
 
+.dataInspectorTitle,
+.modelInspectorTitle {
+  font-weight: bolder;
+  background-color: darkgray;
+  color: white;
+  padding: 5px;
+}
+
+.dataInspector {
+  width: 20%;
+  margin-right: 5px;
+}
+
+.modelInspector {
+  width: 79%;
+}
+
+.screeCharts {
+  border: 1px solid #c7c7c7;
+  height: 100%;
+  display: flex;
+}
+
+.screeChart {
+  width: 20%;
+}
+
+.screeChartName {
+  font-size: 0.9rem;
+  margin: 5px;
+  background-color: #ececec;
+  border: 1px solid lightgrey;
+  padding: 2px;
+  text-align: center;
+}
 
 .line {
     fill: none;
