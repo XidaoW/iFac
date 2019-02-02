@@ -14,10 +14,10 @@ class DetailView extends Component {
 		super(props);
 
 		this.layout = {
-			width: 500,
+			width: 300,
 			height: 1000,
 			svg: {
-				width: 500, // 90% of whole layout
+				width: 250, // 90% of whole layout
 				height: 1000 // 100% of whole layout
 			},
 			detailView: {
@@ -111,7 +111,7 @@ class DetailView extends Component {
        			.attr("y", 0)
        			.attr("height", wordcloud_height)
        			.attr("width", wordcloud_width)
-       			.style("stroke", "black")
+       			.style("stroke", "#c7c7c7")
        			.style("fill", "none")
        			.style("stroke-width", 1);
 
@@ -161,6 +161,7 @@ class DetailView extends Component {
 
 		return (
 				<div className={styles.DetailView}>
+					<div className={index.title}>Details</div>
 					{svg.toReact()}
 				</div>
 		);

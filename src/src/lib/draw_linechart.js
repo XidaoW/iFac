@@ -36,14 +36,14 @@ export	function plot_linechart(onClickPoint, cur_svg, dataset, margin, width, he
 
 		// 3. Call the x axis in a group tag
 		svg.append("g")
-		    .attr("class", "x axis")
+		    .attr("class", "g_x_axis")
 		    .attr("transform", "translate(0," + height + ")")
-		    .call(d3.axisBottom(xScale).ticks(5)); // Create an axis component with d3.axisBottom
+		    .call(d3.axisBottom(xScale).ticks(5).tickSizeOuter(0)); // Create an axis component with d3.axisBottom
 
 		// 4. Call the y axis in a group tag
 		svg.append("g")
-		    // .attr("class", "y axis")
-		    .call(d3.axisLeft(yScale).ticks(0)); // Create an axis component with d3.axisLeft
+		    .attr("class", "g_y_axis")
+		    .call(d3.axisLeft(yScale).ticks(0).tickSizeOuter(0)); // Create an axis component with d3.axisLeft
 
 		// 9. Append the path, bind the data, and call the line generator 
 		svg.append("path")
