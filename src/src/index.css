@@ -4,22 +4,23 @@ body {
   font-family: sans-serif;
 }
 
-.title {
-    display:flex;
-    align-items: center;
-    /* justify-content:center; */
-    padding-left: 10px;
+/* .title {
+  display:flex;
+  align-items: center;
+  padding-left: 10px;
+  height: 30px;
+  margin: 1px 1px;
+  color: #2a4b5a;
+  font-size: 1.2rem;
+  font-weight: 400;
+} */
 
-    height: 30px;
-    margin: 1px 1px;
-    /* font-weight: 600; */
-    /* background-color: #747373;
-    border: 1px solid #565555; */
-    color: #2a4b5a;
-    font-size: 1.2rem;
-    font-weight: 400;
-    /* text-transform: uppercase; */
-  }
+.title {
+  font-weight: bolder;
+  background-color: darkgray;
+  color: white;
+  padding: 5px;
+}
 
 .petal {
 

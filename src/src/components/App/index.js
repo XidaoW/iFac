@@ -534,9 +534,10 @@ class App extends Component {
 	const components_cnt = factors_data.length;
 
 	return (
-	  <div className='App'>
-		<header className='header'>
-		  <h1 className='title'>Tensor Pattern Exploration</h1>
+	  <div className={styles.App}>
+		<header className={styles.header}>
+		  <div className={styles.title}>iFac</div>
+			<div>Tensor Pattern Exploration</div>
 		</header>
 		<div>
 			<ControlView
@@ -584,11 +585,7 @@ class App extends Component {
 					components_cnt={components_cnt}
 				/>
 			</div>
-
-
-
 		</div>
-		
 	  </div>
 	);
   }
