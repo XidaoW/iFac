@@ -2,9 +2,9 @@ import React, { Component } from 'react';
 import * as d3 from 'd3';
 import ReactFauxDOM from 'react-faux-dom';
 import { plot_linechart } from '../../lib/draw_linechart.js'
-
-
 import _ from 'lodash';
+import { Dropdown, DropdownItem, DropdownToggle, DropdownMenu } from 'reactstrap';
+
 import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
@@ -21,7 +21,37 @@ class ControlView extends Component {
 			width: 130,
 			height: 130,
 		};		
+
+		this.state = {
+			datasetDropdownOpen: false
+		}
+
+		this.toggleDatasetDropdown = this.toggleDatasetDropdown.bind(this);
+		this.handleClickDataset = this.handleClickDataset.bind(this);
 	}
+
+	toggleDatasetDropdown() {
+		this.setState({
+      datasetDropdownOpen: !this.state.datasetDropdownOpen
+    });
+	}
+
+	handleClickDataset(e) {
+    const selectedDataset = e.target.value;
+    this.props.onChangeDataset(selectedDataset);
+  }
+
+	renderDatasets() {
+    const { datasets } = this.props;
+
+    return datasets.map((dataset, idx) => 
+        (<DropdownItem 
+          key={idx}
+          value={dataset}
+          onClick={this.handleClickDataset}>
+          {dataset}
+        </DropdownItem>));
+  }
 
 	render() {
 		if (!this.props.error_data || this.props.error_data.length === 0)
@@ -29,14 +59,14 @@ class ControlView extends Component {
 		// adapted from https://bl.ocks.org/NGuernse/8dc8b9e96de6bedcb6ad2c5467f5ef9a
 		const _self = this;
 		const { components_cnt, descriptors_text, 
-			error_data,  stability_data, fit_data, entropy_data, normalized_entropy_data,
-			gini_data, theil_data, pctnonzeros_data, onClickPoint} = this.props;
+						error_data,  stability_data, fit_data, entropy_data, normalized_entropy_data,
+						gini_data, theil_data, pctnonzeros_data, onClickPoint, domain } = this.props;
 		var n = error_data.length, 
-			title = '',
-			labels = '',
-			margin = {top: 15, right: 5, bottom: 25, left: 20},
-		  	width = this.layout.width - margin.left - margin.right, // Use the window's width 
-		  	height = this.layout.height - margin.top - margin.bottom; // Use the window's height
+				title = '',
+				labels = '',
+				margin = {top: 15, right: 5, bottom: 25, left: 20},
+				width = this.layout.width - margin.left - margin.right, // Use the window's width 
+				height = this.layout.height - margin.top - margin.bottom; // Use the window's height
 
 		this.svg_error = new ReactFauxDOM.Element('svg');
 		this.svg_fit = new ReactFauxDOM.Element('svg');
@@ -80,7 +110,7 @@ class ControlView extends Component {
 		
 		
 		var labels_a = ["good", "bad"],
-			labels_b = ["bad", "good"];
+				labels_b = ["bad", "good"];
 
 		plot_linechart(onClickPoint, this.svg_error, error_data, margin, width, height, n, title = "", labels = labels_a);
 		plot_linechart(onClickPoint, this.svg_fit, fit_data, margin, width, height, n, title = "", labels = labels_b);
@@ -137,8 +167,17 @@ class ControlView extends Component {
 		return (
 			<div className={styles.infoPanel}>
 				<div className={styles.dataInspector}>
-					<div class={index.title}>Dataset</div>
-					<div>...</div>
+					<div className={index.title}>Dataset</div>
+					<Dropdown className={styles.datasetDropdown}
+										isOpen={this.state.datasetDropdownOpen} 
+										toggle={this.toggleDatasetDropdown}>
+						<DropdownToggle className={styles.datasetDropdownToggle} caret>
+							{domain}
+						</DropdownToggle>
+						<DropdownMenu>
+							{this.renderDatasets()}
+						</DropdownMenu>
+					</Dropdown>
 				</div>
 				<div className={styles.modelInspector}>
 					<div class={index.title}>Model Inspection</div>
