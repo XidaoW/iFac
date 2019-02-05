@@ -179,8 +179,8 @@ class iFacData():
 		type trials: int: number of independent trials
 		"""
 
-		def pctnonzero(arr):
-			return (len(arr) - np.count_nonzero(arr))*1./len(arr)
+		def pctnonzero(arr, gamma = 1e-03):
+			return sum([1 if x > gamma else 0 for x in arr])*1./len(arr)
 
 		def gini(arr):
 			# (Warning: This is a concise implementation, but it is O(n**2)
@@ -333,6 +333,10 @@ class iFacData():
 		self.ntfInstance.normalizeFactor()        
 
 		
+	def saveFactors(self):
+		fName = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'.npy'
+		np.save(fName, self.factors)
+
 	def normalizeFactor(self):
 		"""
 		normalize the weights
@@ -345,6 +349,7 @@ class iFacData():
 		"""        
 		
 		self.factors = self.ntfInstance.factor
+		self.saveFactors()
 #         self.column = ['ZONE','PERIOD', 'TEAM']
 		self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(len(self.column))]
 		
@@ -545,8 +550,3 @@ if __name__ == '__main__':
 	iFac.readData(domain = domain)
 	_log.info("Fitting Different Ranks up to {}".format(base))
 	iFac.getFitForRanks(base, trials = nb_trials)
-
-
-
-
-

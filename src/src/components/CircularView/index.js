@@ -26,7 +26,7 @@ class CircularView extends Component {
 			height: 850,
 			svg: {
 				width: 850,
-				height: 850
+				height: 950
 			},
 			detailView: {
 				margin: {
