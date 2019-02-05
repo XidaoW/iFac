@@ -6,7 +6,6 @@ import {scaleRadial} from '../../lib/draw_radial.js'
 import * as quadPath from '../../lib/draw_quadratic_path.js'	
 import * as petal from '../../lib/draw_petals.js'
 
-
 import _ from 'lodash';
 import styles from './styles.scss';
 import index from '../../index.css';
@@ -38,33 +37,34 @@ class CircularView extends Component {
 			}
 		};
 
-	this.pie;	
-	this.circle_position_x;
-	this.circle_position_y;
-	this.svg;
-	this.circle_color;
-	this.circle_width;
-	this.compare_N = 2;
-	this.outerCircleRadius = parseInt(gs.outerCircleRadius);
-	this.innerCircleRadius = parseInt(gs.innerCircleRadius);
-	this.innerCircleStrokeWidth = parseInt(gs.innerCircleStrokeWidth);
-	this.innerCircleStrokeOpacity = parseInt(gs.innerCircleStrokeOpacity);
-	this.outerCircleStrokeWidth = parseInt(gs.outerCircleStrokeWidth);
-	this.outerCircleStrokeOpacity = parseInt(gs.outerCircleStrokeOpacity);
+		this.pie;	
+		this.circle_position_x;
+		this.circle_position_y;
+		this.svg;
+		this.circle_color;
+		this.circle_width;
+		this.compare_N = 2;
+		this.outerCircleRadius = parseInt(gs.outerCircleRadius);
+		this.innerCircleRadius = parseInt(gs.innerCircleRadius);
+		this.innerCircleStrokeWidth = parseInt(gs.innerCircleStrokeWidth);
+		this.innerCircleStrokeOpacity = parseInt(gs.innerCircleStrokeOpacity);
+		this.outerCircleStrokeWidth = parseInt(gs.outerCircleStrokeWidth);
+		this.outerCircleStrokeOpacity = parseInt(gs.outerCircleStrokeOpacity);
 
-	this.detailViewMarginTop = gs.detailViewMarginTop;
-	this.detailViewMarginBottom = gs.detailViewMarginBottom;
-	this.detailViewMarginLeft = gs.detailViewMarginLeft;
-	this.detailViewMarginRight = gs.detailViewMarginRight;
-	this.backgroundBarOpacity = gs.detailViewBKBarOpacity;
-	this.foregroundBarOpacity = gs.detailViewFGBarOpacity;
-	this.circularInnerRadius = gs.circularInnerRadius;
-	this.barLabelFontSize = gs.barLabelFontSize;
-
+		this.detailViewMarginTop = gs.detailViewMarginTop;
+		this.detailViewMarginBottom = gs.detailViewMarginBottom;
+		this.detailViewMarginLeft = gs.detailViewMarginLeft;
+		this.detailViewMarginRight = gs.detailViewMarginRight;
+		this.backgroundBarOpacity = gs.detailViewBKBarOpacity;
+		this.foregroundBarOpacity = gs.detailViewFGBarOpacity;
+		this.circularInnerRadius = gs.circularInnerRadius;
+		this.barLabelFontSize = gs.barLabelFontSize;
   }
 
-
   render() {
+		console.log('circularView rendered');
+		console.log('this.props.data: ', this.props.data);
+
 		const { data, selectedPatterns,
 				mostSimilarPatternToSelectedPatternIdx,
 				leastSimilarPatternToSelectedPatternIdx, 
@@ -73,29 +73,28 @@ class CircularView extends Component {
 				queries, similarPatternToQueries, item_links, 
 				mouseOveredDescriptorIdx, item_similarity } = this.props;  
 
-
 		const _self = this,
-			width = +this.layout.svg.width - this.layout.detailView.margin.left - this.layout.detailView.margin.right,
-			height = +this.layout.svg.height - this.layout.detailView.margin.top - this.layout.detailView.margin.bottom,
-			outerRadius = Math.min(width, height) - 0,
-			innerRadius = this.circularInnerRadius,
-			max_tsne = data[0].max_tsne,
-			min_tsne = data[0].min_tsne,
-			query_flag = Object.keys(queries).map(function(key){			
-				return queries[key].length;
-			}).reduce((a,b)=>a+b);			
+					width = +this.layout.svg.width - this.layout.detailView.margin.left - this.layout.detailView.margin.right,
+					height = +this.layout.svg.height - this.layout.detailView.margin.top - this.layout.detailView.margin.bottom,
+					outerRadius = Math.min(width, height) - 0,
+					innerRadius = this.circularInnerRadius,
+					max_tsne = data[0].max_tsne,
+					min_tsne = data[0].min_tsne,
+					query_flag = Object.keys(queries).map(function(key){			
+						return queries[key].length;
+					}).reduce((a,b)=>a+b);			
 
 		let	descriptor_size = Object.keys(bar_data).length,
-			color_list = ['#ffff99', '#beaed4'],
-			used_color = '',
-			label_flag = false,
-			reorder_item = false,
-			translate_x = 0,
-			translate_y = 0,
-			top_k = 5;
+				color_list = ['#ffff99', '#beaed4'],
+				used_color = '',
+				label_flag = false,
+				reorder_item = false,
+				translate_x = 0,
+				translate_y = 0,
+				top_k = 5;
 
 		let g,
-			svg = new ReactFauxDOM.Element('svg');
+				svg = new ReactFauxDOM.Element('svg');
 
 		svg.setAttribute('width', width);
 		svg.setAttribute('height',height);
@@ -106,9 +105,6 @@ class CircularView extends Component {
 		this.circle_width = d3.scaleLinear().domain([0, 1]).range([1,2]);
 		this.circle_position_x = d3.scaleLinear().domain([min_tsne[0],max_tsne[0]]).range([- 0, + innerRadius]);
 		this.circle_position_y = d3.scaleLinear().domain([min_tsne[1],max_tsne[1]]).range([- 0, + innerRadius]);
-
-
-
 
 		// Update the list of available colors to pick for clicking patterns
 		for(var i = 0; i < selectedPatterns.length; i++){

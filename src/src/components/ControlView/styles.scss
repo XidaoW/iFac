@@ -20,6 +20,17 @@
   margin-right: 5px;
 }
 
+.datasetDropdown {
+  display: grid;
+  margin: 5px 0;
+}
+
+.datasetDropdownToggle {
+  justify-self: center;
+  width: 90%;
+  height: 35px;
+}
+
 .modelInspector {
   width: 79%;
 }
