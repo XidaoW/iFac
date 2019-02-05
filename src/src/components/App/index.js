@@ -8,27 +8,8 @@ import ControlView from 'components/ControlView';
 import { extractItemCoordinates, extractPetalBarCoordinates } from '../../lib/extract_coordinates.js'
 import { computeMeanStd } from '../../lib/draw_linechart.js'
 
-
 import styles from './styles.scss';
 import index from '../../index.css';
-// import factors_data from '../../data/policy_factors_3_30_sample_fit.json';
-// import factors_data from '../../data/nba_factors_3_20_sample_fit.json';
-// import factors_data from '../../data/picso_factors_3_17_sample_fit.json';
-
-
-// import factors_data from '../../data/purchase_factors_4_18_sample.json';
-// import gs from '../../config/_variables.scss'; // gs (=global style)
-
-
-// import factors_data from '../../data/policy_factors_3_25_sample_fit.json';
-// import factors_data from '../../data/nba_factors_3_18_sample.json';
-
-
-// const best_config = {
-// 						"nbaplayer": {"rank": 19, "dim": 3}, 
-// 						"picso": {"rank": 17, "dim": 3}, 
-// 						"nbaplayer": {"rank": 19, "dim": 3}, 
-// 						"nbaplayer": {"rank": 19, "dim": 3}, }
 
 import metrics from '../../data/nbaplayer/factors_3_18_sample_fit_metrics.json';
 import factors_data from '../../data/nbaplayer/factors_3_18_sample_fit.json';
@@ -39,12 +20,6 @@ import factors_data from '../../data/nbaplayer/factors_3_18_sample_fit.json';
 
 // import metrics from '../../data/policy/factors_3_40_sample_fit_metrics.json';
 // import factors_data from '../../data/policy/factors_3_40_sample_fit.json';
-
-// import metrics from '../../data/picso/factors_3_17_sample_fit_metrics.json';
-// import factors_data from '../../data/picso/factors_3_17_sample_fit.json';
-
-// import metrics from '../../data/picso_factors_3_17_sample_fit_metrics.json';
-// import factors_data from '../../data/picso_factors_3_17_sample_fit.json';
 
 class App extends Component {
 	constructor(props) {
@@ -75,6 +50,7 @@ class App extends Component {
 			error_data: [],
 			stability_data: [],
 			interpretability_data: [],
+			datasets: ['nbaplayer', 'policy', 'picso'],
 			domain: "nbaplayer"
 		};
 
@@ -86,6 +62,139 @@ class App extends Component {
 		this.handleMouseOverItem = this.handleMouseOverItem.bind(this);
 		this.handleMouseOutItem = this.handleMouseOutItem.bind(this);
 		this.handleClickPoint = this.handleClickPoint.bind(this);
+		this.handleChangeDataset = this.handleChangeDataset.bind(this);
+	}
+
+	componentWillUpdate(nextProps, nextState) {
+		if (this.state.domain !== nextState.domain)  {
+			console.log('domain changed: ', nextState.domain);
+		}
+	}
+
+	componentWillMount() {
+		/**
+		 * Being called before rendering (preparing data to pass it to children)
+		 *
+		 * Prepares the data upon mounting
+		 * 1) update factors to include petal and circle data (potentially can be moved to python data generation process).
+		 * 2) generate the bar_data and push the average distribution to the last element of the bar_data.
+		 * 3) generate the descriptor descriptors.
+		 * 4) update the state
+		 * @since      0.0.0
+		 *
+		 * 
+		*/		
+		const _self = this,
+					factors = this.state.factors_data,
+					screeData = metrics,
+					start_index = 2,
+					queries = d3.range(factors[0].dims).reduce((obj, item) => {
+						obj[item] = [];
+						return obj;
+					}, {});
+		let bar_data = {},
+				max_pattern_item = {},
+				descriptors_text = [];
+
+		factors.forEach(function(d, id) {
+			d.petals = d3.range(d.dims).map(function(i) { 
+				return {
+					"id": id, "length": 1 - d.factors[i].entropy,
+					"width": d.factors[i].similarity.average
+				}; 
+			});
+			d.circles = {
+				"dominance": d.weight, 
+				"radius": 6
+			};     
+		});
+
+		for(let i = 0; i < factors[0].dims; i++){
+			bar_data[i] = [];
+			max_pattern_item[i] = [];
+			let pattern_cnt = factors.length;
+			for(let j = 0; j < pattern_cnt; j++) {
+				bar_data[i].push(factors[j].factors[i].values); 
+				max_pattern_item[i].push(factors[j].factors[i].max_item);         
+			}      
+			bar_data[i].push(this.state.descriptors_mean[i]); 
+		}
+
+		for (let key in this.state.descriptors) {
+			if (this.state.descriptors.hasOwnProperty(key)) {
+				descriptors_text.push(key + '(' + this.state.descriptors[key].length + ')');
+			}
+		}
+
+
+		// compute scree data
+		screeData['error'] = screeData['error'].filter(Boolean);
+		screeData['stability'] = screeData['stability'].filter(Boolean);
+		screeData['fit'] = screeData['fit'].filter(Boolean);
+		screeData['entropy'] = screeData['entropy'].filter(Boolean);
+		screeData['normalized_entropy'] = screeData['normalized_entropy'].filter(Boolean);
+		screeData['gini'] = screeData['gini'].filter(Boolean);
+		screeData['theil'] = screeData['theil'].filter(Boolean);
+		screeData['pctnonzeros'] = screeData['pctnonzeros'].filter(Boolean);
+
+
+		var error_data = d3.range(screeData['error'].length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.error[d]);
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		}), stability_data = d3.range(screeData.stability.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.stability[d]);
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		}), fit_data = d3.range(screeData.fit.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.fit[d]);
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		}), entropy_data = d3.range(screeData.entropy.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.entropy[d]);
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		}), normalized_entropy_data = d3.range(screeData.normalized_entropy.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.normalized_entropy[d]);
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		}), gini_data = d3.range(screeData.gini.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.fit[d]);
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		}), theil_data = d3.range(screeData.theil.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.theil[d]);
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		}), pctnonzeros_data = d3.range(screeData.pctnonzeros.length).map(function(d, i) {
+			var rst = computeMeanStd(screeData.pctnonzeros[d]);
+			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		})
+
+
+		this.setState({
+			factors_data: factors,
+			descriptors_text: descriptors_text,
+			bar_data: bar_data,      
+			max_pattern_item: max_pattern_item,
+			queries: queries,
+			error_data: error_data,
+			stability_data: stability_data,
+			fit_data: fit_data,
+			entropy_data: entropy_data,
+			normalized_entropy_data: normalized_entropy_data,
+			gini_data: gini_data,
+			theil_data: theil_data,
+			pctnonzeros_data: pctnonzeros_data
+		});    
+	}
+
+	componentDidMount() {
+		const { domain } = this.state;
+		const selectedDataset = require("../../data/" + domain + "/factors_3_19" + "_sample_fit");
+
+		this.setState({
+			screeData: selectedDataset.scree,
+			factors_data: selectedDataset.data,
+			descriptors: selectedDataset.descriptors,
+			descriptors_mean: selectedDataset.average,
+			item_max_pattern: selectedDataset.item_max_pattern,
+			item_similarity: selectedDataset.itemSimilarity,
+			modes: selectedDataset.modes
+		});
 	}
 
 	// depricated
@@ -286,8 +395,6 @@ class App extends Component {
 		}));
 	}
 
-
-
 	handleClickItem(new_queries, top_k) { 
 		/**
 		 * Handles the click items events.
@@ -412,31 +519,23 @@ class App extends Component {
 		}));
 	}
 
+	handleChangeDataset(selectedDomain) {
+		console.log('handleChangeDataset: ', selectedDomain);
+		const selectedDataset = require("../../data/" + selectedDomain + "/factors_3_19" + "_sample_fit.json"),
+					metrics = require("../../data/" + selectedDomain + "/factors_3_19" + "_sample_fit_metrics.json");
+		console.log('handleChangeDataset: ', selectedDataset);
 
-	componentWillMount() {
-		/**
-		 * Being called before rendering (preparing data to pass it to children)
-		 *
-		 * Prepares the data upon mounting
-		 * 1) update factors to include petal and circle data (potentially can be moved to python data generation process).
-		 * 2) generate the bar_data and push the average distribution to the last element of the bar_data.
-		 * 3) generate the descriptor descriptors.
-		 * 4) update the state
-		 * @since      0.0.0
-		 *
-		 * 
-		*/		
 		const _self = this,
-			factors = this.state.factors_data,
-			screeData = metrics,
-			start_index = 2,
-			queries = d3.range(factors[0].dims).reduce((obj, item) => {
-				obj[item] = [];
-				return obj;
-			}, {});
+					factors = selectedDataset.data,
+					screeData = metrics,
+					start_index = 2,
+					queries = d3.range(factors[0].dims).reduce((obj, item) => {
+						obj[item] = [];
+						return obj;
+					}, {});
 		let bar_data = {},
-			max_pattern_item = {},
-			descriptors_text = [];
+				max_pattern_item = {},
+				descriptors_text = [];
 
 		factors.forEach(function(d, id) {
 			d.petals = d3.range(d.dims).map(function(i) { 
@@ -479,7 +578,6 @@ class App extends Component {
 		screeData['theil'] = screeData['theil'].filter(Boolean);
 		screeData['pctnonzeros'] = screeData['pctnonzeros'].filter(Boolean);
 
-
 		var error_data = d3.range(screeData['error'].length).map(function(d, i) {
 			var rst = computeMeanStd(screeData.error[d]);
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
@@ -506,9 +604,15 @@ class App extends Component {
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		})
 
-
 		this.setState({
-			factors_data: factors,
+			domain: selectedDomain,
+			screeData: selectedDataset.scree,
+			factors_data: selectedDataset.data,
+			descriptors: selectedDataset.descriptors,
+			descriptors_mean: selectedDataset.average,
+			item_max_pattern: selectedDataset.item_max_pattern,
+			item_similarity: selectedDataset.itemSimilarity,
+			modes: selectedDataset.modes,
 			descriptors_text: descriptors_text,
 			bar_data: bar_data,      
 			max_pattern_item: max_pattern_item,
@@ -521,7 +625,7 @@ class App extends Component {
 			gini_data: gini_data,
 			theil_data: theil_data,
 			pctnonzeros_data: pctnonzeros_data
-		});    
+		});
 	}
 
   render() {
@@ -534,11 +638,13 @@ class App extends Component {
 			descriptors, descriptors_text,screeData, max_pattern_item, arc_positions_bar_petal, 
 			item_max_pattern,queries,similarPatternToQueries, item_links, mouseOveredDescriptorIdx, 
 			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
-			gini_data, theil_data, pctnonzeros_data
+			gini_data, theil_data, pctnonzeros_data, datasets, domain
 		} = this.state;
 
 
 	const components_cnt = factors_data.length;
+
+	console.log('domain: ', this.state.domain);
 
 	return (
 	  <div className={styles.App}>
@@ -558,7 +664,10 @@ class App extends Component {
 				gini_data={gini_data}								
 				theil_data={theil_data}								
 				pctnonzeros_data={pctnonzeros_data}												
-				onClickPoint={this.handleClickPoint}				
+				onClickPoint={this.handleClickPoint}
+				datasets={datasets}	
+				domain={domain}
+				onChangeDataset={this.handleChangeDataset}			
 			/>
 			<div className={styles.rowC}>
 			  	<CircularView 
