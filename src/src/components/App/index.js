@@ -30,8 +30,15 @@ import index from '../../index.css';
 // 						"nbaplayer": {"rank": 19, "dim": 3}, 
 // 						"nbaplayer": {"rank": 19, "dim": 3}, }
 
-import metrics from '../../data/nbaplayer/factors_3_19_sample_fit_metrics.json';
-import factors_data from '../../data/nbaplayer/factors_3_19_sample_fit.json';
+import metrics from '../../data/nbaplayer/factors_3_18_sample_fit_metrics.json';
+import factors_data from '../../data/nbaplayer/factors_3_18_sample_fit.json';
+
+// import metrics from '../../data/purchase/factors_4_17_sample_fit_metrics.json';
+// import factors_data from '../../data/purchase/factors_4_17_sample_fit.json';
+
+
+// import metrics from '../../data/policy/factors_3_40_sample_fit_metrics.json';
+// import factors_data from '../../data/policy/factors_3_40_sample_fit.json';
 
 // import metrics from '../../data/picso/factors_3_17_sample_fit_metrics.json';
 // import factors_data from '../../data/picso/factors_3_17_sample_fit.json';
