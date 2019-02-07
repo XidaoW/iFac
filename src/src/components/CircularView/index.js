@@ -34,6 +34,10 @@ class CircularView extends Component {
 					left: gs.detailViewMarginLeft,
 					right: gs.detailViewMarginRight
 				}
+			},
+			dimRed: {
+				width: 150,
+				height: 150
 			}
 		};
 
@@ -74,8 +78,8 @@ class CircularView extends Component {
 				mouseOveredDescriptorIdx, item_similarity } = this.props;  
 
 		const _self = this,
-					width = +this.layout.svg.width - this.layout.detailView.margin.left - this.layout.detailView.margin.right,
-					height = +this.layout.svg.height - this.layout.detailView.margin.top - this.layout.detailView.margin.bottom,
+					width = +this.layout.svg.width,
+					height = +this.layout.svg.height,
 					outerRadius = Math.min(width, height) - 0,
 					innerRadius = this.circularInnerRadius,
 					max_tsne = data[0].max_tsne,
@@ -106,6 +110,22 @@ class CircularView extends Component {
 		this.circle_position_x = d3.scaleLinear().domain([min_tsne[0],max_tsne[0]]).range([- 0, + innerRadius]);
 		this.circle_position_y = d3.scaleLinear().domain([min_tsne[1],max_tsne[1]]).range([- 0, + innerRadius]);
 
+		const gDimRed1 = d3.select(svg)
+						.append('g')
+						.attr('class', 'g_dim_red1')
+						.attr('transform', 'translate(0,0)'),
+					gDimRed2 = d3.select(svg)
+							.append('g')
+							.attr('class', 'g_dim_red2')
+							.attr('transform', 'translate(' + (this.layout.svg.width - this.layout.dimRed.width) + ',0)'),
+					gDimRed3 = d3.select(svg)
+							.append('g')
+							.attr('class', 'g_dim_red3')
+							.attr('transform', 'translate(' + (this.layout.svg.width - this.layout.dimRed.width) + ',' + (this.layout.svg.height - this.layout.dimRed.height) + ')');
+
+		const xDimRedScale1 = d3.scaleLinear()
+							.range([0, 150]);
+
 		// Update the list of available colors to pick for clicking patterns
 		for(var i = 0; i < selectedPatterns.length; i++){
 			used_color = d3.select('#pattern_' + selectedPatterns[i]).attr('stroke');   
@@ -117,10 +137,10 @@ class CircularView extends Component {
 						.append('g')
 						.attr('class', 'background')
 						.attr('transform', 'translate(50,50)'),
-			gFlowers = backdrop
-				.append('g')
-				.attr('transform', 'translate(' + ((width)/2-(innerRadius)/2) + ',' + ((height)/2-( innerRadius)/2) + ')')
-				.attr('class', 'g_flowers');
+					gFlowers = backdrop
+						.append('g')
+						.attr('transform', 'translate(' + ((width)/2-(innerRadius)/2) + ',' + ((height)/2-( innerRadius)/2) + ')')
+						.attr('class', 'g_flowers');
 
 		// remove the lines between patterns and dominating items.
 		// questionable functions
@@ -219,11 +239,34 @@ class CircularView extends Component {
 					.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
 					.style('fill-opacity', 0.6);
 
+		const rectDimRedOutline1 = d3.select('.g_dim_red1')
+						.append('rect')
+						.attr('x', 0)
+						.attr('y', 0)
+						.attr('width', this.layout.dimRed.width)
+						.attr('height', this.layout.dimRed.height)
+						.style('stroke', 'red')
+						.style('fill', 'none'),
+					rectDimRedOutline2 = d3.select('.g_dim_red2')
+						.append('rect')
+						.attr('x', 0)
+						.attr('y', 0)
+						.attr('width', this.layout.dimRed.width)
+						.attr('height', this.layout.dimRed.height)
+						.style('stroke', 'red')
+						.style('fill', 'none'),
+					rectDimRedOutline3 = d3.select('.g_dim_red3')
+						.append('rect')
+						.attr('x', 0)
+						.attr('y', 0)
+						.attr('width', this.layout.dimRed.width)
+						.attr('height', this.layout.dimRed.height)
+						.style('stroke', 'red')
+						.style('fill', 'none');
+
 		// DRAW THE RADIAL BAR CHART
 		for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
 			let selected_pattern_cnt = selectedPatterns.length;
-
-
 			
 			// when selected more than one pattern, show the distribution of selected patterns.
 			if(selected_pattern_cnt > 0) {
