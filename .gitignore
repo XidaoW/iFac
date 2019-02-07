@@ -1,3 +1,4 @@
+*.npy
 src/src/engine/multiview/
 *.pyc
 # ignore json data
