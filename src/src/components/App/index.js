@@ -53,7 +53,8 @@ class App extends Component {
 			interpretability_data: [],
 			datasets: ['nbaplayer', 'policy', 'picso'],
 			domain: "nbaplayer",
-			weight: 1
+			weights: [1,1,1,1,1],
+			metricPointSize: []
 		};
 
 		this.handleClickPattern = this.handleClickPattern.bind(this);
@@ -92,6 +93,7 @@ class App extends Component {
 					factors = this.state.factors_data,
 					screeData = metrics,
 					start_index = 2,
+					weights = this.state.weights,
 					queries = d3.range(factors[0].dims).reduce((obj, item) => {
 						obj[item] = [];
 						return obj;
@@ -169,6 +171,15 @@ class App extends Component {
 		})
 
 
+		var metricPointSize = d3.range(error_data.length).map(function(d) {
+			return weights[0] * ( 1 - error_data[d]['y'])
+				+ weights[1] * fit_data[d]['y'] 
+				+ weights[2] * stability_data[d]['y']
+				+ weights[3] * ( 1 - normalized_entropy_data[d]['y'])
+				+ weights[4] * ( 1 - pctnonzeros_data[d]['y'])
+				+ 1 * (1 - d*1. / error_data.length);
+		})
+
 		this.setState({
 			factors_data: factors,
 			descriptors_text: descriptors_text,
@@ -181,8 +192,9 @@ class App extends Component {
 			entropy_data: entropy_data,
 			normalized_entropy_data: normalized_entropy_data,
 			gini_data: gini_data,
-			theil_data: theil_data,
-			pctnonzeros_data: pctnonzeros_data
+			theil_data: theil_data,			
+			pctnonzeros_data: pctnonzeros_data,
+			metricPointSize: metricPointSize
 		});    
 	}
 
@@ -219,13 +231,39 @@ class App extends Component {
 	}
 
 
-	handleSetWeight(weight) {
+	handleSetWeight(weight, idx) {
 		/**
 		* set the weight of the metric
 		**/
+
 		console.log('weight in App.js: ', weight);
+		console.log('weight index in App.js: ', idx);
+		var weights = this.state.weights,
+			error_data = this.state.error_data,
+			fit_data = this.state.fit_data,
+			stability_data = this.state.stability_data,
+			normalized_entropy_data = this.state.normalized_entropy_data,
+			pctnonzeros_data = this.state.pctnonzeros_data;
+
+		weights[idx] = weight;
+
+
+		console.log(error_data[0]);
+		console.log(weights[0]);
+		var metricPointSize = d3.range(error_data.length).map(function(d) {
+			return weights[0] * ( 1 - error_data[d]['y'])
+				+ weights[1] * fit_data[d]['y'] 
+				+ weights[2] * stability_data[d]['y']
+				+ weights[3] * ( 1 - normalized_entropy_data[d]['y'])
+				+ weights[4] * ( 1 - pctnonzeros_data[d]['y'])
+				+ 1 * (1 - d*1. / error_data.length);
+
+		})
+		console.log(metricPointSize);
+
 		this.setState({
-			weight: weight
+			weights: weights,
+			metricPointSize: metricPointSize
 		});
 	}
 
@@ -652,7 +690,7 @@ class App extends Component {
 			descriptors, descriptors_text,screeData, max_pattern_item, arc_positions_bar_petal, 
 			item_max_pattern,queries,similarPatternToQueries, item_links, mouseOveredDescriptorIdx, 
 			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
-			gini_data, theil_data, pctnonzeros_data, datasets, domain
+			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricPointSize
 		} = this.state;
 
 
@@ -681,8 +719,10 @@ class App extends Component {
 				onClickPoint={this.handleClickPoint}
 				datasets={datasets}	
 				domain={domain}
+				weights={weights}
+				metricPointSize={metricPointSize}
 				onChangeDataset={this.handleChangeDataset}	
-				onSetWeight={this.handleSelectedTopk}		
+				onSetWeight={this.handleSetWeight}		
 			/>
 			<div className={styles.rowC}>
 			  	<CircularView 
