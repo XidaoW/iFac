@@ -11,6 +11,7 @@ const eslintFormatter = require('react-dev-utils/eslintFormatter');
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const getClientEnvironment = require('./env');
 const paths = require('./paths');
+const getLocalIdent = require('css-loader/lib/getLocalIdent');
 
 // Webpack uses `publicPath` to determine where the app is being served from.
 // In development, we always serve from the root. This makes config easier.
@@ -166,6 +167,11 @@ module.exports = {
                   importLoaders: 1,
                   modules: true,
                   localIdentName: "[path][name]__[local]--[hash:base64:5]",
+                  getLocalIdent: (loaderContext, localIdentName, localName, options) => {
+                    return loaderContext.resourcePath.includes('antd') ?
+                      localName :
+                      getLocalIdent(loaderContext, localIdentName, localName, options);
+                  },
                   camelCase: "dashes"
                 },
               },
