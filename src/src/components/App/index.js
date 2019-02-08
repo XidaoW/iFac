@@ -10,6 +10,7 @@ import { computeMeanStd } from '../../lib/draw_linechart.js'
 
 import styles from './styles.scss';
 import index from '../../index.css';
+import 'antd/dist/antd.css';
 
 import metrics from '../../data/nbaplayer/factors_3_18_sample_fit_metrics.json';
 import factors_data from '../../data/nbaplayer/factors_3_18_sample_fit.json';
