@@ -51,7 +51,8 @@ class App extends Component {
 			stability_data: [],
 			interpretability_data: [],
 			datasets: ['nbaplayer', 'policy', 'picso'],
-			domain: "nbaplayer"
+			domain: "nbaplayer",
+			weight: 1
 		};
 
 		this.handleClickPattern = this.handleClickPattern.bind(this);
@@ -63,6 +64,8 @@ class App extends Component {
 		this.handleMouseOutItem = this.handleMouseOutItem.bind(this);
 		this.handleClickPoint = this.handleClickPoint.bind(this);
 		this.handleChangeDataset = this.handleChangeDataset.bind(this);
+		this.handleSetWeight = this.handleSetWeight.bind(this);
+
 	}
 
 	componentWillUpdate(nextProps, nextState) {
@@ -184,7 +187,7 @@ class App extends Component {
 
 	componentDidMount() {
 		const { domain } = this.state;
-		const selectedDataset = require("../../data/" + domain + "/factors_3_19" + "_sample_fit");
+		const selectedDataset = require("../../data/" + domain + "/factors_3_18" + "_sample_fit");
 
 		this.setState({
 			screeData: selectedDataset.scree,
@@ -214,6 +217,16 @@ class App extends Component {
 		}));
 	}
 
+
+	handleSetWeight(weight) {
+		/**
+		* set the weight of the metric
+		**/
+		console.log('weight in App.js: ', weight);
+		this.setState({
+			weight: weight
+		});
+	}
 
 	handleClickPoint(rank) { 
 		/**
@@ -667,7 +680,8 @@ class App extends Component {
 				onClickPoint={this.handleClickPoint}
 				datasets={datasets}	
 				domain={domain}
-				onChangeDataset={this.handleChangeDataset}			
+				onChangeDataset={this.handleChangeDataset}	
+				onSetWeight={this.handleSelectedTopk}		
 			/>
 			<div className={styles.rowC}>
 			  	<CircularView 
