@@ -9,6 +9,9 @@ import { Slider, Icon } from 'antd';
 import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
+// import 'antd/dist/antd.css';  // or 'antd/dist/antd.less'
+
+import 'antd/lib/slider/style'; // or antd/lib/button/style/css for css format file
 
 
 class ControlView extends Component {
@@ -43,8 +46,8 @@ class ControlView extends Component {
 		this.props.onChangeDataset(selectedDataset);
 	}
 
-    handleSetWeight(weight) {
-		this.props.onSetWeight(weight);
+    handleSetWeight(weight, idx) {
+		this.props.onSetWeight(weight, idx);
     }
 
 
@@ -68,17 +71,13 @@ class ControlView extends Component {
 		const _self = this;
 		const { components_cnt, descriptors_text, 
 						error_data,  stability_data, fit_data, entropy_data, normalized_entropy_data,
-						gini_data, theil_data, pctnonzeros_data, onClickPoint, domain } = this.props;
+						gini_data, theil_data, pctnonzeros_data, onClickPoint, domain,weights, metricPointSize } = this.props;
 		var n = error_data.length, 
 				title = '',
 				labels = '',
 				margin = {top: 15, right: 5, bottom: 25, left: 20},
 				width = this.layout.width - margin.left - margin.right, // Use the window's width 
 				height = this.layout.height - margin.top - margin.bottom; // Use the window's height
-
-
-
-
 		this.svg_error = new ReactFauxDOM.Element('svg');
 		this.svg_fit = new ReactFauxDOM.Element('svg');
 		this.svg_stability = new ReactFauxDOM.Element('svg');
@@ -108,25 +107,16 @@ class ControlView extends Component {
 		var labels_a = ["good", "bad"],
 				labels_b = ["bad", "good"];
 
-		plot_linechart(onClickPoint, this.svg_error, error_data, margin, width, height, n, title = "", labels = labels_a);
-		plot_linechart(onClickPoint, this.svg_fit, fit_data, margin, width, height, n, title = "", labels = labels_b);
-		plot_linechart(onClickPoint, this.svg_stability, stability_data, margin, width, height, n, title = "", labels = labels_b);		
-		plot_linechart(onClickPoint, this.svg_normalized_entropy, normalized_entropy_data, margin, width, height, n, title = "", labels = labels_a);
-		plot_linechart(onClickPoint, this.svg_pctnonzeros, pctnonzeros_data, margin, width, height, n, title = "", labels = labels_a);
+		plot_linechart(onClickPoint, metricPointSize, this.svg_error, error_data, margin, width, height, n, title = "", labels = labels_a);
+		plot_linechart(onClickPoint, metricPointSize, this.svg_fit, fit_data, margin, width, height, n, title = "", labels = labels_b);
+		plot_linechart(onClickPoint, metricPointSize, this.svg_stability, stability_data, margin, width, height, n, title = "", labels = labels_b);		
+		plot_linechart(onClickPoint, metricPointSize, this.svg_normalized_entropy, normalized_entropy_data, margin, width, height, n, title = "", labels = labels_a);
+		plot_linechart(onClickPoint, metricPointSize, this.svg_pctnonzeros, pctnonzeros_data, margin, width, height, n, title = "", labels = labels_a);
 
 
 		this.svg = new ReactFauxDOM.Element('svg')
 		this.svg.setAttribute('width',  "100%");
 		this.svg.setAttribute('height', 30);
-
-
-				// {this.svg_error.toReact()}
-				// {this.svg_stability.toReact()}				
-				// {this.svg_interpretability.toReact()}							
-
-				// <div>#Patterns: {components_cnt}</div>
-				// <div>#Descriptors: {descriptors_text.join(', ')}</div>	
-
 
 		// add the red line legend
 		d3.select(this.svg).append("text")
@@ -164,6 +154,9 @@ class ControlView extends Component {
 							{this.renderDatasets()}
 						</DropdownMenu>
 					</Dropdown>
+					<div>#Patterns: {components_cnt}</div>
+					<div>#Descriptors: {descriptors_text.join(', ')}</div>
+
 				</div>
 				<div className={styles.modelInspector}>
 					<div class={index.title}>Model Inspection</div>
@@ -172,31 +165,75 @@ class ControlView extends Component {
 							<div className={styles.screeChartName}>Reconstruction error</div>
 							<div>
 								<Slider 
-									step={0.1} 
+									className={styles.metricSlider}
+									step={0.2} 
 									min={0}
 									max={1}
-									value={0.5}
-									style={{ width: 100, height:20 }}
-									defaultValue={0.5} 
-									onChange={this.handleSetWeight} 
+									style={{ width: 100}}
+									defaultValue={1} 
+									onChange={(e) => this.handleSetWeight(e, 0)} 
 								/>
 							</div>
 							{this.svg_error.toReact()}
 						</div>
 						<div className={styles.screeChart}>
 							<div className={styles.screeChartName}>Model fit</div>
+							<div>
+								<Slider 
+									className={styles.metricSlider}
+									step={0.2} 
+									min={0}
+									max={1}
+									style={{ width: 100}}
+									defaultValue={1} 
+									onChange={(e) => this.handleSetWeight(e, 1)} 
+								/>
+							</div>							
 							{this.svg_fit.toReact()}
 						</div>
 						<div className={styles.screeChart}>
 							<div className={styles.screeChartName}>Model stability</div>
+							<div>
+								<Slider 
+									className={styles.metricSlider}
+									step={0.2} 
+									min={0}
+									max={1}
+									style={{ width: 100}}
+									defaultValue={1} 
+									onChange={(e) => this.handleSetWeight(e, 2)} 
+								/>
+							</div>							
 							{this.svg_stability.toReact()}
 						</div>
 						<div className={styles.screeChart}>
 							<div className={styles.screeChartName}>Normalized entropy</div>
+							<div>
+								<Slider 
+									className={styles.metricSlider}
+									step={0.2} 
+									min={0}
+									max={1}
+									style={{ width: 100}}
+									defaultValue={1} 
+									onChange={(e) => this.handleSetWeight(e, 3)} 
+								/>
+							</div>							
 							{this.svg_normalized_entropy.toReact()}
 						</div>
 						<div className={styles.screeChart}>
 							<div className={styles.screeChartName}>Sparsity</div>
+							<div>
+								<Slider 
+									className={styles.metricSlider}
+									step={0.2} 
+									min={0}
+									max={1}
+									style={{ width: 100}}
+									defaultValue={1} 
+									onChange={(e) => this.handleSetWeight(e, 4)} 
+								/>
+							</div>							
 							{this.svg_pctnonzeros.toReact()}
 						</div>
 					</div>
