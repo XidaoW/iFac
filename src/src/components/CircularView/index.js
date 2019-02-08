@@ -161,8 +161,8 @@ class CircularView extends Component {
 						.attr('transform', (d, i) => 'translate(' + _self.circle_position_x(d.tsne_coord.x) + ',' 
 									+ _self.circle_position_y(d.tsne_coord.y) + ')')
 						.on("mouseover", function(d){
-							tooltip.html('<div class="tooltip">pattern#' + d.id + '</div>'+ 
-								'<div class="tooltip">dominance: ' + d3.format(".0%")(d.weight) + '</div>');
+							tooltip.html('<div>pattern#' + d.id + '</div>'+ 
+								'<div>dominance: ' + d3.format(".0%")(d.weight) + '</div>');
 							tooltip.show();
 						})
 						.on("mouseout", function(d){
@@ -228,9 +228,9 @@ class CircularView extends Component {
 					.on("mouseover", function(d, i){
 						console.log(d)
 						console.log(i)
-						tooltip.html('<div class="tooltip">descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
-							'<div class="tooltip">informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
-							'<div class="tooltip">similarity: ' + d3.format(".0%")(d.data.width) + '</div>');
+						tooltip.html('<div>descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
+							'<div>informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
+							'<div>similarity: ' + d3.format(".0%")(d.data.width) + '</div>');
 						tooltip.show();
 					})
 					.on("mouseout", function(d){

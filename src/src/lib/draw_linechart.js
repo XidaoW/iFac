@@ -188,13 +188,15 @@ export	function plot_linechart(onClickPoint, metricPointSize, cur_svg, dataset, 
 			.attr("id", (d, i) => "rank_index_" + i.toString())
 			.attr("stroke", (d, i) => {if(i == rankRec) return "#b30059"; else return "none";})
 			.attr("stroke-width", (d, i) => {if(i == rankRec) return "6px"; else return "0px";})
-			.on("mouseover", function(d){
+			.on("mouseover", function(d, i){
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "#ffab00");
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke-width", "6px");
-
-                tooltip.html('<div class="tooltip">rank: ' + d.x + '</div>'+ '<div class="tooltip">value: ' + d3.format(".0%")(d.y) + '</div>');
+				var suggested = "";
+				if(i == rankRec){
+					suggested = "Suggested ";
+				}
+                tooltip.html('<div>'+ suggested + 'rank: ' + d.x + '</div>'+ '<div>value: ' + d3.format(".0%")(d.y) + '</div>');
                 tooltip.show();
-                console.log(tooltip);
 
 			})
 			.on("mouseout", function(d){
