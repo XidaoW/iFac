@@ -15,7 +15,7 @@ class DetailView extends Component {
 		super(props);
 
 		this.layout = {
-			width: 300,
+			width: 250,
 			height: 1000,
 			svg: {
 				width: 250, // 90% of whole layout

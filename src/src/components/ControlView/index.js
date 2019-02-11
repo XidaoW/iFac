@@ -72,11 +72,6 @@ class ControlView extends Component {
 						gini_data, theil_data, pctnonzeros_data, onClickPoint, domain,weights, metricPointSize } = this.props;
 
 
-		const Panel = Collapse.Panel;
-		function callback(key) {
-		  console.log(key);
-		}
-
 		var n = error_data.length, 
 				title = '',
 				labels = '',
