@@ -6,6 +6,7 @@ import ReactFauxDOM from 'react-faux-dom';
 import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
+import { Tooltip, Icon } from 'antd';
 
 
 class DetailView extends Component {
@@ -46,14 +47,12 @@ class DetailView extends Component {
 		svg.setAttribute('width', this.layout.svg.width);
 		svg.setAttribute('height', this.layout.svg.height);
 		
-
-		var wordcloud_color = d3.scaleLinear().domain([-1, 1]).range(['#ffff99', '#beaed4']).interpolate(d3.interpolateHcl);
-
 		var default_ptn_idx = components_cnt,
 			wordcloud_height = 250,
 			wordcloud_width = 250,
 			select_cnt = selectedPatterns.length,
-			descriptor_size = Object.keys(bar_data).length;
+			reorder_item = false,
+			descriptor_size = Object.keys(bar_data).length;		
 
 		var g, cur_cloud, cur_data, word_size, words, layout;
 
@@ -63,13 +62,14 @@ class DetailView extends Component {
 
 		if( select_cnt > 0){
 			default_ptn_idx = (select_cnt==1)?selectedPatterns[0]:selectedPatterns[1]
+			reorder_item = (selectedPatterns.length == 2)? true : false;
 		}
 		for(var descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
-			plot_word_cloud(descriptor_index, descriptor_size, default_ptn_idx, bar_data, height, width);
+			plot_word_cloud(descriptor_index, descriptor_size, default_ptn_idx, selectedPatterns, bar_data, height, width, reorder_item);
 		}
 
 
-		function plot_word_cloud(descriptor_index, descriptor_size, default_ptn_idx, bar_data, height, width){
+		function plot_word_cloud(descriptor_index, descriptor_size, default_ptn_idx, selectedPatterns, bar_data, height, width, reorder_item){
 			/**
 			 * Draws word cloud based on the descriptor
 			 * 
@@ -94,12 +94,25 @@ class DetailView extends Component {
 				obj[item] = bar_data[descriptor_index][default_ptn_idx][item];
 				return obj;
 			}, {});
+			console.log(cur_data);
+			console.log(bar_data);
+			console.log(selectedPatterns);
+			if(reorder_item){
+				// re-ordering the items based on the difference between the two patterns on each descriptor.
+				cur_data = Object.keys(bar_data[descriptor_index][components_cnt+1]).filter((d) => d !== 'id').reduce((obj, item) => {
+					obj[item] = bar_data[descriptor_index][components_cnt+1][item];
+					return obj;
+				}, {});
+			}
+			console.log(cur_data);
+
+
 			word_size = d3.scaleLinear().domain([d3.min(d3.values(cur_data)),d3.max(d3.values(cur_data))]).range([10,30]);
 			words = Object.keys(cur_data).map(function(key){			
 					return {
 							text: key, 
 							size: word_size(cur_data[key]),
-							color: axisStroke(descriptor_index,descriptor_size)
+							color: axisStrokeWithComparison(descriptor_index,descriptor_size, cur_data[key], selectedPatterns)
 							};
 				});
 
@@ -154,14 +167,35 @@ class DetailView extends Component {
 
 		};
 	
-		function axisStroke(i, descriptor_size) {
-			return d3.hcl(i / descriptor_size * 360, 60, 70);
+
+
+		function axisStrokeWithComparison(descriptor_index,descriptor_size, cur_value, selectedPatterns){
+			if(selectedPatterns.length < 2){
+				var color_list = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
+				return color_list[descriptor_index];
+				// return d3.hcl(descriptor_index / descriptor_size * 360, 60, 70);	
+			}else{
+
+				var color_0 = d3.select('#pattern_' + selectedPatterns[1]).attr('stroke');
+				var color_1 = d3.select('#pattern_' + selectedPatterns[0]).attr('stroke');
+				if (cur_value > 0){					
+					return color_0	
+				}else{
+					return color_1
+				}
+			}
+
 		};
 		  
 
 		return (
 				<div className={styles.DetailView}>
-					<div className={index.title}>Details</div>
+					<div className={index.title}>
+						Details
+						<Tooltip title="Pattern narrative as word clouds">
+	    					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
+	  					</Tooltip>																							
+					</div>
 					{svg.toReact()}
 				</div>
 		);

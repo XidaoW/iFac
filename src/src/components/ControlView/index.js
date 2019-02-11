@@ -4,13 +4,11 @@ import ReactFauxDOM from 'react-faux-dom';
 import { plot_linechart } from '../../lib/draw_linechart.js'
 import _ from 'lodash';
 import { Dropdown, DropdownItem, DropdownToggle, DropdownMenu } from 'reactstrap';
-import { Slider, Icon } from 'antd';
+import { Tooltip, Slider, Icon, Collapse } from 'antd';
 
 import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
-// import 'antd/dist/antd.css';  // or 'antd/dist/antd.less'
-
 import 'antd/lib/slider/style'; // or antd/lib/button/style/css for css format file
 
 
@@ -72,6 +70,13 @@ class ControlView extends Component {
 		const { components_cnt, descriptors_text, 
 						error_data,  stability_data, fit_data, entropy_data, normalized_entropy_data,
 						gini_data, theil_data, pctnonzeros_data, onClickPoint, domain,weights, metricPointSize } = this.props;
+
+
+		const Panel = Collapse.Panel;
+		function callback(key) {
+		  console.log(key);
+		}
+
 		var n = error_data.length, 
 				title = '',
 				labels = '',
@@ -105,7 +110,7 @@ class ControlView extends Component {
 
 		
 		var labels_a = ["good", "bad"],
-				labels_b = ["bad", "good"];
+			labels_b = ["bad", "good"];
 
 		plot_linechart(onClickPoint, metricPointSize, this.svg_error, error_data, margin, width, height, n, title = "", labels = labels_a);
 		plot_linechart(onClickPoint, metricPointSize, this.svg_fit, fit_data, margin, width, height, n, title = "", labels = labels_b);
@@ -139,11 +144,15 @@ class ControlView extends Component {
 
 
 
-
 		return (
 			<div className={styles.infoPanel}>
 				<div className={styles.dataInspector}>
-					<div className={index.title}>Dataset</div>
+					<div className={index.title}>
+						Dataset
+						<Tooltip title="Dataset information. (You can switch to see results from different datasets)">
+	    					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
+	  					</Tooltip>																	
+					</div>
 					<Dropdown className={styles.datasetDropdown}
 										isOpen={this.state.datasetDropdownOpen} 
 										toggle={this.toggleDatasetDropdown}>
@@ -159,7 +168,12 @@ class ControlView extends Component {
 
 				</div>
 				<div className={styles.modelInspector}>
-					<div class={index.title}>Model Inspection</div>
+					<div class={index.title}>
+						Model Inspection
+						<Tooltip title="Inspect the quality of models under varying ranks from different pespectives. You can slide the weight for each metric to see a recommended rank being highlighted.">
+	    					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
+	  					</Tooltip>											
+					</div>
 					<div className={styles.screeCharts}>
 						<div className={styles.screeChart}>
 							<div className={styles.screeChartName}>Reconstruction error</div>

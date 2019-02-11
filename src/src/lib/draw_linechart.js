@@ -44,8 +44,6 @@ export	function plot_linechart(onClickPoint, metricPointSize, cur_svg, dataset, 
 					.x(function(d, i) { return xScale(d.x); }) // set the x values for the line generator
 					.y(function(d) { return yScale(d.y); }) // set the y values for the line generator 
 					.curve(d3.curveMonotoneX); // apply smoothing to the line
-		console.log(metricPointSize);
-		console.log(rankRec);
 		// 3. Call the x axis in a group tag
 		svg.append("g")
 		    .attr("class", "g_x_axis")
