@@ -3,10 +3,13 @@ import * as d3 from 'd3';
 import Overview from 'components/Overview';
 import CircularView from 'components/CircularView';
 import DetailView from 'components/DetailView';
+import ListView from 'components/ListView';
 // import InspectionView from 'components/InspectionView';
 import ControlView from 'components/ControlView';
 import { extractItemCoordinates, extractPetalBarCoordinates } from '../../lib/extract_coordinates.js'
 import { computeMeanStd } from '../../lib/draw_linechart.js'
+
+import { Row, Col } from 'antd';
 
 import styles from './styles.scss';
 import index from '../../index.css';
@@ -756,6 +759,11 @@ class App extends Component {
 				onSetWeight={this.handleSetWeight}		
 			/>
 			<div className={styles.rowC}>
+				<ListView
+					data={factors_data}
+					bar_data={bar_data}
+					selectedPatterns={selectedPatterns}
+				/>
 			  	<CircularView 
 					className={styles.Overview}
 					data={factors_data}
@@ -781,7 +789,7 @@ class App extends Component {
 					item_links={item_links}
 					mouseOveredDescriptorIdx={mouseOveredDescriptorIdx}
 					similarPatternToQueries={similarPatternToQueries}
-			  />          
+			  />  
 				<DetailView
 					bar_data={bar_data}				
 					selectedPatterns={selectedPatterns}

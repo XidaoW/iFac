@@ -81,8 +81,11 @@ export function polarToCartesian(angle, arc_length, outerCircleRadius) {
 };
 
 export function petalFill(d, i, petals) {
-  return d3.hcl(i / petals * 360, 60, 70);
+	var color_list = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
+	return color_list[i];
+	// return d3.hcl(i / petals * 360, 60, 70);
 };
+
 
 export function circleStrokeFill(i, patternsCnt) {
   return d3.hcl(i / patternsCnt * 360, 20, 70);
