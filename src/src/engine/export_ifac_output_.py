@@ -189,6 +189,18 @@ class iFacData():
 		return 1 - ss_res*1. / ss_total
 
 
+	def saveItemMDS(self):
+
+		from sklearn.manifold import MDS
+		self.loadFactors()
+		embeddings = MDS(n_components=2)
+		
+		self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(self.column_cnt)]
+		self.item_mds = {}
+		for item_index in range(len(self.data)):
+			self.item_mds[item_index] = embeddings.fit_transform(self.data[item_index].T).tolist()
+		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(self.column_cnt)+'_'+str(self.cur_base)+'_sample_item_embedding.json', 'w') as fp:
+			json.dump(self.item_mds, fp)			
 
 
 	def getFitForRanks(self, bases, trials = 5):
@@ -355,6 +367,11 @@ class iFacData():
 	def saveFactors(self):
 		fName = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'.npy'
 		np.save(fName, self.factors)
+
+	def loadFactors(self):
+		fName = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(self.column_cnt)+'_'+str(self.cur_base)+'.npy'
+		self.factors = np.load(fName)
+
 
 	def normalizeFactor(self):
 		"""
@@ -554,8 +571,18 @@ class iFacData():
 		self.saveOutput()
 
 
-if __name__ == '__main__':
-	
+def generateItemEmbedding():
+	iFac = iFacData()
+	domain = "nbaplayer"
+	# iFac.cur_base = int(sys.argv[1])
+	max_base = int(sys.argv[1])
+	iFac.column_cnt = int(sys.argv[2])
+	iFac.domain = str(sys.argv[3])
+	for cur_base in range(2+1, max_base+1):
+		iFac.cur_base = cur_base
+		iFac.saveItemMDS()
+
+def generateData():
 	iFac = iFacData()
 	base = 30
 	iFac.start_index = 2
@@ -569,3 +596,6 @@ if __name__ == '__main__':
 	iFac.readData(domain = domain)
 	_log.info("Fitting Different Ranks up to {}".format(base))
 	iFac.getFitForRanks(base, trials = nb_trials)
+if __name__ == '__main__':
+	# generateData()
+	generateItemEmbedding()

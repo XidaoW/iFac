@@ -14,6 +14,7 @@ import 'antd/dist/antd.css';
 
 import metrics from '../../data/nbaplayer/factors_3_18_sample_fit_metrics.json';
 import factors_data from '../../data/nbaplayer/factors_3_18_sample_fit.json';
+import itemEmbeddings from '../../data/nbaplayer/factors_3_18_sample_item_embedding.json';
 
 // import metrics from '../../data/purchase/factors_4_17_sample_fit_metrics.json';
 // import factors_data from '../../data/purchase/factors_4_17_sample_fit.json';
@@ -54,7 +55,8 @@ class App extends Component {
 			datasets: ['nbaplayer', 'policy', 'picso'],
 			domain: "nbaplayer",
 			weights: [1,1,1,1,1],
-			metricPointSize: []
+			metricPointSize: [],
+			itemEmbeddings: itemEmbeddings
 		};
 
 		this.handleClickPattern = this.handleClickPattern.bind(this);
@@ -94,6 +96,7 @@ class App extends Component {
 					screeData = metrics,
 					start_index = 2,
 					weights = this.state.weights,
+					itemEmbeddings = this.state.itemEmbeddings,
 					queries = d3.range(factors[0].dims).reduce((obj, item) => {
 						obj[item] = [];
 						return obj;
@@ -106,6 +109,7 @@ class App extends Component {
 			d.petals = d3.range(d.dims).map(function(i) { 
 				return {
 					"id": id, "length": 1 - d.factors[i].entropy,
+					"petal_idx": i,
 					"width": d.factors[i].similarity.average
 				}; 
 			});
@@ -177,7 +181,7 @@ class App extends Component {
 				+ weights[2] * stability_data[d]['y']
 				+ weights[3] * ( 1 - normalized_entropy_data[d]['y'])
 				+ weights[4] * ( 1 - pctnonzeros_data[d]['y'])
-				+ 1 * (1 - d*1. / error_data.length);
+				+ 0 * (1 - d*1. / error_data.length);
 		})
 
 		this.setState({
@@ -194,7 +198,8 @@ class App extends Component {
 			gini_data: gini_data,
 			theil_data: theil_data,			
 			pctnonzeros_data: pctnonzeros_data,
-			metricPointSize: metricPointSize
+			metricPointSize: metricPointSize,
+			itemEmbeddings: itemEmbeddings
 		});    
 	}
 
@@ -247,16 +252,13 @@ class App extends Component {
 
 		weights[idx] = weight;
 
-
-		console.log(error_data[0]);
-		console.log(weights[0]);
 		var metricPointSize = d3.range(error_data.length).map(function(d) {
 			return weights[0] * ( 1 - error_data[d]['y'])
 				+ weights[1] * fit_data[d]['y'] 
 				+ weights[2] * stability_data[d]['y']
 				+ weights[3] * ( 1 - normalized_entropy_data[d]['y'])
 				+ weights[4] * ( 1 - pctnonzeros_data[d]['y'])
-				+ 1 * (1 - d*1. / error_data.length);
+				+ 0 * (1 - d*1. / error_data.length);
 
 		})
 		console.log(metricPointSize);
@@ -573,14 +575,21 @@ class App extends Component {
 
 	handleChangeDataset(selectedDomain) {
 		console.log('handleChangeDataset: ', selectedDomain);
-		const selectedDataset = require("../../data/" + selectedDomain + "/factors_3_19" + "_sample_fit.json"),
-					metrics = require("../../data/" + selectedDomain + "/factors_3_19" + "_sample_fit_metrics.json");
+		var domainSetting = {
+							"picso": {"modes": "3", "cnt": "19"},
+							"nbaplayer": {"modes": "3", "cnt": "18"},
+							"policy": {"modes": "3", "cnt": "50"},
+							"purchase": {"modes": "4", "cnt": "17"}
+							}
+		const selectedDataset = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_fit.json"),
+					metrics = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_fit_metrics.json");
 		console.log('handleChangeDataset: ', selectedDataset);
 
 		const _self = this,
 					factors = selectedDataset.data,
 					screeData = metrics,
 					start_index = 2,
+					weights = this.state.weights,
 					queries = d3.range(factors[0].dims).reduce((obj, item) => {
 						obj[item] = [];
 						return obj;
@@ -620,6 +629,8 @@ class App extends Component {
 		}
 
 
+
+
 		// compute scree data
 		screeData['error'] = screeData['error'].filter(Boolean);
 		screeData['stability'] = screeData['stability'].filter(Boolean);
@@ -629,31 +640,48 @@ class App extends Component {
 		screeData['gini'] = screeData['gini'].filter(Boolean);
 		screeData['theil'] = screeData['theil'].filter(Boolean);
 		screeData['pctnonzeros'] = screeData['pctnonzeros'].filter(Boolean);
+		// console.log(screeData.normalized_entropy_data);
 
-		var error_data = d3.range(screeData['error'].length).map(function(d, i) {
+		var error_data = d3.range(screeData['error'].length).map(function(d, i) {			
 			var rst = computeMeanStd(screeData.error[d]);
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		}), stability_data = d3.range(screeData.stability.length).map(function(d, i) {
+			// console.log(screeData.stability[d]);
 			var rst = computeMeanStd(screeData.stability[d]);
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		}), fit_data = d3.range(screeData.fit.length).map(function(d, i) {
+			// console.log(screeData.fit[d]);
 			var rst = computeMeanStd(screeData.fit[d]);
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		}), entropy_data = d3.range(screeData.entropy.length).map(function(d, i) {
+			// console.log(screeData.entropy[d]);
 			var rst = computeMeanStd(screeData.entropy[d]);
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		}), normalized_entropy_data = d3.range(screeData.normalized_entropy.length).map(function(d, i) {
+			// console.log(screeData.normalized_entropy_data[d]);
 			var rst = computeMeanStd(screeData.normalized_entropy[d]);
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		}), gini_data = d3.range(screeData.gini.length).map(function(d, i) {
+			// console.log(screeData.gini_data[d]);
 			var rst = computeMeanStd(screeData.fit[d]);
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		}), theil_data = d3.range(screeData.theil.length).map(function(d, i) {
+			// console.log(screeData.theil_data[d]);
 			var rst = computeMeanStd(screeData.theil[d]);
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		}), pctnonzeros_data = d3.range(screeData.pctnonzeros.length).map(function(d, i) {
+			// console.log(screeData.pctnonzeros_data[d]);
 			var rst = computeMeanStd(screeData.pctnonzeros[d]);
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
+		})
+
+		var metricPointSize = d3.range(error_data.length).map(function(d) {
+			return weights[0] * ( 1 - error_data[d]['y'])
+				+ weights[1] * fit_data[d]['y'] 
+				+ weights[2] * stability_data[d]['y']
+				+ weights[3] * ( 1 - normalized_entropy_data[d]['y'])
+				+ weights[4] * ( 1 - pctnonzeros_data[d]['y'])
+				+ 1 * (1 - d*1. / error_data.length);
 		})
 
 		this.setState({
@@ -676,7 +704,9 @@ class App extends Component {
 			normalized_entropy_data: normalized_entropy_data,
 			gini_data: gini_data,
 			theil_data: theil_data,
-			pctnonzeros_data: pctnonzeros_data
+			pctnonzeros_data: pctnonzeros_data,
+			weights: weights,
+			metricPointSize: metricPointSize
 		});
 	}
 
@@ -690,7 +720,8 @@ class App extends Component {
 			descriptors, descriptors_text,screeData, max_pattern_item, arc_positions_bar_petal, 
 			item_max_pattern,queries,similarPatternToQueries, item_links, mouseOveredDescriptorIdx, 
 			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
-			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricPointSize
+			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricPointSize,
+			itemEmbeddings
 		} = this.state;
 
 
@@ -701,7 +732,7 @@ class App extends Component {
 	return (
 	  <div className={styles.App}>
 		<header className={styles.header}>
-		  <div className={styles.title}>iFac</div>
+		  <div className={styles.title}>iTnFac</div>
 			<div>Tensor Pattern Exploration</div>
 		</header>
 		<div>
@@ -744,6 +775,7 @@ class App extends Component {
 					arc_positions_bar_petal={arc_positions_bar_petal}
 					item_max_pattern={item_max_pattern}
 					item_similarity={item_similarity}
+					itemEmbeddings={itemEmbeddings}
 					modes={modes}
 					queries={queries}
 					item_links={item_links}

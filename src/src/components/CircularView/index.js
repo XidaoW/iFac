@@ -2,14 +2,17 @@ import React, { Component } from 'react';
 import * as d3 from 'd3';
 import ReactFauxDOM from 'react-faux-dom';
 import d3tooltip from 'd3-tooltip';
-import {scaleRadial} from '../../lib/draw_radial.js'
-import * as quadPath from '../../lib/draw_quadratic_path.js'	
-import * as petal from '../../lib/draw_petals.js'
+import {scaleRadial} from '../../lib/draw_radial.js';
+import * as quadPath from '../../lib/draw_quadratic_path.js';
+import * as petal from '../../lib/draw_petals.js';
 
 import _ from 'lodash';
 import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
+import Circos, { SCATTER } from 'react-circos';
+import { Tooltip, Icon } from 'antd';
+
 
 const tooltip = d3tooltip(d3);
 
@@ -75,7 +78,8 @@ class CircularView extends Component {
 				arc_positions_bar_petal,item_max_pattern,
 				bar_data, max_pattern_item,components_cnt,modes,
 				queries, similarPatternToQueries, item_links, 
-				mouseOveredDescriptorIdx, item_similarity } = this.props;  
+				mouseOveredDescriptorIdx, item_similarity, 
+				itemEmbeddings } = this.props;  
 
 		const _self = this,
 					width = +this.layout.svg.width,
@@ -88,43 +92,31 @@ class CircularView extends Component {
 						return queries[key].length;
 					}).reduce((a,b)=>a+b);			
 
+
+
 		let	descriptor_size = Object.keys(bar_data).length,
-				color_list = ['#ffff99', '#beaed4'],
-				used_color = '',
-				label_flag = false,
-				reorder_item = false,
-				translate_x = 0,
-				translate_y = 0,
-				top_k = 5;
+			descriptor_size_list = Object.keys(itemEmbeddings).map((d) => itemEmbeddings[d].length),		
+			color_list = ['#ffff99', '#beaed4'],
+			used_color = '',
+			shift_size = 0.1,
+			label_flag = false,
+			reorder_item = false,
+			translate_x = 0,
+			translate_y = 0,
+			top_k = 5;
 
 		let g,
-				svg = new ReactFauxDOM.Element('svg');
+			svg = new ReactFauxDOM.Element('svg');
 
 		svg.setAttribute('width', width);
 		svg.setAttribute('height',height);
-		svg.setAttribute('transform', 'translate(' + translate_x + ',' + translate_x + ')');
+		svg.setAttribute('transform', 'translate(' + translate_x + ',' + translate_y + ')');
 
-		this.pie = d3.pie().sort(null).value(function(d) { return 1; });
+		this.pie = d3.pie().sort(null).value((d) => 1);
 		this.circle_color = d3.scaleLinear().domain([0, 1]).range(['#bf5b17','#e31a1c']).interpolate(d3.interpolateHcl);
 		this.circle_width = d3.scaleLinear().domain([0, 1]).range([1,2]);
 		this.circle_position_x = d3.scaleLinear().domain([min_tsne[0],max_tsne[0]]).range([- 0, + innerRadius]);
 		this.circle_position_y = d3.scaleLinear().domain([min_tsne[1],max_tsne[1]]).range([- 0, + innerRadius]);
-
-		const gDimRed1 = d3.select(svg)
-						.append('g')
-						.attr('class', 'g_dim_red1')
-						.attr('transform', 'translate(0,0)'),
-					gDimRed2 = d3.select(svg)
-							.append('g')
-							.attr('class', 'g_dim_red2')
-							.attr('transform', 'translate(' + (this.layout.svg.width - this.layout.dimRed.width) + ',0)'),
-					gDimRed3 = d3.select(svg)
-							.append('g')
-							.attr('class', 'g_dim_red3')
-							.attr('transform', 'translate(' + (this.layout.svg.width - this.layout.dimRed.width) + ',' + (this.layout.svg.height - this.layout.dimRed.height) + ')');
-
-		const xDimRedScale1 = d3.scaleLinear()
-							.range([0, 150]);
 
 		// Update the list of available colors to pick for clicking patterns
 		for(var i = 0; i < selectedPatterns.length; i++){
@@ -210,7 +202,6 @@ class CircularView extends Component {
 						.attr('id', (d) => 'flower_' + d.id)
 						.attr('transform', (d, i) => 'translate(' + _self.circle_position_x(d.tsne_coord.x) + ',' 
 									+ _self.circle_position_y(d.tsne_coord.y) + ')');
-
 		// add the petals to the flowers
 		const petals = flowers.selectAll('.petal')
 					.data((d) => this.pie(d.petals))
@@ -226,8 +217,6 @@ class CircularView extends Component {
 					.attr('stroke', function(d) {   
 					})
 					.on("mouseover", function(d, i){
-						console.log(d)
-						console.log(i)
 						tooltip.html('<div>descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
 							'<div>informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
 							'<div>similarity: ' + d3.format(".0%")(d.data.width) + '</div>');
@@ -239,54 +228,31 @@ class CircularView extends Component {
 					.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
 					.style('fill-opacity', 0.6);
 
-		const rectDimRedOutline1 = d3.select('.g_dim_red1')
-						.append('rect')
-						.attr('x', 0)
-						.attr('y', 0)
-						.attr('width', this.layout.dimRed.width)
-						.attr('height', this.layout.dimRed.height)
-						.style('stroke', 'red')
-						.style('fill', 'none'),
-					rectDimRedOutline2 = d3.select('.g_dim_red2')
-						.append('rect')
-						.attr('x', 0)
-						.attr('y', 0)
-						.attr('width', this.layout.dimRed.width)
-						.attr('height', this.layout.dimRed.height)
-						.style('stroke', 'red')
-						.style('fill', 'none'),
-					rectDimRedOutline3 = d3.select('.g_dim_red3')
-						.append('rect')
-						.attr('x', 0)
-						.attr('y', 0)
-						.attr('width', this.layout.dimRed.width)
-						.attr('height', this.layout.dimRed.height)
-						.style('stroke', 'red')
-						.style('fill', 'none');
-
 		// DRAW THE RADIAL BAR CHART
 		for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
 			let selected_pattern_cnt = selectedPatterns.length;
 			
 			// when selected more than one pattern, show the distribution of selected patterns.
 			if(selected_pattern_cnt > 0) {
-				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, this.layout.detailView.margin, width, height);
+				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height);
 				// only show the line pointer (dominating items) when one pattern is selected.
 				if (selected_pattern_cnt == 1) {
 					draw_line_pointer(descriptor_index, arc_positions_bar_petal);
 				}
 			}else{
 				// draw the bar for the default values that show the average of the patterns.
-				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, this.layout.detailView.margin, width, height);
+				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height);
 			}
 			// when two patterns are selected for comparison, the query bar also needs to or-ordered. 
 			reorder_item = (selected_pattern_cnt == 2)? true : false;
-			draw_query_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, this.layout.detailView.margin, width, height, reorder_item = reorder_item);				
+			draw_query_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height, reorder_item = reorder_item);
+
+			draw_embedding_circular(itemEmbeddings, descriptor_index, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height)
+			
 
 		}
 
 		draw_query_result(similarPatternToQueries, query_flag);
-		
 
 		function draw_query_result(similarPatternToQueries, query_flag){
 			/**
@@ -341,7 +307,74 @@ class CircularView extends Component {
 					.attr('d', line(arc_positions_bar_petal[descriptor_index].coordinates));	
 		}
 
-		function draw_bars_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, margin, width, height){
+
+
+		function draw_embedding_circular(itemEmbeddings, descriptor_index, patternIndices, descriptor_size, descriptor_size_list, margin, width, height){
+					/**
+					 * Draws the circular area of scatter points for each descriptor - embeddings of the items
+					 *
+					 * 1) obtain the bar data for the selected patterns.
+					 * 3) draw arc bars
+					 * 4) add labels
+					 * otherwise, remove the ranking text.
+					 *
+					 * @since      0.0.0
+					 *
+					 *
+					 * @param {array}   similarPatternToQueries           a ranked list of similarity between pattern and query.
+					 * @param {boolean}  query_flag     if there is query input.
+					 * 
+					 */					
+					let patterns, items, items1, descriptor_arcs;
+					console.log(itemEmbeddings);
+					let cur_embeddings = itemEmbeddings[descriptor_index];
+					let x_max = d3.max(cur_embeddings, (d) => d[0]);
+					let y_max = d3.max(cur_embeddings, (d) => d[1]);
+					let x_min = d3.min(cur_embeddings, (d) => d[0]);
+					let y_min = d3.min(cur_embeddings, (d) => d[1]);
+
+					cur_embeddings = cur_embeddings.sort((first, second) => second[0] - first[0]);					
+					let x_items = d3.range(cur_embeddings.length).map((d) => cur_embeddings[d][0]);
+			
+					// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
+					const x = d3.scaleLinear()
+									.range(computeDescriptorRange(descriptor_index, descriptor_size, descriptor_size_list, 0.1))    
+									.domain(x_items), // The domain of the X axis is the list of states.
+								y = scaleRadial()
+									.range([outerRadius, outerRadius+5])   // Domain will be define later.
+									.domain([y_min, y_max]), // Domain of Y is from 0 to the max seen in the data
+								g = backdrop.append('g')
+									.attr('class', 'embeddingView')
+									.attr('id', 'descriptor_'+descriptor_index+'_embedding')          
+									.attr('transform', 'translate(' + (width / 2) + ',' + ( height/2 )+ ')'); 
+
+			// descriptor_arcs = g.selectAll('g')
+			// 				.select('#descriptor' + descriptor_index)
+			// 				.data(cur_embeddings)
+			// 				.enter()                                    
+			// 				.selectAll('path')
+			// 				.data((d,cur_index) => {
+			// 					return cur_embeddings.map((point, i) => {
+			// 						return {key: point[0], value: point[1], id: i, index: cur_index};
+			// 					})})
+			// 				.enter();
+			// // Add the bars
+			// descriptor_arcs.append('path')
+			// 		.attr('d', d3.arc()     // imagine your doing a part of a donut plot
+			// 		.innerRadius(innerRadius)
+			// 		.outerRadius((d) => {console.log(y(d.value)); return y(d.value)})
+			// 		.startAngle((d) => x(d.key) + x.bandwidth()*(d.index)/1)
+			// 		.endAngle((d) => x(d.key) + x.bandwidth()*(d.index+1)/1)
+			// 		.padAngle(0.01)
+			// 		.padRadius(innerRadius))
+			// 		.attr('fill', "#beaed4")					
+			// 		.attr('id', (d)=> 'bar_' + descriptor_index + '_' + d.key)
+			// 		.attr('stroke', 'black')
+			// 		.attr('stroke-width', "0px");
+				}
+
+
+		function draw_bars_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, descriptor_size_list, margin, width, height){
 			/**
 			 * Draws the circular bar for each descriptor
 			 *
@@ -363,6 +396,8 @@ class CircularView extends Component {
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
 			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();
 			if(patterns.length == 2){
+				console.log(components_cnt);
+				console.log(components_cnt+1);
 				// re-ordering the items based on the difference between the two patterns on each descriptor.
 				items1 = Object.keys(bar_data[descriptor_index][components_cnt+1])
 								.filter((d) => d !== 'id')
@@ -372,7 +407,7 @@ class CircularView extends Component {
 			}
 			// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
 			const x = d3.scaleBand()
-							.range([2*Math.PI*(descriptor_index+1)/descriptor_size-0.2,  2*Math.PI*(descriptor_index+2)/descriptor_size-0.4])    
+							.range(computeDescriptorRange(descriptor_index, descriptor_size, descriptor_size_list, 0.1))    
 							.domain(items) // The domain of the X axis is the list of states.
 							.paddingInner(0.05),
 						y = scaleRadial()
@@ -402,7 +437,7 @@ class CircularView extends Component {
 			descriptor_arcs.append('path')
 					.attr('d', d3.arc()     // imagine your doing a part of a donut plot
 					.innerRadius(innerRadius)
-					.outerRadius((d) => y(d.value))
+					.outerRadius((d) => {console.log(y(d.value)); return y(d.value)})
 					.startAngle((d) => x(d.key) + x.bandwidth()*(d.index)/patterns.length)
 					.endAngle((d) => x(d.key) + x.bandwidth()*(d.index+1)/patterns.length)
 					.padAngle(0.01)
@@ -435,13 +470,13 @@ class CircularView extends Component {
 				.append('text')
 				.text((d) => d.key)
 				.attr('transform', (d) => (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'rotate(180)' : 'rotate(0)')
-				.style('font-size', '6px')
+				.style('font-size', '10px')
 				.attr('id', (d) => 'label_' + descriptor_index + '_' + d.key)
 				.attr('class', 'label_bar' + descriptor_index)
 				.attr('alignment-baseline', 'middle');			
 		}
 
-		function draw_query_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, margin, width, height, reorder_item = false){
+		function draw_query_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, descriptor_size_list, margin, width, height, reorder_item = false){
 			/**
 			 * Draws the circular bar for input query and visualize item similarity
 			 *
@@ -472,7 +507,7 @@ class CircularView extends Component {
 			}	
 			// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
 			const x = d3.scaleBand()
-							.range([2*Math.PI*(descriptor_index+1)/descriptor_size-0.2,  2*Math.PI*(descriptor_index+2)/descriptor_size-0.4])    
+							.range(computeDescriptorRange(descriptor_index, descriptor_size, descriptor_size_list, 0.1))    
 							.domain(items) // The domain of the X axis is the list of states.
 							.paddingInner(0.05),
 						y = scaleRadial()
@@ -577,8 +612,20 @@ class CircularView extends Component {
 		}		
 
 		function axisStroke(i, descriptor_size) {
-			return d3.hcl(i / descriptor_size * 360, 60, 70);
+			var color_list = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
+			return color_list[i]
+			// return d3.hcl(i / descriptor_size * 360, 60, 70);
 		};
+
+		function computeDescriptorRange(descriptor_index, descriptor_size,descriptor_size_list, shift_size){
+			var total_size = 2*Math.PI/descriptor_size,
+				max_item_cnt = d3.max(descriptor_size_list),
+				each_value = total_size*1. / max_item_cnt,
+				total_value_current = each_value * descriptor_size_list[descriptor_index],
+				start_value = 2*Math.PI*(descriptor_index+1)/descriptor_size + shift_size + (total_size - total_value_current) / 2.0,
+				end_value = 2*Math.PI*(descriptor_index+2)/descriptor_size - (total_size - total_value_current) / 2.0;
+			return [start_value,  end_value];	
+		}  
 
 		function barFill(d, descriptor_index, descriptor_size, bar_opacity) {
 			if(d.id >= components_cnt){
@@ -596,9 +643,13 @@ class CircularView extends Component {
 		};
 
 		return (
-			<div className={styles.CircularOverview}>		
-				<div className={index.title}>Circular View</div>
-				{svg.toReact()}
+			<div className={styles.CircularOverview}>					
+				<div className={index.title}>Circular View
+					<Tooltip title="Pattern Examination">
+    					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
+  					</Tooltip>					
+				</div>
+				{svg.toReact()}				
 			</div>
 		);
   }
