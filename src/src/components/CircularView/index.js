@@ -74,11 +74,10 @@ class CircularView extends Component {
 		d3.selectAll('.pattern_circles').classed('selected', false);                                       
 		d3.selectAll('.pattern_circles').attr('stroke', 'none');
 		this.props.onResetPatterns();
-
 	}
 	handleResetItems() {
 		d3.selectAll('.query_bar').classed('queried', false)	
-		d3.selectAll('.query_bar').attr("stroke", "none");							
+		d3.selectAll('.query_bar').attr("stroke", "none");
 		this.props.onResetItems();
 	}
 
