@@ -80,6 +80,7 @@ class CircularView extends Component {
 	handleResetItems() {
 		d3.selectAll('.query_bar').classed('queried', false)	
 		d3.selectAll('.query_bar').attr("stroke", "none");
+		d3.selectAll('.itemTags').remove()
 		this.props.onResetItems();
 	}
 
@@ -685,6 +686,7 @@ class CircularView extends Component {
 					</ButtonGroup>
 					<QueryPanel
 						onQueryItem={this.props.onClickItem}
+						onResetItem={this.handleResetItems}
 						descriptors={descriptors}
 						components_cnt={components_cnt}
 						modes={modes}

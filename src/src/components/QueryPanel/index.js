@@ -89,6 +89,7 @@ class QueryPanel extends Component {
 								const isLongTag = tag.length > 20;
 								const tagElem = (
 									<Tag
+										className={"itemTags"}
 										color={color_list[idx]}
 										key={tag} 
 										closable={true}
