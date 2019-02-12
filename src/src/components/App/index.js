@@ -841,6 +841,7 @@ class App extends Component {
 					modes={modes}
 					queries={queries}
 					item_links={item_links}
+					descriptors={descriptors}
 					mouseOveredDescriptorIdx={mouseOveredDescriptorIdx}
 					similarPatternToQueries={similarPatternToQueries}
 			  />  

@@ -11,14 +11,16 @@ import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 import Circos, { SCATTER } from 'react-circos';
-import { Tooltip, Icon, Button } from 'antd';
+import { Tag, Input, Tooltip, Icon, Button } from 'antd';
 
+import QueryPannel from 'components/QueryPannel';
 
 const tooltip = d3tooltip(d3);
 
 /* props: this.props.ranking
   => selected ranking data
 */
+
 class CircularView extends Component {
   
 	constructor(props) {
@@ -68,7 +70,7 @@ class CircularView extends Component {
 		this.barLabelFontSize = gs.barLabelFontSize;
 		this.handleResetPatterns = this.handleResetPatterns.bind(this);				
 		this.handleResetItems = this.handleResetItems.bind(this);				
-  }
+	}
 
 	handleResetPatterns() {
 		d3.selectAll('.pattern_circles').classed('selected', false);                                       
@@ -90,7 +92,7 @@ class CircularView extends Component {
 				leastSimilarPatternToSelectedPatternIdx, 
 				arc_positions_bar_petal,item_max_pattern,
 				bar_data, max_pattern_item,components_cnt,modes,
-				queries, similarPatternToQueries, item_links, 
+				queries, similarPatternToQueries, item_links, descriptors,
 				mouseOveredDescriptorIdx, item_similarity, 
 				itemEmbeddings } = this.props;  
 
@@ -681,6 +683,12 @@ class CircularView extends Component {
 						Reset Item Selection
 					</Button>
 					</ButtonGroup>
+					<QueryPannel
+						descriptors={descriptors}
+						components_cnt={components_cnt}
+						modes={modes}
+						queries={queries}
+					/>
 				{svg.toReact()}				
 			</div>
 		);
