@@ -94,9 +94,6 @@ class DetailView extends Component {
 				obj[item] = bar_data[descriptor_index][default_ptn_idx][item];
 				return obj;
 			}, {});
-			console.log(cur_data);
-			console.log(bar_data);
-			console.log(selectedPatterns);
 			if(reorder_item){
 				// re-ordering the items based on the difference between the two patterns on each descriptor.
 				cur_data = Object.keys(bar_data[descriptor_index][components_cnt+1]).filter((d) => d !== 'id').reduce((obj, item) => {
@@ -104,8 +101,6 @@ class DetailView extends Component {
 					return obj;
 				}, {});
 			}
-			console.log(cur_data);
-
 
 			word_size = d3.scaleLinear().domain([d3.min(d3.values(cur_data)),d3.max(d3.values(cur_data))]).range([10,30]);
 			words = Object.keys(cur_data).map(function(key){			
