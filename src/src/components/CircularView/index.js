@@ -13,7 +13,7 @@ import gs from '../../config/_variables.scss'; // gs (=global style)
 import Circos, { SCATTER } from 'react-circos';
 import { Tag, Input, Tooltip, Icon, Button } from 'antd';
 
-import QueryPannel from 'components/QueryPannel';
+import QueryPanel from 'components/QueryPanel';
 
 const tooltip = d3tooltip(d3);
 
@@ -683,7 +683,8 @@ class CircularView extends Component {
 						Reset Item Selection
 					</Button>
 					</ButtonGroup>
-					<QueryPannel
+					<QueryPanel
+						onQueryItem={this.props.onClickItem}
 						descriptors={descriptors}
 						components_cnt={components_cnt}
 						modes={modes}
