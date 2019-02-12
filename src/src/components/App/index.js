@@ -72,6 +72,9 @@ class App extends Component {
 		this.handleClickPoint = this.handleClickPoint.bind(this);
 		this.handleChangeDataset = this.handleChangeDataset.bind(this);
 		this.handleSetWeight = this.handleSetWeight.bind(this);
+		this.handleResetPatterns = this.handleResetPatterns.bind(this);
+		this.handleResetItems = this.handleResetItems.bind(this);
+
 
 	}
 
@@ -237,6 +240,55 @@ class App extends Component {
 			mouseOveredPatternIdx: ''
 		}));
 	}
+
+
+	handleResetPatterns(){
+		/**
+		 * Handles the reset pattern event in circular view
+		 *
+		 * reset the selected patterns and the factor data
+		 *
+		 * @since      0.0.0
+		 *
+		 * @fires   click
+		 *
+		 * 
+		 */		
+		const factors = this.state.factors_data;
+
+		factors.forEach(function(d, id) {
+			d.petals = d3.range(d.dims).map(function(i) { 
+				return {
+					"id": id, "length": 1 - d.factors[i].entropy,
+					"width": d.factors[i].similarity.average
+				}; 
+			});   
+		});
+
+		this.setState(prevState => ({
+			selectedPatterns: [],
+			currentSelectedPatternIdx: '',
+			factors_data: factors
+		}));
+	}
+	handleResetItems(){
+		/**
+		 * Handles the reset item event in circular view
+		 *
+		 * reset the query and query result
+		 *
+		 * @since      0.0.0
+		 *
+		 * @fires   click
+		 *
+		 * 
+		 */	
+		this.setState({
+			queries:{},
+			similarPatternToQueries: []
+		});		 
+	}
+
 
 
 	handleSetWeight(weight, idx) {
@@ -773,7 +825,9 @@ class App extends Component {
 					onMouseOverPattern={this.handleMouseOverPattern}
 					onMouseOutPattern={this.handleMouseOutPattern}                        
 					onMouseOverItem={this.handleMouseOverItem}
-					onMouseOutItem={this.handleMouseOutItem}                        
+					onMouseOutItem={this.handleMouseOutItem}
+					onResetPatterns={this.handleResetPatterns}
+					onResetItems={this.handleResetItems}
 					leastSimilarPatternToSelectedPatternIdx={leastSimilarPatternToSelectedPatternIdx}              
 					mostSimilarPatternToSelectedPatternIdx={mostSimilarPatternToSelectedPatternIdx}          
 					bar_data={bar_data}     
