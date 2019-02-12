@@ -11,7 +11,7 @@ import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 import Circos, { SCATTER } from 'react-circos';
-import { Tooltip, Icon } from 'antd';
+import { Tooltip, Icon, Button } from 'antd';
 
 
 const tooltip = d3tooltip(d3);
@@ -66,9 +66,23 @@ class CircularView extends Component {
 		this.foregroundBarOpacity = gs.detailViewFGBarOpacity;
 		this.circularInnerRadius = gs.circularInnerRadius;
 		this.barLabelFontSize = gs.barLabelFontSize;
+		this.handleResetPatterns = this.handleResetPatterns.bind(this);				
+		this.handleResetItems = this.handleResetItems.bind(this);				
   }
 
-  render() {
+	handleResetPatterns() {
+		d3.selectAll('.pattern_circles').classed('selected', false);                                       
+		d3.selectAll('.pattern_circles').attr('stroke', 'none');
+		this.props.onResetPatterns();
+
+	}
+	handleResetItems() {
+		d3.selectAll('.query_bar').classed('queried', false)	
+		d3.selectAll('.query_bar').attr("stroke", "none");							
+		this.props.onResetItems();
+	}
+
+	render() {
 		console.log('circularView rendered');
 		console.log('this.props.data: ', this.props.data);
 
@@ -81,6 +95,7 @@ class CircularView extends Component {
 				mouseOveredDescriptorIdx, item_similarity, 
 				itemEmbeddings } = this.props;  
 
+		const ButtonGroup = Button.Group;
 		const _self = this,
 					width = +this.layout.svg.width,
 					height = +this.layout.svg.height,
@@ -88,7 +103,8 @@ class CircularView extends Component {
 					innerRadius = this.circularInnerRadius,
 					max_tsne = data[0].max_tsne,
 					min_tsne = data[0].min_tsne,
-					query_flag = Object.keys(queries).map(function(key){			
+					barFillOpacityConst = 0.5, 
+					query_flag = (Object.keys(queries).length == 0)? false: Object.keys(queries).map(function(key){			
 						return queries[key].length;
 					}).reduce((a,b)=>a+b);			
 
@@ -143,7 +159,7 @@ class CircularView extends Component {
 						.data(data)
 						.enter()
 						.append('circle')
-						.attr('class', 'outer_circle')
+						.attr('class', 'pattern_circles')
 						.attr('r', gs.innerCircleRadius)
 						.attr('fill', '#fc8d12')
 						.attr('stroke-width', gs.innerCircleStrokeWidth)                
@@ -247,7 +263,7 @@ class CircularView extends Component {
 			reorder_item = (selected_pattern_cnt == 2)? true : false;
 			draw_query_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height, reorder_item = reorder_item);
 
-			draw_embedding_circular(itemEmbeddings, descriptor_index, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height)
+			// draw_embedding_circular(itemEmbeddings, descriptor_index, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height)
 			
 
 		}
@@ -326,7 +342,6 @@ class CircularView extends Component {
 					 * 
 					 */					
 					let patterns, items, items1, descriptor_arcs;
-					console.log(itemEmbeddings);
 					let cur_embeddings = itemEmbeddings[descriptor_index];
 					let x_max = d3.max(cur_embeddings, (d) => d[0]);
 					let y_max = d3.max(cur_embeddings, (d) => d[1]);
@@ -396,8 +411,6 @@ class CircularView extends Component {
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
 			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();
 			if(patterns.length == 2){
-				console.log(components_cnt);
-				console.log(components_cnt+1);
 				// re-ordering the items based on the difference between the two patterns on each descriptor.
 				items1 = Object.keys(bar_data[descriptor_index][components_cnt+1])
 								.filter((d) => d !== 'id')
@@ -437,7 +450,7 @@ class CircularView extends Component {
 			descriptor_arcs.append('path')
 					.attr('d', d3.arc()     // imagine your doing a part of a donut plot
 					.innerRadius(innerRadius)
-					.outerRadius((d) => {console.log(y(d.value)); return y(d.value)})
+					.outerRadius((d) => y(d.value))
 					.startAngle((d) => x(d.key) + x.bandwidth()*(d.index)/patterns.length)
 					.endAngle((d) => x(d.key) + x.bandwidth()*(d.index+1)/patterns.length)
 					.padAngle(0.01)
@@ -463,17 +476,21 @@ class CircularView extends Component {
 
 			// Add the labels     
 			backdrop.selectAll("text.label_bar" + descriptor_index).remove();
-			descriptor_arcs.append('g')
-				.attr('class', 'descriptor_text' + descriptor_index)
-				.attr('text-anchor', (d) => (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'end' : 'start')
-				.attr('transform', (d) => 'rotate(' + ((x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length) * 180 / Math.PI - 90) + ')'+'translate(' + (y(d.value)+20) + ',0)')
-				.append('text')
-				.text((d) => d.key)
-				.attr('transform', (d) => (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'rotate(180)' : 'rotate(0)')
-				.style('font-size', '10px')
-				.attr('id', (d) => 'label_' + descriptor_index + '_' + d.key)
-				.attr('class', 'label_bar' + descriptor_index)
-				.attr('alignment-baseline', 'middle');			
+			var draw_label = false;
+			if(draw_label){
+				descriptor_arcs.append('g')
+					.attr('class', 'descriptor_text' + descriptor_index)
+					.attr('text-anchor', (d) => (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'end' : 'start')
+					.attr('transform', (d) => 'rotate(' + ((x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length) * 180 / Math.PI - 90) + ')'+'translate(' + (y(d.value)+20) + ',0)')
+					.append('text')
+					.text((d) => d.key)
+					.attr('transform', (d) => (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'rotate(180)' : 'rotate(0)')
+					.style('font-size', '10px')
+					.attr('id', (d) => 'label_' + descriptor_index + '_' + d.key)
+					.attr('class', 'label_bar' + descriptor_index)
+					.attr('alignment-baseline', 'middle');						
+			}
+	
 		}
 
 		function draw_query_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, descriptor_size_list, margin, width, height, reorder_item = false){
@@ -545,10 +562,10 @@ class CircularView extends Component {
 					.endAngle((d) => x(d.key) + x.bandwidth()*(d.index+1)/patterns.length)
 					.padAngle(0.01)
 					.padRadius(innerRadius-10))
-					.attr('class', (d) => 'query_' + descriptor_index)
+					.attr('class', (d) => 'query_bar query_' + descriptor_index)
 					.attr('id', (d)=> 'query_bar_' + descriptor_index + '_' + d.key)
 					.attr('fill', (d) => barFill(d, descriptor_index, descriptor_size, bar_opacity))
-					.attr('opacity', 0.2)       
+					.attr('opacity', barFillOpacityConst)       
 					.attr('stroke', 'none')
 					.attr('stroke-width', '3px')
 					.on('click', (d) => {
@@ -558,7 +575,11 @@ class CircularView extends Component {
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke", "none");							
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', false);							
 						} else {
-							queries[descriptor_index].push(d.key);
+							console.log(queries);
+							if(!(descriptor_index in queries)){
+								queries[descriptor_index] = [];	
+							}
+							queries[descriptor_index].push(d.key);							
 							_self.props.onClickItem(queries, top_k);
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke", "black");
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', true);
@@ -596,17 +617,20 @@ class CircularView extends Component {
 
 					})
 					.on('mouseout', (d) => {
-						d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("opacity",0.1);
+						d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("opacity",barFillOpacityConst);
 						// d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke","none");
 						Object.keys(item_similarity[descriptor_index][d.key]).map(function(key){										
-							d3.select('#query_bar_' + descriptor_index+ '_'+ key).attr("opacity", 0.1);
+							d3.select('#query_bar_' + descriptor_index+ '_'+ key).attr("opacity", barFillOpacityConst);
 						});
 						_self.props.onMouseOutItem();
 					});			
 
-			for(let link_id = 0; link_id < item_links.length; link_id++){
-				bar_opacity.domain([d3.min(item_links, (d) => d.similarity), d3.max(item_links, (d) => d.similarity)])
-				quadPath.drawQuadratic(gFlowers, item_links[link_id], axisStroke(mouseOveredDescriptorIdx, descriptor_size), bar_opacity);
+			var link_opacity = d3.scaleLinear()
+							.range([barFillOpacityConst, 1]).domain([d3.min(item_links, (d) => d.similarity), d3.max(item_links, (d) => d.similarity)]);
+			for(let link_id = 0; link_id < item_links.length; link_id++){								
+				if(item_links[link_id].similarity > 0){
+					quadPath.drawQuadratic(gFlowers, item_links[link_id], axisStroke(mouseOveredDescriptorIdx, descriptor_size), link_opacity);
+				}								
 			}
 
 		}		
@@ -636,10 +660,11 @@ class CircularView extends Component {
 				color_light = d3.rgb(cur_color).brighter(0.5),
 				color_pick = d3.scaleLinear().domain([0, 1]).range([color_light,color_dark]);
 
-			return color_pick(bar_opacity(d.value));
+			return cur_color;
+			// return color_pick(bar_opacity(d.value));
 		}
 		function barFillOpacity(d, descriptor_index, descriptor_size, foregroundBarOpacity, backgroundBarOpacity,bar_opacity) {
-			return (d.id >= components_cnt)? 0.1 : 1;
+			return (d.id >= components_cnt)? barFillOpacityConst : 1;
 		};
 
 		return (
@@ -649,6 +674,14 @@ class CircularView extends Component {
     					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
   					</Tooltip>					
 				</div>
+				 <ButtonGroup>
+					<Button onClick={this.handleResetPatterns}>
+						Reset Pattern Selection
+					</Button>
+					<Button onClick={this.handleResetItems}>
+						Reset Item Selection
+					</Button>
+					</ButtonGroup>
 				{svg.toReact()}				
 			</div>
 		);
