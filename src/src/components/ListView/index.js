@@ -33,8 +33,11 @@ class ListView extends Component {
   }
 
   render() {
+		/* listview 5
+		const { clickedPattern } = this.props;
+		*/
 
-  		return null;
+  	// return null;
 		console.log('circularView rendered');
 		console.log('this.props.data: ', this.props.data);
 
@@ -52,12 +55,17 @@ class ListView extends Component {
 		svg.setAttribute('transform', 'translate(' + 0 + ',' + 0 + ')');
 		// console.log(data);
 
+		/* listview 6 
+		let patterns = clickedPattern.map((pattenIdx) => <PatternGlyph idx={patternIdx} />);
+		*/
+
 		return (
 			<div className={styles.ListView}>					
 				<div className={index.title}>List View
 					<Tooltip title="Pattern List">
     					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
-  					</Tooltip>					
+  					</Tooltip>
+				{/* listview 7 patterns */}
 				</div>
 			</div>
 		);
