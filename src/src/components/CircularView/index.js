@@ -200,6 +200,10 @@ class CircularView extends Component {
 									color_list.splice(0, 1);
 								}
 							}
+
+							/* listview 1
+							this.props.onAddingPattern(idx)
+							*/
 						});
 
 		// plot the flowers
@@ -630,5 +634,23 @@ class CircularView extends Component {
 		);
   }
 }
+
+/* listview 2 
+class PatternGlyph extends Component {
+
+	render() {
+		return (
+			<div>
+				// svg that has all components for a glyph
+			</div>
+		);
+	}
+}
+
+export default {
+	CircularView, 
+	PatternGlyph
+}
+*/
 
 export default CircularView;

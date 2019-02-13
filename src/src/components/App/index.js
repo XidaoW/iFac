@@ -59,7 +59,8 @@ class App extends Component {
 			domain: "nbaplayer",
 			weights: [1,1,1,1,1],
 			metricPointSize: [],
-			itemEmbeddings: itemEmbeddings
+			itemEmbeddings: itemEmbeddings,
+			clickedPatternIdx: [] /* listview */
 		};
 
 		this.handleClickPattern = this.handleClickPattern.bind(this);
@@ -549,6 +550,17 @@ class App extends Component {
 		});
 	}
 
+	/* listview 4
+	handleAddingPattern(idx) {
+		this.setState(prevState => ({
+			clickedPatternIdx: [
+				...prevState.clickedPatternIdx,
+				idx
+			]
+		}));
+	}
+	*/
+
 	calculateSimilarityBtnPatternToQueries(pattern_cnt, new_queries, all_factors) {
 		/**
 		 * Caculates the similarity between patterns and the query.
@@ -817,33 +829,36 @@ class App extends Component {
 					selectedPatterns={selectedPatterns}
 				/>
 			  	<CircularView 
-					className={styles.Overview}
-					data={factors_data}
-					onClickPattern={this.handleClickPattern}
-					onUnClickPattern={this.handleUnClickPattern}
-					onClickItem={this.handleClickItem}
-					onMouseOverPattern={this.handleMouseOverPattern}
-					onMouseOutPattern={this.handleMouseOutPattern}                        
-					onMouseOverItem={this.handleMouseOverItem}
-					onMouseOutItem={this.handleMouseOutItem}
-					onResetPatterns={this.handleResetPatterns}
-					onResetItems={this.handleResetItems}
-					leastSimilarPatternToSelectedPatternIdx={leastSimilarPatternToSelectedPatternIdx}              
-					mostSimilarPatternToSelectedPatternIdx={mostSimilarPatternToSelectedPatternIdx}          
-					bar_data={bar_data}     
-					max_pattern_item={max_pattern_item}             
-					selectedPatterns={selectedPatterns}
-					components_cnt={components_cnt}
-					arc_positions_bar_petal={arc_positions_bar_petal}
-					item_max_pattern={item_max_pattern}
-					item_similarity={item_similarity}
-					itemEmbeddings={itemEmbeddings}
-					modes={modes}
-					queries={queries}
-					item_links={item_links}
-					descriptors={descriptors}
-					mouseOveredDescriptorIdx={mouseOveredDescriptorIdx}
-					similarPatternToQueries={similarPatternToQueries}
+						className={styles.Overview}
+						data={factors_data}
+						onClickPattern={this.handleClickPattern}
+						onUnClickPattern={this.handleUnClickPattern}
+						onClickItem={this.handleClickItem}
+						onMouseOverPattern={this.handleMouseOverPattern}
+						onMouseOutPattern={this.handleMouseOutPattern}                        
+						onMouseOverItem={this.handleMouseOverItem}
+						onMouseOutItem={this.handleMouseOutItem}
+						onResetPatterns={this.handleResetPatterns}
+						onResetItems={this.handleResetItems}
+						leastSimilarPatternToSelectedPatternIdx={leastSimilarPatternToSelectedPatternIdx}              
+						mostSimilarPatternToSelectedPatternIdx={mostSimilarPatternToSelectedPatternIdx}          
+						bar_data={bar_data}     
+						max_pattern_item={max_pattern_item}             
+						selectedPatterns={selectedPatterns}
+						components_cnt={components_cnt}
+						arc_positions_bar_petal={arc_positions_bar_petal}
+						item_max_pattern={item_max_pattern}
+						item_similarity={item_similarity}
+						itemEmbeddings={itemEmbeddings}
+						modes={modes}
+						queries={queries}
+						item_links={item_links}
+						descriptors={descriptors}
+						mouseOveredDescriptorIdx={mouseOveredDescriptorIdx}
+						similarPatternToQueries={similarPatternToQueries}
+						/* listview 3
+						onAddingPattern={this.handleAddingPattern}
+						*/
 			  />  
 				<DetailView
 					bar_data={bar_data}				
