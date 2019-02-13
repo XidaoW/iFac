@@ -12,8 +12,6 @@ import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 import Circos, { SCATTER } from 'react-circos';
 import { Tag, Input, Tooltip, Icon, Button } from 'antd';
-import itemEmbedding from '../../data/nbaplayer/factors_3_18_sample_item_embedding.json';
-
 import QueryPanel from 'components/QueryPanel';
 
 const tooltip = d3tooltip(d3);
@@ -341,7 +339,7 @@ class CircularView extends Component {
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
 			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();
 			
-			items = items.map((d, idx) => [d, itemEmbedding['sc'][descriptor_index][idx][0]])
+			items = items.map((d, idx) => [d, itemEmbeddings['sc'][descriptor_index][idx][0]])
 						.sort((first, second) => second[1] - first[1])
 						.map((d) => d[0]);
 			if(patterns.length == 2){
@@ -448,7 +446,7 @@ class CircularView extends Component {
 			
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
 			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();			
-			items = items.map((d, idx) => [d, itemEmbedding['sc'][descriptor_index][idx][0]])
+			items = items.map((d, idx) => [d, itemEmbeddings['sc'][descriptor_index][idx][0]])
 						.sort((first, second) => second[1] - first[1])
 						.map((d) => d[0]);
 
