@@ -11,7 +11,8 @@ from myutil.histogram import createHistogram
 from myutil.plotter import showFactorValue, showHistDistribution
 from myutil.ponpare.reader import readPonpareData
 from myutil.ponpare.converter import     digitizeHistoryFeatureValue, transformForHistogram
-import multiview.mvtsne as mvtsne
+from multiview import mvmds, cpcmv, mvtsne, mvsc
+
 from sklearn.utils.testing import assert_raises
 
 
@@ -189,6 +190,49 @@ class iFacData():
 		return 1 - ss_res*1. / ss_total
 
 
+	def saveItemMDS(self):
+
+		from sklearn.manifold import MDS
+		self.loadFactors()
+		MDS_embeddings = MDS(n_components=1)
+		SC_embeddings = MDS(n_components=1)
+		
+		self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(self.column_cnt)]
+		self.item_mds = {}
+		self.item_mds['mds'] = {}
+		self.item_mds['sc'] = {}
+		for item_index in range(len(self.data)):
+			self.item_mds['mds'][item_index] = MDS_embeddings.fit_transform(self.data[item_index].T).tolist()
+			self.item_mds['sc'][item_index] = SC_embeddings.fit_transform(self.data[item_index].T).tolist()
+		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(self.column_cnt)+'_'+str(self.cur_base)+'_sample_item_embedding.json', 'w') as fp:
+			json.dump(self.item_mds, fp)
+
+	def savePatternEmbedding(self):
+		self.loadFactors()
+
+		self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(self.column_cnt)]
+		is_distance = [False] * len(self.data)
+		mvmds_est = mvmds.MVMDS(k=2)
+		self.factor_embeddings = {}
+		mvmds_est.fit(self.data, is_distance)
+		self.factor_embeddings['mds'] = mvmds_est.components_.tolist()
+
+		self.rd_state = 5
+		is_distance = [False] * len(self.data)
+		mvtsne_est = mvtsne.MvtSNE(k=2, perplexity = 10,random_state = self.rd_state, epoch = 3000)
+		mvtsne_est.fit(self.data, is_distance)
+		self.factor_embeddings['tsne'] = np.asarray(mvtsne_est.embedding_).tolist()		
+
+		mvsc_est = mvsc.MVSC(k=2)
+		mvsc_est.fit(self.data, is_distance)
+		self.factor_embeddings['sc'] = np.asarray(mvsc_est.evectors_).tolist()
+
+		# cpc_est = cpcmv.MVCPC(k=2)
+		# self.factor_embeddings['sc'] = cpc_est.fit(self.data)[1].tolist()
+
+
+		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(self.column_cnt)+'_'+str(self.cur_base)+'_sample_pattern_embedding.json', 'w') as fp:
+			json.dump(self.factor_embeddings, fp)
 
 
 	def getFitForRanks(self, bases, trials = 5):
@@ -355,6 +399,11 @@ class iFacData():
 	def saveFactors(self):
 		fName = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'.npy'
 		np.save(fName, self.factors)
+
+	def loadFactors(self):
+		fName = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(self.column_cnt)+'_'+str(self.cur_base)+'.npy'
+		self.factors = np.load(fName)
+
 
 	def normalizeFactor(self):
 		"""
@@ -554,8 +603,30 @@ class iFacData():
 		self.saveOutput()
 
 
-if __name__ == '__main__':
-	
+def generateItemEmbedding():
+	iFac = iFacData()
+	domain = "nbaplayer"
+	# iFac.cur_base = int(sys.argv[1])
+	max_base = int(sys.argv[1])
+	iFac.column_cnt = int(sys.argv[2])
+	iFac.domain = str(sys.argv[3])
+	for cur_base in range(2+1, max_base+1):
+		iFac.cur_base = cur_base
+		iFac.saveItemMDS()
+
+def generatePatternEmbedding():
+	iFac = iFacData()
+	domain = "nbaplayer"
+	# iFac.cur_base = int(sys.argv[1])
+	max_base = int(sys.argv[1])
+	iFac.column_cnt = int(sys.argv[2])
+	iFac.domain = str(sys.argv[3])
+	for cur_base in range(2+1, max_base+1):
+		iFac.cur_base = cur_base
+		iFac.savePatternEmbedding()
+
+
+def generateData():
 	iFac = iFacData()
 	base = 30
 	iFac.start_index = 2
@@ -569,3 +640,9 @@ if __name__ == '__main__':
 	iFac.readData(domain = domain)
 	_log.info("Fitting Different Ranks up to {}".format(base))
 	iFac.getFitForRanks(base, trials = nb_trials)
+if __name__ == '__main__':
+	# generateData()
+	generateItemEmbedding()
+	# generatePatternEmbedding()
+
+
