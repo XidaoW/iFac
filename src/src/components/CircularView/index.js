@@ -12,6 +12,7 @@ import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 import Circos, { SCATTER } from 'react-circos';
 import { Tag, Input, Tooltip, Icon, Button } from 'antd';
+import itemEmbedding from '../../data/nbaplayer/factors_3_18_sample_item_embedding.json';
 
 import QueryPanel from 'components/QueryPanel';
 
@@ -104,8 +105,6 @@ class CircularView extends Component {
 						return queries[key].length;
 					}).reduce((a,b)=>a+b);			
 
-
-		console.log(bar_data[0]);
 		let	descriptor_size = Object.keys(bar_data).length,
 			descriptor_size_list = Object.keys(bar_data).map((d) => Object.keys(bar_data[d][0]).length),
 			color_list = ['#ffff99', '#beaed4'],
@@ -320,71 +319,6 @@ class CircularView extends Component {
 		}
 
 
-
-		function draw_embedding_circular(itemEmbeddings, descriptor_index, patternIndices, descriptor_size, descriptor_size_list, margin, width, height){
-					/**
-					 * Draws the circular area of scatter points for each descriptor - embeddings of the items
-					 *
-					 * 1) obtain the bar data for the selected patterns.
-					 * 3) draw arc bars
-					 * 4) add labels
-					 * otherwise, remove the ranking text.
-					 *
-					 * @since      0.0.0
-					 *
-					 *
-					 * @param {array}   similarPatternToQueries           a ranked list of similarity between pattern and query.
-					 * @param {boolean}  query_flag     if there is query input.
-					 * 
-					 */					
-					let patterns, items, items1, descriptor_arcs;
-					let cur_embeddings = itemEmbeddings[descriptor_index];
-					let x_max = d3.max(cur_embeddings, (d) => d[0]);
-					let y_max = d3.max(cur_embeddings, (d) => d[1]);
-					let x_min = d3.min(cur_embeddings, (d) => d[0]);
-					let y_min = d3.min(cur_embeddings, (d) => d[1]);
-
-					cur_embeddings = cur_embeddings.sort((first, second) => second[0] - first[0]);					
-					let x_items = d3.range(cur_embeddings.length).map((d) => cur_embeddings[d][0]);
-			
-					// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
-					const x = d3.scaleLinear()
-									.range(computeDescriptorRange(descriptor_index, descriptor_size, descriptor_size_list, 0.1))    
-									.domain(x_items), // The domain of the X axis is the list of states.
-								y = scaleRadial()
-									.range([outerRadius, outerRadius+5])   // Domain will be define later.
-									.domain([y_min, y_max]), // Domain of Y is from 0 to the max seen in the data
-								g = backdrop.append('g')
-									.attr('class', 'embeddingView')
-									.attr('id', 'descriptor_'+descriptor_index+'_embedding')          
-									.attr('transform', 'translate(' + (width / 2) + ',' + ( height/2 )+ ')'); 
-
-			// descriptor_arcs = g.selectAll('g')
-			// 				.select('#descriptor' + descriptor_index)
-			// 				.data(cur_embeddings)
-			// 				.enter()                                    
-			// 				.selectAll('path')
-			// 				.data((d,cur_index) => {
-			// 					return cur_embeddings.map((point, i) => {
-			// 						return {key: point[0], value: point[1], id: i, index: cur_index};
-			// 					})})
-			// 				.enter();
-			// // Add the bars
-			// descriptor_arcs.append('path')
-			// 		.attr('d', d3.arc()     // imagine your doing a part of a donut plot
-			// 		.innerRadius(innerRadius)
-			// 		.outerRadius((d) => {console.log(y(d.value)); return y(d.value)})
-			// 		.startAngle((d) => x(d.key) + x.bandwidth()*(d.index)/1)
-			// 		.endAngle((d) => x(d.key) + x.bandwidth()*(d.index+1)/1)
-			// 		.padAngle(0.01)
-			// 		.padRadius(innerRadius))
-			// 		.attr('fill', "#beaed4")					
-			// 		.attr('id', (d)=> 'bar_' + descriptor_index + '_' + d.key)
-			// 		.attr('stroke', 'black')
-			// 		.attr('stroke-width', "0px");
-				}
-
-
 		function draw_bars_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, descriptor_size_list, margin, width, height){
 			/**
 			 * Draws the circular bar for each descriptor
@@ -406,6 +340,10 @@ class CircularView extends Component {
 			
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
 			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();
+			
+			items = items.map((d, idx) => [d, itemEmbedding['sc'][descriptor_index][idx][0]])
+						.sort((first, second) => second[1] - first[1])
+						.map((d) => d[0]);
 			if(patterns.length == 2){
 				// re-ordering the items based on the difference between the two patterns on each descriptor.
 				items1 = Object.keys(bar_data[descriptor_index][components_cnt+1])
@@ -472,7 +410,7 @@ class CircularView extends Component {
 
 			// Add the labels     
 			backdrop.selectAll("text.label_bar" + descriptor_index).remove();
-			var draw_label = false;
+			var draw_label = true;
 			if(draw_label){
 				descriptor_arcs.append('g')
 					.attr('class', 'descriptor_text' + descriptor_index)
@@ -509,7 +447,10 @@ class CircularView extends Component {
 			let patterns, items, items1, descriptor_arcs, query_bar;
 			
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
-			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();
+			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();			
+			items = items.map((d, idx) => [d, itemEmbedding['sc'][descriptor_index][idx][0]])
+						.sort((first, second) => second[1] - first[1])
+						.map((d) => d[0]);
 
 			if(reorder_item){
 				items1 = Object.keys(bar_data[descriptor_index][components_cnt+1])
