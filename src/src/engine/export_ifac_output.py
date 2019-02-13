@@ -152,26 +152,17 @@ class iFacData():
 												 couponAreaTrain,
 												 couponAreaTest)
 			self.column = ["SEX_ID", "GENRE_NAME", "LIST_PREF_NAME","AGE"]
-			self.column = ["GENRE_NAME", "SEX_ID", "LIST_PREF_NAME",
+			self.column = ["GENRE_NAME", "SEX_ID",
                          "AGE", "DISCOUNT_PRICE", "USER_PREF_NAME",
                          "VALIDPERIOD"]                         
 			self.hist, bins, label = createHistogram(distribution, self.column) 
-			import pdb
-			pdb.set_trace()
+			import re
+			re_string = ["{:02d} ".format(a) for a in range(100)]
+			re_string = ("|").join(re_string)
+			re_string = "(" +  re_string + ")"			
+			p = re.compile(re_string)
 
-
-			self.labels = [['00Male', '01Female'],
-						   ['00Gourmet', '01Este', '02Beauty', '03NailEye', '04HairSalon', 
-							'05HealthMedicalCare', '06Relaxation', '07Leisure', '08HotelInn',
-							'09Lesson','10HomeDelivery','11GiftCard','12OtherCoupons'],
-					  ['00北海道', '01青森県', '02岩手県', '03宮城県', '04秋田県', '05山形県', '06福島県', '07茨城県', '08栃木県', '09群馬県', '10埼玉県', '11千葉県', 
-					  '12東京都', '13神奈川県', '14新潟県', '15富山県', '16石川県', '17福井県', '18山梨県', '19長野県', '20岐阜県', '21静岡県', '22愛知県', '23三重県', 
-					  '24滋賀県', '25京都府', '26大阪府', '27兵庫県', '28奈良県', '29和歌山県', '30鳥取県', '31島根県', '32岡山県', '33広島県', '34山口県', '35徳島県', 
-					  '36香川県', '37愛媛県', '38高知県', '39福岡県', '40佐賀県', '41長崎県', '42熊本県', '43大分県', '44宮崎県', '45鹿児島県', '46沖縄県'],
-					  ['00under', '01-20', '02-25', '03-30', '04-35', '05-40', '06-45', '07-50', '08-55', '09-60', '10-65', '11-70', '12-75over'],
-					  ['00under', '01-100', '02-1000', '03-2000', '04-3000', '05-5000', '06-10000', '07-20000', '08-30000', '09-50000over"']
-	
-					 ]            
+			self.labels = [[translateLabel(p.sub('', each_label).strip()).replace('Prefecture', '').strip().replace(' ', '') for each_label in each_d] for each_d in label]
 
 	def computeReconstructionError(self, ntfInstance, hist):    
 		"""
