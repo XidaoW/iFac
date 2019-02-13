@@ -4,10 +4,6 @@ import * as d3 from 'd3';
 
 import {AutoComplete, Tag, Input, Tooltip, Icon} from 'antd';
 
-function onSelect(value) {
-  console.log('onSelect', value);
-}
-
 class QueryPanel extends Component {
 
 	constructor(props) {
@@ -83,24 +79,23 @@ class QueryPanel extends Component {
 		const color_list = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
 		if(Object.keys(tags).length > 0){
 	  		return Object.keys(tags).map((mode, idx) => {
-	  					console.log(tags[idx]);
-	  					if((idx in tags) && tags[idx].length > 0){	  						
-							return tags[idx].map((tag, index) => {						
-								const isLongTag = tag.length > 20;
-								const tagElem = (
-									<Tag
-										className={"itemTags"}
-										color={color_list[idx]}
-										key={tag} 
-										closable={true}
-										afterClose={() => this.handleClose(tag, idx)}>
-										{isLongTag ? `${tag.slice(0, 20)}...` : tag}
-									</Tag>
-								);
-								return isLongTag ? <Tooltip title={tag} key={tag}>{tagElem}</Tooltip> : tagElem;
-							})
-	  					}
-					});
+				if((idx in tags) && tags[idx].length > 0){	  						
+				return tags[idx].map((tag, index) => {						
+					const isLongTag = tag.length > 20;
+					const tagElem = (
+						<Tag
+							className={"itemTags"}
+							color={color_list[idx]}
+							key={tag} 
+							closable={true}
+							afterClose={() => this.handleClose(tag, idx)}>
+							{isLongTag ? `${tag.slice(0, 20)}...` : tag}
+						</Tag>
+					);
+					return isLongTag ? <Tooltip title={tag} key={tag}>{tagElem}</Tooltip> : tagElem;
+				})
+				}
+			});
 		}
   	}
 
