@@ -26,8 +26,8 @@ class CircularView extends Component {
 		super(props);
 		this.layout = {
 			svg: {
-				width: 750,
-				height: 700
+				width: 450,
+				height: 450
 			},
 			detailView: {
 				margin: {
@@ -94,7 +94,7 @@ class CircularView extends Component {
 		const _self = this,
 					width = +this.layout.svg.width,
 					height = +this.layout.svg.height,
-					outerRadius = Math.min(width, height) - 100,
+					outerRadius = Math.min(width, height) - 20,
 					innerRadius = this.circularInnerRadius,
 					max_tsne = data[0].max_tsne,
 					min_tsne = data[0].min_tsne,
@@ -117,8 +117,8 @@ class CircularView extends Component {
 		let g,
 			svg = new ReactFauxDOM.Element('svg');
 
-		svg.setAttribute('width', width+100);
-		svg.setAttribute('height',height+100);
+		svg.setAttribute('width', width+200);
+		svg.setAttribute('height',height+300);
 		svg.setAttribute('transform', 'translate(' + translate_x + ',' + translate_y + ')');
 
 		this.pie = d3.pie().sort(null).value((d) => 1);
@@ -137,7 +137,7 @@ class CircularView extends Component {
 		const backdrop = d3.select(svg)
 						.append('g')
 						.attr('class', 'background')
-						.attr('transform', 'translate(100,0)'),
+						.attr('transform', 'translate(100,100)'),
 					gFlowers = backdrop
 						.append('g')
 						.attr('transform', 'translate(' + ((width)/2-(innerRadius)/2) + ',' + ((height)/2-( innerRadius)/2) + ')')
