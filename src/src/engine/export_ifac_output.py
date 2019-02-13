@@ -7,7 +7,7 @@ Created on 2019/01/02
 '''
 
 import ntf
-from myutil.histogram import createHistogram
+from myutil.histogram import createHistogram, translateLabel
 from myutil.plotter import showFactorValue, showHistDistribution
 from myutil.ponpare.reader import readPonpareData
 from myutil.ponpare.converter import     digitizeHistoryFeatureValue, transformForHistogram
@@ -152,7 +152,14 @@ class iFacData():
 												 couponAreaTrain,
 												 couponAreaTest)
 			self.column = ["SEX_ID", "GENRE_NAME", "LIST_PREF_NAME","AGE"]
+			self.column = ["GENRE_NAME", "SEX_ID", "LIST_PREF_NAME",
+                         "AGE", "DISCOUNT_PRICE", "USER_PREF_NAME",
+                         "VALIDPERIOD"]                         
 			self.hist, bins, label = createHistogram(distribution, self.column) 
+			import pdb
+			pdb.set_trace()
+
+
 			self.labels = [['00Male', '01Female'],
 						   ['00Gourmet', '01Este', '02Beauty', '03NailEye', '04HairSalon', 
 							'05HealthMedicalCare', '06Relaxation', '07Leisure', '08HotelInn',
@@ -641,8 +648,8 @@ def generateData():
 	_log.info("Fitting Different Ranks up to {}".format(base))
 	iFac.getFitForRanks(base, trials = nb_trials)
 if __name__ == '__main__':
-	# generateData()
-	generateItemEmbedding()
+	generateData()
+	# generateItemEmbedding()
 	# generatePatternEmbedding()
 
 
