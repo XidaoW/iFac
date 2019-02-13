@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import * as d3 from 'd3';
 import ReactFauxDOM from 'react-faux-dom';
 import d3tooltip from 'd3-tooltip';
+import PatternGlyph from 'components/PatternGlyph';
+import PatternBar from 'components/PatternBar';
+
 import {scaleRadial} from '../../lib/draw_radial.js';
 import * as quadPath from '../../lib/draw_quadratic_path.js';
 import * as petal from '../../lib/draw_petals.js';
@@ -24,20 +27,36 @@ class ListView extends Component {
 		super(props);
 		this.layout = {
 			width: 200,
-			height: 850,
+			height: 1050,
 			svg: {
 				width: 200,
-				height: 950
+				height: 1050
 			},
 		};
   }
 
-  render() {
-		/* listview 5
-		const { clickedPattern } = this.props;
-		*/
+	renderPatternGlyphs() {
+		const { data, bar_data, components_cnt, itemEmbeddings } = this.props;
 
-  	// return null;
+		return data.map((d, idx) => 
+			(				
+				<span>
+				<PatternGlyph 
+					idx={idx} 
+					data={data}  						
+				/>
+				<PatternBar 
+					idx={idx} 
+					components_cnt={components_cnt}
+					itemEmbeddings={itemEmbeddings}
+					bar_data={bar_data}
+				/>				
+				</span>
+		));
+  	}  	  	
+
+	render() {
+		const { clickedPattern } = this.props;
 		console.log('circularView rendered');
 		console.log('this.props.data: ', this.props.data);
 
@@ -47,26 +66,14 @@ class ListView extends Component {
 					width = +this.layout.svg.width,
 					height = +this.layout.svg.height;
 
-		let g,
-			svg = new ReactFauxDOM.Element('svg');
-
-		svg.setAttribute('width', width);
-		svg.setAttribute('height',height);
-		svg.setAttribute('transform', 'translate(' + 0 + ',' + 0 + ')');
-		// console.log(data);
-
-		/* listview 6 
-		let patterns = clickedPattern.map((pattenIdx) => <PatternGlyph idx={patternIdx} />);
-		*/
-
 		return (
 			<div className={styles.ListView}>					
 				<div className={index.title}>List View
 					<Tooltip title="Pattern List">
     					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
-  					</Tooltip>
-				{/* listview 7 patterns */}
-				</div>
+  					</Tooltip>				
+				</div>	
+				{this.renderPatternGlyphs()}		
 			</div>
 		);
   }
