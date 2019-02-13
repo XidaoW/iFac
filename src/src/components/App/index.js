@@ -826,6 +826,8 @@ class App extends Component {
 				<ListView
 					data={factors_data}
 					bar_data={bar_data}
+					components_cnt={components_cnt}
+					itemEmbeddings={itemEmbeddings}
 					selectedPatterns={selectedPatterns}
 				/>
 			  	<CircularView 
