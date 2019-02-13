@@ -26,11 +26,9 @@ class CircularView extends Component {
 	constructor(props) {
 		super(props);
 		this.layout = {
-			width: 850,
-			height: 850,
 			svg: {
-				width: 850,
-				height: 950
+				width: 750,
+				height: 700
 			},
 			detailView: {
 				margin: {
@@ -40,10 +38,6 @@ class CircularView extends Component {
 					right: gs.detailViewMarginRight
 				}
 			},
-			dimRed: {
-				width: 150,
-				height: 150
-			}
 		};
 
 		this.pie;	
@@ -101,7 +95,7 @@ class CircularView extends Component {
 		const _self = this,
 					width = +this.layout.svg.width,
 					height = +this.layout.svg.height,
-					outerRadius = Math.min(width, height) - 0,
+					outerRadius = Math.min(width, height) - 100,
 					innerRadius = this.circularInnerRadius,
 					max_tsne = data[0].max_tsne,
 					min_tsne = data[0].min_tsne,
@@ -111,9 +105,9 @@ class CircularView extends Component {
 					}).reduce((a,b)=>a+b);			
 
 
-
+		console.log(bar_data[0]);
 		let	descriptor_size = Object.keys(bar_data).length,
-			descriptor_size_list = Object.keys(itemEmbeddings).map((d) => itemEmbeddings[d].length),		
+			descriptor_size_list = Object.keys(bar_data).map((d) => Object.keys(bar_data[d][0]).length),
 			color_list = ['#ffff99', '#beaed4'],
 			used_color = '',
 			shift_size = 0.1,
@@ -126,8 +120,8 @@ class CircularView extends Component {
 		let g,
 			svg = new ReactFauxDOM.Element('svg');
 
-		svg.setAttribute('width', width);
-		svg.setAttribute('height',height);
+		svg.setAttribute('width', width+100);
+		svg.setAttribute('height',height+100);
 		svg.setAttribute('transform', 'translate(' + translate_x + ',' + translate_y + ')');
 
 		this.pie = d3.pie().sort(null).value((d) => 1);
@@ -146,7 +140,7 @@ class CircularView extends Component {
 		const backdrop = d3.select(svg)
 						.append('g')
 						.attr('class', 'background')
-						.attr('transform', 'translate(50,50)'),
+						.attr('transform', 'translate(100,0)'),
 					gFlowers = backdrop
 						.append('g')
 						.attr('transform', 'translate(' + ((width)/2-(innerRadius)/2) + ',' + ((height)/2-( innerRadius)/2) + ')')
