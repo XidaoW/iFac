@@ -19,6 +19,12 @@ import metrics from '../../data/nbaplayer/factors_3_18_sample_fit_metrics.json';
 import factors_data from '../../data/nbaplayer/factors_3_18_sample_fit.json';
 import itemEmbeddings from '../../data/nbaplayer/factors_3_18_sample_item_embedding.json';
 
+
+// import metrics from '../../data/policy/factors_3_50_sample_fit_metrics.json';
+// import factors_data from '../../data/policy/factors_3_50_sample_fit.json';
+// import itemEmbeddings from '../../data/policy/factors_3_50_sample_item_embedding.json';
+
+
 // import metrics from '../../data/purchase/factors_4_17_sample_fit_metrics.json';
 // import factors_data from '../../data/purchase/factors_4_17_sample_fit.json';
 
@@ -649,7 +655,8 @@ class App extends Component {
 							"purchase": {"modes": "4", "cnt": "17"}
 							}
 		const selectedDataset = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_fit.json"),
-					metrics = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_fit_metrics.json");
+			metrics = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_fit_metrics.json"),
+			itemEmbeddingsNew = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_item_embedding.json");
 		console.log('handleChangeDataset: ', selectedDataset);
 
 		const _self = this,
@@ -773,6 +780,7 @@ class App extends Component {
 			theil_data: theil_data,
 			pctnonzeros_data: pctnonzeros_data,
 			weights: weights,
+			itemEmbeddings:itemEmbeddingsNew,
 			metricPointSize: metricPointSize
 		});
 	}
