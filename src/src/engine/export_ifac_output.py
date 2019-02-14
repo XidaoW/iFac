@@ -639,8 +639,8 @@ def generateData():
 	_log.info("Fitting Different Ranks up to {}".format(base))
 	iFac.getFitForRanks(base, trials = nb_trials)
 if __name__ == '__main__':
-	generateData()
-	# generateItemEmbedding()
-	# generatePatternEmbedding()
+	# generateData()
+	generateItemEmbedding()
+	generatePatternEmbedding()
 
 

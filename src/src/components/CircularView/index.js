@@ -85,9 +85,9 @@ class CircularView extends Component {
 				mostSimilarPatternToSelectedPatternIdx,
 				leastSimilarPatternToSelectedPatternIdx, 
 				arc_positions_bar_petal,item_max_pattern,
-				bar_data, max_pattern_item,components_cnt,modes,
+				bar_data, max_pattern_item,modes,
 				queries, similarPatternToQueries, item_links, descriptors,
-				mouseOveredDescriptorIdx, item_similarity, 
+				mouseOveredDescriptorIdx, item_similarity, components_cnt,
 				itemEmbeddings } = this.props;  
 
 		const ButtonGroup = Button.Group;
@@ -116,7 +116,7 @@ class CircularView extends Component {
 
 		let g,
 			svg = new ReactFauxDOM.Element('svg');
-
+		console.log(bar_data);
 		svg.setAttribute('width', width+200);
 		svg.setAttribute('height',height+300);
 		svg.setAttribute('transform', 'translate(' + translate_x + ',' + translate_y + ')');
@@ -333,7 +333,6 @@ class CircularView extends Component {
 					.attr('d', line(arc_positions_bar_petal[descriptor_index].coordinates));	
 		}
 
-
 		function draw_bars_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, descriptor_size_list, margin, width, height){
 			/**
 			 * Draws the circular bar for each descriptor
@@ -352,8 +351,10 @@ class CircularView extends Component {
 			 * 
 			 */					
 			let patterns, items, items1, descriptor_arcs;
-			
+			console.log(bar_data[descriptor_index][patternIndices[0]]);
+			// console.log(patternIndices);
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
+			console.log(patterns);
 			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();
 			
 			items = items.map((d, idx) => [d, itemEmbeddings['sc'][descriptor_index][idx][0]])
@@ -390,7 +391,7 @@ class CircularView extends Component {
 							.data(patterns)
 							.enter()                                    
 							.selectAll('path')
-							.data((d,cur_index) => 
+							.data((d,cur_index) => 								
 								items.map((key) => (
 									{key: key, value: d[key], id: d.id, index: cur_index}
 								)))
@@ -399,7 +400,7 @@ class CircularView extends Component {
 			descriptor_arcs.append('path')
 					.attr('d', d3.arc()     // imagine your doing a part of a donut plot
 					.innerRadius(innerRadius)
-					.outerRadius((d) => y(d.value))
+					.outerRadius((d) => {console.log(d);y(d.value)})
 					.startAngle((d) => x(d.key) + x.bandwidth()*(d.index)/patterns.length)
 					.endAngle((d) => x(d.key) + x.bandwidth()*(d.index+1)/patterns.length)
 					.padAngle(0.01)
@@ -589,7 +590,7 @@ class CircularView extends Component {
 
 		function axisStroke(i, descriptor_size) {
 			var color_list = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
-			return color_list[i]
+			return color_list[i];
 			// return d3.hcl(i / descriptor_size * 360, 60, 70);
 		};
 
@@ -604,15 +605,11 @@ class CircularView extends Component {
 		}  
 
 		function barFill(d, descriptor_index, descriptor_size, bar_opacity) {
+			console.log(d.id);
 			if(d.id >= components_cnt){
 				return axisStroke(descriptor_index, descriptor_size);
-			}  
-			let cur_color  = d3.select('#pattern_' + d.id).attr('stroke'),       
-				color_dark = d3.rgb(cur_color).darker(0.5),
-				color_light = d3.rgb(cur_color).brighter(0.5),
-				color_pick = d3.scaleLinear().domain([0, 1]).range([color_light,color_dark]);
-
-			return cur_color;
+			}
+			return d3.select('#pattern_' + d.id).attr('stroke');
 			// return color_pick(bar_opacity(d.value));
 		}
 		function barFillOpacity(d, descriptor_index, descriptor_size, foregroundBarOpacity, backgroundBarOpacity,bar_opacity) {
