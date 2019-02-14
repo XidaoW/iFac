@@ -40,7 +40,7 @@ class PatternGlyph extends Component {
 
 		let g,
 			svg = new ReactFauxDOM.Element('svg');
-		svg.setAttribute('width', 200);
+		svg.setAttribute('width', 50);
 		svg.setAttribute('height',50);
 
 		this.pie = d3.pie().sort(null).value((d) => 1);

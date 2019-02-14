@@ -46,7 +46,7 @@ class PatternBar extends Component {
 
 		let g,
 			svg = new ReactFauxDOM.Element('svg');
-		svg.setAttribute('width', 100);
+		svg.setAttribute('width', 50);
 		svg.setAttribute('height',50);
 
 
