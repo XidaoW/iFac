@@ -15,9 +15,22 @@ import styles from './styles.scss';
 import index from '../../index.css';
 import 'antd/dist/antd.css';
 
-import metrics from '../../data/nbaplayer/factors_3_18_sample_fit_metrics.json';
-import factors_data from '../../data/nbaplayer/factors_3_18_sample_fit.json';
-import itemEmbeddings from '../../data/nbaplayer/factors_3_18_sample_item_embedding.json';
+// import metrics from '../../data/nbaplayer/factors_3_18_sample_fit_metrics.json';
+// import factors_data from '../../data/nbaplayer/factors_3_18_sample_fit.json';
+// import itemEmbeddings from '../../data/nbaplayer/factors_3_18_sample_item_embedding.json';
+
+
+import metrics from '../../data/purchase/factors_6_7_sample_fit_metrics.json';
+import factors_data from '../../data/purchase/factors_6_7_sample_fit.json';
+import itemEmbeddings from '../../data/purchase/factors_6_7_sample_item_embedding.json';
+
+
+const domainSetting = {
+					"picso": {"modes": "3", "cnt": "19"},
+					"nbaplayer": {"modes": "3", "cnt": "18"},
+					"policy": {"modes": "3", "cnt": "50"},
+					"purchase": {"modes": "6", "cnt": "7"}
+					}
 
 
 // import metrics from '../../data/policy/factors_3_50_sample_fit_metrics.json';
@@ -61,8 +74,8 @@ class App extends Component {
 			error_data: [],
 			stability_data: [],
 			interpretability_data: [],
-			datasets: ['nbaplayer', 'policy', 'picso'],
-			domain: "nbaplayer",
+			datasets: ['nbaplayer','purchase', 'policy', 'picso'],
+			domain: "purchase",
 			weights: [0,1,1,1,1,1],
 			metricAggregated: [],
 			itemEmbeddings: itemEmbeddings,
@@ -220,7 +233,8 @@ class App extends Component {
 
 	componentDidMount() {
 		const { domain } = this.state;
-		const selectedDataset = require("../../data/" + domain + "/factors_3_18" + "_sample_fit");
+		const selectedDataset = require("../../data/" + domain + "/factors_6_7" + "_sample_fit");
+		// const selectedDataset = require("../../data/" + domain + "/factors_3_18" + "_sample_fit");
 
 		this.setState({
 			screeData: selectedDataset.scree,
@@ -352,7 +366,7 @@ class App extends Component {
 		 * 
 		 */
 		var domain = this.state.domain;
-		var new_data = require("../../data/"+domain+"/factors_3_" + rank.toString() + "_sample_fit");
+		var new_data = require("../../data/"+domain+"/factors_"+domainSetting[domain]['modes']+"_" + rank.toString() + "_sample_fit");
 		// var new_data = require("../../data/nbaplayer_factors_3_" + rank.toString() + "_sample_fit");
 
 
@@ -650,12 +664,6 @@ class App extends Component {
 
 	handleChangeDataset(selectedDomain) {
 		console.log('handleChangeDataset: ', selectedDomain);
-		var domainSetting = {
-							"picso": {"modes": "3", "cnt": "19"},
-							"nbaplayer": {"modes": "3", "cnt": "18"},
-							"policy": {"modes": "3", "cnt": "50"},
-							"purchase": {"modes": "4", "cnt": "17"}
-							}
 		const selectedDataset = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_fit.json"),
 			metrics = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_fit_metrics.json"),
 			itemEmbeddingsNew = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_item_embedding.json");
@@ -763,8 +771,9 @@ class App extends Component {
 		})
 		this.setState({
 			domain: selectedDomain,
+			bar_data: bar_data,
 			screeData: selectedDataset.scree,
-			factors_data: selectedDataset.data,
+			factors_data: factors,
 			descriptors: selectedDataset.descriptors,
 			descriptors_mean: selectedDataset.average,
 			item_max_pattern: selectedDataset.item_max_pattern,
@@ -783,6 +792,7 @@ class App extends Component {
 			theil_data: theil_data,
 			pctnonzeros_data: pctnonzeros_data,
 			weights: weights,
+			components_cnt: factors.length,
 			itemEmbeddings:itemEmbeddingsNew,
 			metricAggregated: metricAggregated
 		});
@@ -871,8 +881,7 @@ class App extends Component {
 						descriptors={descriptors}
 						mouseOveredDescriptorIdx={mouseOveredDescriptorIdx}
 						similarPatternToQueries={similarPatternToQueries}
-						onAddingPattern={this.handleAddingPattern}
-						
+						onAddingPattern={this.handleAddingPattern}					
 			  />  
 				<DetailView
 					bar_data={bar_data}				
