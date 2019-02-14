@@ -703,12 +703,12 @@ class App extends Component {
 				bar_data[i].push(factors[j].factors[i].values); 
 				max_pattern_item[i].push(factors[j].factors[i].max_item);         
 			}      
-			bar_data[i].push(this.state.descriptors_mean[i]); 
+			bar_data[i].push(selectedDataset.average[i]); 
 		}
 
-		for (let key in this.state.descriptors) {
-			if (this.state.descriptors.hasOwnProperty(key)) {
-				descriptors_text.push(key + '(' + this.state.descriptors[key].length + ')');
+		for (let key in selectedDataset.descriptors) {
+			if (selectedDataset.descriptors.hasOwnProperty(key)) {
+				descriptors_text.push(key + '(' + selectedDataset.descriptors[key].length + ')');
 			}
 		}
 
