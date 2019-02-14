@@ -81,7 +81,7 @@ class App extends Component {
 		this.handleSetWeight = this.handleSetWeight.bind(this);
 		this.handleResetPatterns = this.handleResetPatterns.bind(this);
 		this.handleResetItems = this.handleResetItems.bind(this);
-
+		this.handleAddingPattern = this.handleAddingPattern.bind(this);	
 
 	}
 
@@ -556,7 +556,6 @@ class App extends Component {
 		});
 	}
 
-	/* listview 4
 	handleAddingPattern(idx) {
 		this.setState(prevState => ({
 			clickedPatternIdx: [
@@ -565,7 +564,6 @@ class App extends Component {
 			]
 		}));
 	}
-	*/
 
 	calculateSimilarityBtnPatternToQueries(pattern_cnt, new_queries, all_factors) {
 		/**
@@ -796,7 +794,7 @@ class App extends Component {
 			item_max_pattern,queries,similarPatternToQueries, item_links, mouseOveredDescriptorIdx, 
 			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
 			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricPointSize,
-			itemEmbeddings
+			itemEmbeddings, clickedPatternIdx
 		} = this.state;
 
 
@@ -836,7 +834,9 @@ class App extends Component {
 					bar_data={bar_data}
 					components_cnt={components_cnt}
 					itemEmbeddings={itemEmbeddings}
+					clickedPatternIdx={clickedPatternIdx}
 					selectedPatterns={selectedPatterns}
+					onClickPattern={this.handleClickPattern}
 				/>
 			  	<CircularView 
 						className={styles.Overview}
@@ -866,9 +866,8 @@ class App extends Component {
 						descriptors={descriptors}
 						mouseOveredDescriptorIdx={mouseOveredDescriptorIdx}
 						similarPatternToQueries={similarPatternToQueries}
-						/* listview 3
 						onAddingPattern={this.handleAddingPattern}
-						*/
+						
 			  />  
 				<DetailView
 					bar_data={bar_data}				

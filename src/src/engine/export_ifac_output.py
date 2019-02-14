@@ -340,8 +340,8 @@ class iFacData():
 				self.cur_base = self.base_cnt                 
 				self.saveAttributes()
 			except:
-				raise
-				# continue
+				# raise
+				continue
 					
 
 	def maxFactorSimilarity(self, cur_factors, cur_weights, best_factors, best_weights, base_cnt):
@@ -562,7 +562,7 @@ class iFacData():
 
 	def saveAttributes(self):
 		_log.info("Factorize Tensor")   
-		self.factorizeTensor(ones = False, random_seed = iFac.metrics["min_error_index"][self.cur_base-self.start_index])
+		self.factorizeTensor(ones = False, random_seed = self.metrics["min_error_index"][self.cur_base-self.start_index])
 		_log.info("Get Factors")          
 		self.normalizeFactor()
 		self.getFactors()

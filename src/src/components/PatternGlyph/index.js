@@ -47,11 +47,11 @@ class PatternGlyph extends Component {
 		const x_offset = 30,
 			y_offset = 30;
 		// Add the outer circles to the backdrop.
-		const circles = d3.select(svg).selectAll('.circle')
+		const circles = d3.select(svg).selectAll('.pattern_circles_mini')
 						.data([data[idx]])
 						.enter()
 						.append('circle')
-						.attr('class', 'pattern_circles')
+						.attr('class', 'pattern_circles_mini')
 						.attr('r', gs.innerCircleRadius)
 						.attr('fill', '#fc8d12')
 						.attr('stroke-width', gs.innerCircleStrokeWidth)                
@@ -61,21 +61,21 @@ class PatternGlyph extends Component {
 						.attr('transform', (d, i) => 'translate(' + x_offset + ',' 
 									+ x_offset + ')');
 		// plot the flowers
-		const flowers = d3.select(svg).selectAll('.flower')
+		const flowers = d3.select(svg).selectAll('.flower_mini')
 						.data([data[idx]])
 						.enter()
 						.append('g')
-						.attr('class', 'flower')
-						.attr('id', (d) => 'flower_' + d.id)
+						.attr('class', 'flower_mini')
+						.attr('id', (d) => 'flower_mini_' + d.id)
 						.attr('transform', (d, i) => 'translate(' +x_offset + ',' 
 									+ x_offset + ')');
 		// add the petals to the flowers
-		const petals = flowers.selectAll('.petal')
+		const petals = flowers.selectAll('.petal_mini')
 					.data((d) => this.pie(d.petals))
 					.enter()
 					.append('path')
-					.attr('class', 'petal')
-					.attr('id', (d) => 'petal_'+d.data.id+'_' + d.index)
+					.attr('class', 'petal_mini')
+					.attr('id', (d) => 'petal_mini_'+d.data.id+'_' + d.index)
 					.attr('transform', (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
 					.attr('d', (d) => petal.petalPath(d, this.outerCircleRadius))
 					.style('stroke', (d, i) => 'gray')

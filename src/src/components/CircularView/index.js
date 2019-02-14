@@ -148,7 +148,7 @@ class CircularView extends Component {
 		backdrop.selectAll('path.line_pointer').remove();
 
 		// Add the outer circles to the backdrop.
-		const circles = gFlowers.selectAll('.circle')
+		const circles = gFlowers.selectAll('.pattern_circles')
 						.data(data)
 						.enter()
 						.append('circle')
@@ -165,16 +165,29 @@ class CircularView extends Component {
 							tooltip.html('<div>pattern#' + d.id + '</div>'+ 
 								'<div>dominance: ' + d3.format(".0%")(d.weight) + '</div>');
 							tooltip.show();
+							if (!d3.select('#pattern_' + d.id).classed('selected')){
+								d3.select('circle#pattern_' + d.id).attr("stroke", "black");
+								d3.select('circle#pattern_mini_' + d.id).attr("stroke", "black"); 									
+							}							
+							
+							// console.log(d3.select("tr[data-row-key='"+d.id+"']").position())
+
 						})
 						.on("mouseout", function(d){
 							tooltip.hide();
+							if (!d3.select('#pattern_' + d.id).classed('selected')){
+								d3.select('circle#pattern_' + d.id).attr("stroke", "none"); 
+								d3.select('circle#pattern_mini_' + d.id).attr("stroke", "none"); 								
+							}						
 						})									
 						.on('click', (d) => {
+						
 							if (d3.select('#pattern_' + d.id).classed('selected')) {
 								_self.props.onUnClickPattern(d.id);
 								let cancel_color = d3.select('#pattern_' + d.id).attr('stroke');
 								d3.select('#pattern_' + d.id).classed('selected', false);                                       
 								d3.select('#pattern_' + d.id).attr('stroke', 'none');
+								d3.select('circle#pattern_mini_' + d.id).attr("stroke", "none"); 									
 								// remove the lines between patterns and the dominating items.
 								for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
 									backdrop.select('path#link_'+descriptor_index).remove();
@@ -196,14 +209,14 @@ class CircularView extends Component {
 									});
 									_self.props.onClickPattern(d.id, petals_path_items);
 									d3.select('#pattern_' + d.id).classed('selected', true);							
-									d3.select('#pattern_' + d.id).attr('stroke', color_list[0]);    							
+									d3.select('#pattern_' + d.id).attr('stroke', color_list[0]);  
+									d3.select('circle#pattern_mini_' + d.id).attr("stroke", color_list[0]); 					
+
 									color_list.splice(0, 1);
+									this.props.onAddingPattern(d.id);
 								}
 							}
-
-							/* listview 1
-							this.props.onAddingPattern(idx)
-							*/
+							
 						});
 
 		// plot the flowers
