@@ -351,10 +351,8 @@ class CircularView extends Component {
 			 * 
 			 */					
 			let patterns, items, items1, descriptor_arcs;
-			console.log(bar_data[descriptor_index][patternIndices[0]]);
-			// console.log(patternIndices);
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
-			console.log(patterns);
+
 			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();
 			
 			items = items.map((d, idx) => [d, itemEmbeddings['sc'][descriptor_index][idx][0]])
@@ -400,7 +398,7 @@ class CircularView extends Component {
 			descriptor_arcs.append('path')
 					.attr('d', d3.arc()     // imagine your doing a part of a donut plot
 					.innerRadius(innerRadius)
-					.outerRadius((d) => {console.log(d);y(d.value)})
+					.outerRadius((d) => y(d.value))
 					.startAngle((d) => x(d.key) + x.bandwidth()*(d.index)/patterns.length)
 					.endAngle((d) => x(d.key) + x.bandwidth()*(d.index+1)/patterns.length)
 					.padAngle(0.01)
@@ -528,7 +526,6 @@ class CircularView extends Component {
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke", "none");							
 							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', false);							
 						} else {
-							console.log(queries);
 							if(!(descriptor_index in queries)){
 								queries[descriptor_index] = [];	
 							}
@@ -605,7 +602,6 @@ class CircularView extends Component {
 		}  
 
 		function barFill(d, descriptor_index, descriptor_size, bar_opacity) {
-			console.log(d.id);
 			if(d.id >= components_cnt){
 				return axisStroke(descriptor_index, descriptor_size);
 			}
