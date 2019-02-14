@@ -33,27 +33,27 @@ class ListView extends Component {
 				height: 1050
 			},
 		};
-  }
+	}
 
 	renderPatternGlyphs() {
 		const { data, bar_data, components_cnt, itemEmbeddings } = this.props;
 
 		return data.map((d, idx) => 
 			(				
-				<span>
-				<PatternGlyph 
-					idx={idx} 
-					data={data}  						
-				/>
-				<PatternBar 
-					idx={idx} 
-					components_cnt={components_cnt}
-					itemEmbeddings={itemEmbeddings}
-					bar_data={bar_data}
-				/>				
-				</span>
+				<div>
+					<PatternGlyph 
+						idx={idx} 
+						data={data}
+					/>
+					<PatternBar 
+						idx={idx} 
+						components_cnt={components_cnt}
+						itemEmbeddings={itemEmbeddings}
+						bar_data={bar_data}
+					/>				
+				</div>
 		));
-  	}  	  	
+	}
 
 	render() {
 		const { clickedPattern } = this.props;

@@ -340,8 +340,8 @@ class iFacData():
 				self.cur_base = self.base_cnt                 
 				self.saveAttributes()
 			except:
-				# raise
-				continue
+				raise
+				# continue
 					
 
 	def maxFactorSimilarity(self, cur_factors, cur_weights, best_factors, best_weights, base_cnt):
