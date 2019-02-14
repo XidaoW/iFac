@@ -20,7 +20,7 @@ export function computeMeanStd(array_list){
 }
 
 
-export	function plot_linechart(onClickPoint, metricPointSize, cur_svg, dataset, margin, width, height, n, title = "", labels = ["good", "bad"]){
+export	function plot_linechart(onClickPoint, cur_svg, dataset, margin, width, height, n, title = "", labels = ["good", "bad"]){
 		var start_index = 2,
 			error_cap_size = 2,
 			title1 = labels[0], 
@@ -34,7 +34,7 @@ export	function plot_linechart(onClickPoint, metricPointSize, cur_svg, dataset, 
 					.exponent(1.5)
 					.domain([0, 4])
 					.range([0,5]),			
-			rankRec = metricPointSize.indexOf(Math.max.apply(Math, metricPointSize)),
+			// rankRec = metricPointSize.indexOf(Math.max.apply(Math, metricPointSize)),
 		// 6. Y scale will use the randomly generate number 
 		 	yScale = d3.scaleLinear()
 					.domain([d3.min(dataset, (d) => d.y - d.e), d3.max(dataset, (d) => d.y + d.e)]) // input 
@@ -180,27 +180,28 @@ export	function plot_linechart(onClickPoint, metricPointSize, cur_svg, dataset, 
 			.attr("cy", function(d) {
 				return yScale(d.y);
 			})
-			.attr("r", (d,i) => ptSizeScale(metricPointSize[i]))
+			.attr("r", 2)
+			// .attr("r", (d,i) => ptSizeScale(metricPointSize[i]))
 			.attr("class", (d) => "rank"+d.x.toString())
 			.attr("opacity", 0.3)
 			.attr("id", (d, i) => "rank_index_" + i.toString())
-			.attr("stroke", (d, i) => {if(i == rankRec) return "#b30059"; else return "none";})
-			.attr("stroke-width", (d, i) => {if(i == rankRec) return "6px"; else return "0px";})
+			.attr("stroke", (d, i) => {return "none";})
+			.attr("stroke-width", (d, i) => {return "0px";})
 			.on("mouseover", function(d, i){
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "#ffab00");
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke-width", "6px");
 				var suggested = "";
-				if(i == rankRec){
-					suggested = "Suggested ";
-				}
+				// if(i == rankRec){
+				// 	suggested = "Suggested ";
+				// }
                 tooltip.html('<div>'+ suggested + 'rank: ' + d.x + '</div>'+ '<div>value: ' + d3.format(".0%")(d.y) + '</div>');
                 tooltip.show();
 
 			})
 			.on("mouseout", function(d){
 				d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "none");				
-				d3.selectAll("circle#rank_index_"+rankRec.toString()).attr("stroke", "#b30059");				
-				d3.selectAll("circle#rank_index_"+rankRec.toString()).attr("stroke-width", "6px");				
+				// d3.selectAll("circle#rank_index_"+rankRec.toString()).attr("stroke", "#b30059");				
+				// d3.selectAll("circle#rank_index_"+rankRec.toString()).attr("stroke-width", "6px");				
 				tooltip.hide();
 			})			
 			.on("click", function(d){

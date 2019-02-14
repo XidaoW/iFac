@@ -31,6 +31,7 @@ class ControlView extends Component {
 		this.toggleDatasetDropdown = this.toggleDatasetDropdown.bind(this);
 		this.handleClickDataset = this.handleClickDataset.bind(this);
 		this.handleSetWeight = this.handleSetWeight.bind(this);		
+		this.tipFormatter = this.tipFormatter.bind(this);		
 	}
 
 	toggleDatasetDropdown() {
@@ -49,6 +50,17 @@ class ControlView extends Component {
     }
 
 
+	tipFormatter(value, idx) {
+		const tooltip_strings = [
+				"Weight to penalize more patterns: ",
+				"Weight to penalize models with larger error: ",
+				"Weight to penalize models with worse fit: ",
+				"Weight to penalize models with less stability: ",
+				"Weight to penalize models with large entropy: ",
+				"Weight to penalize models with less sparsity: ",
+				]
+		return tooltip_strings[idx]+ `${value}`;
+	}
 	renderDatasets() {
     const { datasets } = this.props;
 
@@ -69,21 +81,25 @@ class ControlView extends Component {
 		const _self = this;
 		const { components_cnt, descriptors_text, 
 						error_data,  stability_data, fit_data, entropy_data, normalized_entropy_data,
-						gini_data, theil_data, pctnonzeros_data, onClickPoint, domain,weights, metricPointSize } = this.props;
+						gini_data, theil_data, pctnonzeros_data, onClickPoint, domain,weights, metricAggregated } = this.props;
 
-
+		console.log(metricAggregated);
+		console.log(error_data);
 		var n = error_data.length, 
 				title = '',
 				labels = '',
 				margin = {top: 15, right: 5, bottom: 25, left: 20},
 				width = this.layout.width - margin.left - margin.right, // Use the window's width 
 				height = this.layout.height - margin.top - margin.bottom; // Use the window's height
+		this.svg_aggregated = new ReactFauxDOM.Element('svg');
 		this.svg_error = new ReactFauxDOM.Element('svg');
 		this.svg_fit = new ReactFauxDOM.Element('svg');
 		this.svg_stability = new ReactFauxDOM.Element('svg');
 		this.svg_normalized_entropy = new ReactFauxDOM.Element('svg');
 		this.svg_pctnonzeros = new ReactFauxDOM.Element('svg');
 
+		this.svg_aggregated.setAttribute('width', width + margin.left + margin.right);
+		this.svg_aggregated.setAttribute('height', height + margin.top + margin.bottom);
 		this.svg_error.setAttribute('width', width + margin.left + margin.right);
 		this.svg_error.setAttribute('height', height + margin.top + margin.bottom);
 		this.svg_fit.setAttribute('width', width + margin.left + margin.right);		
@@ -96,7 +112,7 @@ class ControlView extends Component {
 		this.svg_pctnonzeros.setAttribute('height', height + margin.top + margin.bottom);
 
 
-
+		this.svg_aggregated.setAttribute('transform', "translate(0," + margin.top + ")");
 		this.svg_error.setAttribute('transform', "translate(0," + margin.top + ")");
 		this.svg_fit.setAttribute('transform', "translate(0," + margin.top + ")");		
 		this.svg_stability.setAttribute('transform', "translate(0," + margin.top + ")");		
@@ -107,11 +123,12 @@ class ControlView extends Component {
 		var labels_a = ["good", "bad"],
 			labels_b = ["bad", "good"];
 
-		plot_linechart(onClickPoint, metricPointSize, this.svg_error, error_data, margin, width, height, n, title = "", labels = labels_a);
-		plot_linechart(onClickPoint, metricPointSize, this.svg_fit, fit_data, margin, width, height, n, title = "", labels = labels_b);
-		plot_linechart(onClickPoint, metricPointSize, this.svg_stability, stability_data, margin, width, height, n, title = "", labels = labels_b);		
-		plot_linechart(onClickPoint, metricPointSize, this.svg_normalized_entropy, normalized_entropy_data, margin, width, height, n, title = "", labels = labels_a);
-		plot_linechart(onClickPoint, metricPointSize, this.svg_pctnonzeros, pctnonzeros_data, margin, width, height, n, title = "", labels = labels_a);
+		plot_linechart(onClickPoint, this.svg_aggregated, metricAggregated, margin, width, height, n, title = "", labels = labels_b);
+		plot_linechart(onClickPoint, this.svg_error, error_data, margin, width, height, n, title = "", labels = labels_a);
+		plot_linechart(onClickPoint, this.svg_fit, fit_data, margin, width, height, n, title = "", labels = labels_b);
+		plot_linechart(onClickPoint, this.svg_stability, stability_data, margin, width, height, n, title = "", labels = labels_b);		
+		plot_linechart(onClickPoint, this.svg_normalized_entropy, normalized_entropy_data, margin, width, height, n, title = "", labels = labels_a);
+		plot_linechart(onClickPoint, this.svg_pctnonzeros, pctnonzeros_data, margin, width, height, n, title = "", labels = labels_a);
 
 
 		this.svg = new ReactFauxDOM.Element('svg')
@@ -160,7 +177,6 @@ class ControlView extends Component {
 					</Dropdown>
 					<div>#Patterns: {components_cnt}</div>
 					<div>#Descriptors: {descriptors_text.join(', ')}</div>
-
 				</div>
 				<div className={styles.modelInspector}>
 					<div class={index.title}>
@@ -171,6 +187,22 @@ class ControlView extends Component {
 					</div>
 					<div className={styles.screeCharts}>
 						<div className={styles.screeChart}>
+							<div className={styles.screeChartName}>Aggregated</div>
+							<div>
+								<Slider 
+									className={styles.metricSlider}
+									step={0.2} 
+									min={0}
+									max={1}
+									style={{ width: 100}}
+									defaultValue={0}
+									tipFormatter={(value) => this.tipFormatter(value, 0)} 									
+									onChange={(e) => this.handleSetWeight(e, 0)} 
+								/>
+							</div>
+							{this.svg_aggregated.toReact()}
+						</div>					
+						<div className={styles.screeChart}>
 							<div className={styles.screeChartName}>Reconstruction error</div>
 							<div>
 								<Slider 
@@ -180,7 +212,8 @@ class ControlView extends Component {
 									max={1}
 									style={{ width: 100}}
 									defaultValue={1} 
-									onChange={(e) => this.handleSetWeight(e, 0)} 
+									tipFormatter={(value) => this.tipFormatter(value, 1)} 									
+									onChange={(e) => this.handleSetWeight(e, 1)} 
 								/>
 							</div>
 							{this.svg_error.toReact()}
@@ -195,7 +228,8 @@ class ControlView extends Component {
 									max={1}
 									style={{ width: 100}}
 									defaultValue={1} 
-									onChange={(e) => this.handleSetWeight(e, 1)} 
+									tipFormatter={(value) => this.tipFormatter(value, 2)} 									
+									onChange={(e) => this.handleSetWeight(e, 2)} 
 								/>
 							</div>							
 							{this.svg_fit.toReact()}
@@ -210,7 +244,8 @@ class ControlView extends Component {
 									max={1}
 									style={{ width: 100}}
 									defaultValue={1} 
-									onChange={(e) => this.handleSetWeight(e, 2)} 
+									tipFormatter={(value) => this.tipFormatter(value, 3)} 									
+									onChange={(e) => this.handleSetWeight(e, 3)} 
 								/>
 							</div>							
 							{this.svg_stability.toReact()}
@@ -225,7 +260,8 @@ class ControlView extends Component {
 									max={1}
 									style={{ width: 100}}
 									defaultValue={1} 
-									onChange={(e) => this.handleSetWeight(e, 3)} 
+									tipFormatter={(value) => this.tipFormatter(value, 4)} 									
+									onChange={(e) => this.handleSetWeight(e, 4)} 
 								/>
 							</div>							
 							{this.svg_normalized_entropy.toReact()}
@@ -240,7 +276,8 @@ class ControlView extends Component {
 									max={1}
 									style={{ width: 100}}
 									defaultValue={1} 
-									onChange={(e) => this.handleSetWeight(e, 4)} 
+									tipFormatter={(value) => this.tipFormatter(value, 5)} 									
+									onChange={(e) => this.handleSetWeight(e, 5)} 
 								/>
 							</div>							
 							{this.svg_pctnonzeros.toReact()}

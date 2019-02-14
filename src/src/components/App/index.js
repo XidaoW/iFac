@@ -63,8 +63,8 @@ class App extends Component {
 			interpretability_data: [],
 			datasets: ['nbaplayer', 'policy', 'picso'],
 			domain: "nbaplayer",
-			weights: [1,1,1,1,1],
-			metricPointSize: [],
+			weights: [0,1,1,1,1,1],
+			metricAggregated: [],
 			itemEmbeddings: itemEmbeddings,
 			clickedPatternIdx: [] /* listview */
 		};
@@ -188,13 +188,15 @@ class App extends Component {
 		})
 
 
-		var metricPointSize = d3.range(error_data.length).map(function(d) {
-			return weights[0] * ( 1 - error_data[d]['y'])
-				+ weights[1] * fit_data[d]['y'] 
-				+ weights[2] * stability_data[d]['y']
-				+ weights[3] * ( 1 - normalized_entropy_data[d]['y'])
-				+ weights[4] * ( 1 - pctnonzeros_data[d]['y'])
-				+ 0 * (1 - d*1. / error_data.length);
+		var metricAggregated = d3.range(error_data.length).map(function(d) {
+			return {"x": d + start_index, 
+					"y": (weights[1] * ( 1 - error_data[d]['y'])
+						+ weights[2] * fit_data[d]['y'] 
+						+ weights[3] * stability_data[d]['y']
+						+ weights[4] * ( 1 - normalized_entropy_data[d]['y'])
+						+ weights[5] * ( 1 - pctnonzeros_data[d]['y'])
+						+ weights[0] * (1 - d*1. / error_data.length))/weights.length,
+					"e":0}
 		})
 
 		this.setState({
@@ -211,7 +213,7 @@ class App extends Component {
 			gini_data: gini_data,
 			theil_data: theil_data,			
 			pctnonzeros_data: pctnonzeros_data,
-			metricPointSize: metricPointSize,
+			metricAggregated: metricAggregated,
 			itemEmbeddings: itemEmbeddings
 		});    
 	}
@@ -310,24 +312,26 @@ class App extends Component {
 			fit_data = this.state.fit_data,
 			stability_data = this.state.stability_data,
 			normalized_entropy_data = this.state.normalized_entropy_data,
-			pctnonzeros_data = this.state.pctnonzeros_data;
+			pctnonzeros_data = this.state.pctnonzeros_data,
+			start_index = 2;
 
 		weights[idx] = weight;
 
-		var metricPointSize = d3.range(error_data.length).map(function(d) {
-			return weights[0] * ( 1 - error_data[d]['y'])
-				+ weights[1] * fit_data[d]['y'] 
-				+ weights[2] * stability_data[d]['y']
-				+ weights[3] * ( 1 - normalized_entropy_data[d]['y'])
-				+ weights[4] * ( 1 - pctnonzeros_data[d]['y'])
-				+ 0 * (1 - d*1. / error_data.length);
-
+		var metricAggregated = d3.range(error_data.length).map(function(d) {
+			return {"x": d + start_index, 
+					"y": (weights[1] * ( 1 - error_data[d]['y'])
+						+ weights[2] * fit_data[d]['y'] 
+						+ weights[3] * stability_data[d]['y']
+						+ weights[4] * ( 1 - normalized_entropy_data[d]['y'])
+						+ weights[5] * ( 1 - pctnonzeros_data[d]['y'])
+						+ weights[0] * (1 - d*1. / error_data.length))/weights.length,
+					"e":0}
 		})
-		console.log(metricPointSize);
+
 
 		this.setState({
 			weights: weights,
-			metricPointSize: metricPointSize
+			metricAggregated: metricAggregated
 		});
 	}
 
@@ -747,15 +751,16 @@ class App extends Component {
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		})
 
-		var metricPointSize = d3.range(error_data.length).map(function(d) {
-			return weights[0] * ( 1 - error_data[d]['y'])
-				+ weights[1] * fit_data[d]['y'] 
-				+ weights[2] * stability_data[d]['y']
-				+ weights[3] * ( 1 - normalized_entropy_data[d]['y'])
-				+ weights[4] * ( 1 - pctnonzeros_data[d]['y'])
-				+ 1 * (1 - d*1. / error_data.length);
+		var metricAggregated = d3.range(error_data.length).map(function(d) {
+			return {"x": d + start_index, 
+					"y": (weights[1] * ( 1 - error_data[d]['y'])
+						+ weights[2] * fit_data[d]['y'] 
+						+ weights[3] * stability_data[d]['y']
+						+ weights[4] * ( 1 - normalized_entropy_data[d]['y'])
+						+ weights[5] * ( 1 - pctnonzeros_data[d]['y'])
+						+ weights[0] * (1 - d*1. / error_data.length))/weights.length,
+					"e":0}
 		})
-
 		this.setState({
 			domain: selectedDomain,
 			screeData: selectedDataset.scree,
@@ -779,7 +784,7 @@ class App extends Component {
 			pctnonzeros_data: pctnonzeros_data,
 			weights: weights,
 			itemEmbeddings:itemEmbeddingsNew,
-			metricPointSize: metricPointSize
+			metricAggregated: metricAggregated
 		});
 	}
 
@@ -793,7 +798,7 @@ class App extends Component {
 			descriptors, descriptors_text,screeData, max_pattern_item, arc_positions_bar_petal, 
 			item_max_pattern,queries,similarPatternToQueries, item_links, mouseOveredDescriptorIdx, 
 			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
-			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricPointSize,
+			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricAggregated,
 			itemEmbeddings, clickedPatternIdx
 		} = this.state;
 
@@ -824,7 +829,7 @@ class App extends Component {
 				datasets={datasets}	
 				domain={domain}
 				weights={weights}
-				metricPointSize={metricPointSize}
+				metricAggregated={metricAggregated}
 				onChangeDataset={this.handleChangeDataset}	
 				onSetWeight={this.handleSetWeight}		
 			/>
