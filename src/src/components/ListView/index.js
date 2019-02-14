@@ -16,6 +16,7 @@ import gs from '../../config/_variables.scss'; // gs (=global style)
 import Circos, { SCATTER } from 'react-circos';
 import { Tooltip, Icon } from 'antd';
 import { List, Avatar } from 'antd';
+import { Table, Divider, Tag } from 'antd';
 
 
 const tooltip = d3tooltip(d3);
@@ -33,38 +34,81 @@ class ListView extends Component {
 				height: 1050
 			},
 		};
+		this.handleOnClick = this.handleOnClick.bind(this);						
+		this.handleOnMouseEnter = this.handleOnMouseEnter.bind(this);						
+		this.handleOnMouseLeave = this.handleOnMouseLeave.bind(this);						
 	}
 
-	renderPatternGlyphs() {
-		const { data, bar_data, components_cnt, itemEmbeddings } = this.props;
+	handleOnClick(rowIndex){
+		console.log(rowIndex);
+		console.log(d3.select('circle#pattern_' + rowIndex));
+	}
 
-		return data.map((d, idx) => 
-			(				
-				<div>
-					<PatternGlyph 
-						idx={idx} 
-						data={data}
-					/>
-					<PatternBar 
-						idx={idx} 
-						components_cnt={components_cnt}
-						itemEmbeddings={itemEmbeddings}
-						bar_data={bar_data}
-					/>				
-				</div>
-		));
+	handleOnMouseEnter(rowIndex){
+		if (!d3.select('#pattern_' + rowIndex).classed('selected')){
+			d3.select('circle#pattern_' + rowIndex).attr("stroke", "black");
+			d3.select('circle#pattern_mini_' + rowIndex).attr("stroke", "black"); 									
+		}					
+	}
+	handleOnMouseLeave(rowIndex){
+		if (!d3.select('#pattern_' + rowIndex).classed('selected')){
+			d3.select('circle#pattern_' + rowIndex).attr("stroke", "none"); 
+			d3.select('circle#pattern_mini_' + rowIndex).attr("stroke", "none"); 									
+		}
 	}
 
 	render() {
-		const { clickedPattern } = this.props;
-		console.log('circularView rendered');
+		console.log('listView rendered');
 		console.log('this.props.data: ', this.props.data);
-
-
-		const { data, bar_data, selectedPatterns } = this.props;
+		const { data, bar_data, components_cnt, itemEmbeddings, clickedPatternIdx } = this.props;
 		const _self = this,
 					width = +this.layout.svg.width,
 					height = +this.layout.svg.height;
+		console.log(clickedPatternIdx);
+		const columns = [{
+		  title: 'ID',
+		  dataIndex: 'ID',
+		  key: 'ID',
+		  render: text => <span >{text}</span>,
+		}, {
+		  title: 'Glyph',
+		  dataIndex: 'Glyph',
+		  key: 'Glyph',
+		  render: Glyph => (
+		    <span>
+				<PatternGlyph 
+						idx={Glyph} 
+						data={data}
+					/>
+		    </span>
+		  ),		  
+		}, {
+		  title: 'Snapshot',
+		  key: 'Snapshot',
+		  dataIndex: 'Snapshot',
+		  render: Snapshot => (
+		    <span>
+				<PatternBar 
+					idx={Snapshot} 
+					components_cnt={components_cnt}
+					itemEmbeddings={itemEmbeddings}
+					bar_data={bar_data}
+				/>				
+		    </span>
+		  ),
+		}];
+
+
+		const data_ = d3.range(data.length).map((d) => {
+			return {
+						key: d, 
+						ID:d,
+						Glyph:d,
+						Snapshot:d,
+					}
+		})
+		console.log(data_);
+
 
 		return (
 			<div className={styles.ListView}>					
@@ -73,7 +117,20 @@ class ListView extends Component {
     					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
   					</Tooltip>				
 				</div>	
-				{this.renderPatternGlyphs()}		
+				<Table 
+					onRow={(record, rowIndex) => {
+						return {
+							onClick: (event) => {this.handleOnClick(rowIndex)},
+							onMouseEnter: (event) => {this.handleOnMouseEnter(rowIndex)},
+							onMouseLeave: (event) => {this.handleOnMouseLeave(rowIndex)},
+						};
+					}}
+					rowClassName={(record, rowIndex) => 'row' + rowIndex}
+					columns={columns} 
+					pagination={false} 
+					dataSource={data_} 
+				/>;
+
 			</div>
 		);
   }
