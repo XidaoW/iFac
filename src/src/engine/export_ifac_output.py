@@ -57,8 +57,10 @@ class iFacData():
 		for i1, pos in enumerate(zip(*index.labels)):
 			hist[pos] = group.values[i1]
 			labels = [list(i) for i in index.levels]
-		return hist, labels
+		for i in range(len(extractColumn)):
+			labels[i] = [str(each_one).replace('\'', '').replace('/', '').replace('-', '').replace('!', '').replace('&','').replace('(','').replace(')','').replace(' ','') for each_one in labels[i]]
 
+		return hist, labels
         		
 	def readData(self, domain = "nba", columns = []):
 		"""
@@ -71,35 +73,21 @@ class iFacData():
 			shots.PERIOD[shots.PERIOD > 4] = 5
 			self.column = ['PERIOD','TEAM_NAME','ZoneName']
 			shots_group_data_attempted = shots.groupby(self.column)['SHOT_ATTEMPTED_FLAG'].sum()
-			shots_group_data_attempted1 = shots_group_data_attempted.unstack(fill_value=0).to_panel()
-			self.hist = shots_group_data_attempted1.fillna(0).values
-			for i in range(len(self.column)):
-				each_label = shots_group_data_attempted1.fillna(0).axes[i].tolist()
-				each_label = [str(each_one).replace('!', '').replace('(','').replace(')','').replace(' ','') for each_one in each_label]
-				self.labels.append(each_label)
+			self.hist, self.labels = self.createDataHistogram(shots_group_data_attempted, self.column)
 			
 		if self.domain == "nbaplayer":
 			top_cnt = 15
 			shots = pd.read_csv("data/NBA_shots_201415.csv")
 			shots = shots[['PLAYER_ID','PLAYER_NAME','TEAM_ID','TEAM_NAME','ZoneName','PERIOD','SHOT_ATTEMPTED_FLAG','SHOT_MADE_FLAG']]
 			shots.PERIOD[shots.PERIOD > 4] = 5
-
 			self.column = ['PERIOD','PLAYER_NAME','ZoneName']
-
 			shots_total = shots.groupby(['PLAYER_NAME'])['SHOT_ATTEMPTED_FLAG'].sum()
 			top_players = list(shots_total.sort_values(ascending=False).iloc[:top_cnt].index)
-
 			shots = shots[shots.PLAYER_NAME.isin(top_players)]
 			shots_group_data_attempted = shots.groupby(self.column)['SHOT_ATTEMPTED_FLAG'].sum()
 			shots_group_data_made = shots.groupby(self.column)['SHOT_MADE_FLAG'].sum()
 			shots_group_data_attempted = shots_group_data_made.div(shots_group_data_attempted, level=0)
-			shots_group_data_attempted1 = shots_group_data_attempted.unstack(fill_value=0).to_panel()
-			self.hist = shots_group_data_attempted1.fillna(0).values
-
-			for i in range(len(self.column)):
-				each_label = shots_group_data_attempted1.fillna(0).axes[i].tolist()
-				each_label = [str(each_one).replace('!', '').replace('(','').replace(')','').replace(' ','') for each_one in each_label]
-				self.labels.append(each_label)
+			self.hist, self.labels = self.createDataHistogram(shots_group_data_attempted, self.column)
 
 		elif self.domain == "policy":
 			policy = pd.read_csv("data/policy_adoption.csv")
@@ -108,12 +96,7 @@ class iFacData():
 			policy = policy[policy.subject_name != "Unknown"]            
 			self.column = ['subject_name', 'adopted_year', 'state_id']
 			policy_group = policy.groupby(self.column)['adoption'].sum()
-			policy_group1 = policy_group.unstack(fill_value=0).to_panel()
-			self.hist = policy_group1.fillna(0).values
-			for i in range(len(self.column)):
-				each_label = policy_group1.fillna(0).axes[i].tolist()
-				each_label = [str(each_one).replace('!', '').replace('(','').replace(')','').replace(' ','') for each_one in each_label]
-				self.labels.append(each_label)            
+			self.hist, self.labels = self.createDataHistogram(policy_group, self.column)
 
 		elif self.domain == "harvard":
 			harvard = pd.read_csv("/home/xidao/project/hipairfac/output/harvard_data_tensor_students.csv")
@@ -121,7 +104,8 @@ class iFacData():
 			harvard.columns = columns
 			self.column = ['country', 'education', 'daysq', 'certified']
 			harvard = harvard[self.column]
-			self.hist, self.labels = self.createDataHistogram(harvard_new, self.column)
+			harvard_group = harvard.groupby(self.column[:3])['certified'].sum()			
+			self.hist, self.labels = self.createDataHistogram(harvard_group, self.column[:3])
 
 		elif self.domain == "picso":
 			policy = pd.read_csv("data/picso.csv", header=None)
@@ -129,12 +113,11 @@ class iFacData():
 			policy.columns = columns
 			self.column = columns[:3]
 			policy_group = policy.groupby(self.column)['value'].sum()
-			policy_group1 = policy_group.unstack(fill_value=0).to_panel()
-			self.hist = policy_group1.fillna(0).values
-			for i in range(len(self.column)):
-				each_label = policy_group1.fillna(0).axes[i].tolist()
-				each_label = [str(each_one) for each_one in each_label]
-				self.labels.append(each_label)  
+			import pdb
+			pdb.set_trace()			
+			self.hist, self.labels = self.createDataHistogram(policy_group, self.column)
+
+
 				
 		elif self.domain == "purchase":
 			couponAreaTest, couponAreaTrain, couponDetailTrain,                 couponListTest, couponListTrain,                 couponVisitTrain, userList = readPonpareData(valuePrefixed=True)
@@ -639,8 +622,8 @@ def generateData():
 	_log.info("Fitting Different Ranks up to {}".format(base))
 	iFac.getFitForRanks(base, trials = nb_trials)
 if __name__ == '__main__':
-	# generateData()
-	generateItemEmbedding()
-	generatePatternEmbedding()
+	generateData()
+	# generateItemEmbedding()
+	# generatePatternEmbedding()
 
 
