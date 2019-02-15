@@ -113,12 +113,8 @@ class iFacData():
 			policy.columns = columns
 			self.column = columns[:3]
 			policy_group = policy.groupby(self.column)['value'].sum()
-			import pdb
-			pdb.set_trace()			
 			self.hist, self.labels = self.createDataHistogram(policy_group, self.column)
 
-
-				
 		elif self.domain == "purchase":
 			couponAreaTest, couponAreaTrain, couponDetailTrain,                 couponListTest, couponListTrain,                 couponVisitTrain, userList = readPonpareData(valuePrefixed=True)
 
@@ -134,10 +130,8 @@ class iFacData():
 												 couponListTest,
 												 couponAreaTrain,
 												 couponAreaTest)
-			self.column = ["SEX_ID", "GENRE_NAME", "LIST_PREF_NAME","AGE"]
-			self.column = ["GENRE_NAME", "SEX_ID",
-                         "AGE", "DISCOUNT_PRICE", "USER_PREF_NAME",
-                         "VALIDPERIOD"]                         
+			# self.column = ["SEX_ID", "GENRE_NAME", "LIST_PREF_NAME","AGE"]
+			self.column = ["GENRE_NAME", "SEX_ID", "AGE", "DISCOUNT_PRICE"]
 			self.hist, bins, label = createHistogram(distribution, self.column) 
 			import re
 			re_string = ["{:02d} ".format(a) for a in range(100)]
@@ -145,7 +139,7 @@ class iFacData():
 			re_string = "(" +  re_string + ")"			
 			p = re.compile(re_string)
 
-			self.labels = [[translateLabel(p.sub('', each_label).strip()).replace('Prefecture', '').strip().replace(' ', '') for each_label in each_d] for each_d in label]
+			self.labels = [[translateLabel(p.sub('', each_label).strip()).replace('prefecture', '').replace('Prefecture', '').strip().replace(' ', '') for each_label in each_d] for each_d in label]
 
 	def computeReconstructionError(self, ntfInstance, hist):    
 		"""
@@ -571,6 +565,15 @@ class iFacData():
 		with open(file) as f:
 			self.data_output = json.load(f)
 
+	def readMetricJSON(self, base_cnt=10, domain = "", ndims = 3):
+		self.base_cnt = base_cnt
+		self.domain = domain
+		self.ndims = ndims
+		file = "../data/{}/factors_{}_{}_sample_fit_metrics.json".format(self.domain, self.ndims, self.base_cnt)
+		with open(file) as f:
+			metrics = json.load(f)
+		return metrics			
+
 	def reEmbed(self, rd_state = 4):
 		self.getEmbedding(rd_state = rd_state)
 
@@ -606,6 +609,22 @@ def generatePatternEmbedding():
 		iFac.cur_base = cur_base
 		iFac.savePatternEmbedding()
 
+def aggregateAll():
+    iFac = iFacData()
+    base = 30
+ 
+    iFac.start_index = int(sys.argv[1])
+    iFac.end_index = int(sys.argv[2])
+    iFac.column_cnt = int(sys.argv[3])
+    domain = str(sys.argv[4])    
+    measures = ["error", "fit", "stability", "entropy", "normalized_entropy", "pctnonzeros", "gini", "theil", "min_error_index"]        
+    start_metrics = iFac.readMetricJSON(base_cnt=iFac.start_index, domain = domain, ndims = iFac.column_cnt)
+    for i in range(iFac.start_index+1, iFac.end_index+1):
+        cur_metrics = iFac.readMetricJSON(base_cnt=i, domain = domain, ndims = iFac.column_cnt)
+        for m in measures:
+            cur_metrics[m] = [x for x in start_metrics[m] if x is not None] + [x for x in cur_metrics[m] if x is not None]        
+        with open('/home/xidao/project/thesis/iFac/src/src/data/'+domain+'/factors_'+str(iFac.column_cnt)+'_'+str(i)+'_sample_fit_metrics.json', 'w') as fp:
+            json.dump(cur_metrics, fp)   
 
 def generateData():
 	iFac = iFacData()
@@ -622,7 +641,9 @@ def generateData():
 	_log.info("Fitting Different Ranks up to {}".format(base))
 	iFac.getFitForRanks(base, trials = nb_trials)
 if __name__ == '__main__':
+	
 	generateData()
+	# aggregateAll()
 	# generateItemEmbedding()
 	# generatePatternEmbedding()
 
