@@ -17,9 +17,9 @@ import 'antd/dist/antd.css';
 const domainSetting = {
 						"picso": {"modes": "3", "cnt": "19"},
 						"nbaplayer": {"modes": "3", "cnt": "18"},
-						"policy": {"modes": "3", "cnt": "50"},
+						"policy": {"modes": "3", "cnt": "36"},
 						"purchase": {"modes": "6", "cnt": "7"}
-					}
+					};
 
 
 class App extends Component {
@@ -303,7 +303,10 @@ class App extends Component {
 		 * 
 		 */	
 		this.setState({
-			queries:{},
+			queries: d3.range(this.state.modes).reduce((obj, item) => {
+						obj[item] = [];
+						return obj;
+					}, {}),
 			similarPatternToQueries: []
 		});		 
 	}
@@ -362,13 +365,8 @@ class App extends Component {
 		 * 
 		 */
 		var domain = this.state.domain;
-		var new_data = require("../../data/"+domain+"/factors_"+domainSetting[domain]['modes']+"_" + rank.toString() + "_sample_fit");
-		// var new_data = require("../../data/nbaplayer_factors_3_" + rank.toString() + "_sample_fit");
-
 		var [new_data, itemEmbeddings, patternEmbeddings] = this.loadDatasetOnClickPoint(domain, rank);		
-
-		
-
+	
 		let bar_data = {},
 			max_pattern_item = {},
 			descriptors_text = [],
@@ -469,10 +467,6 @@ class App extends Component {
 			});
 		});
 
-		for(var i = 0; i < this.state.factors_data[0].dims; i++){
-			max_ids.push(factors[idx].factors[i].similarity.max_idx);
-			min_ids.push(factors[idx].factors[i].similarity.min_idx);
-		}
 
 		if(selectedPatternCnt == 2){
 			Object.keys(bar_data_cur).map(function(key, index){
@@ -556,7 +550,6 @@ class App extends Component {
 			relevance_score,
 			coordinates;
 
-
 		similarPatternToQueries.sort(function(first, second) {
 			return second[1] - first[1];
 		}).slice(0, top_k);
@@ -564,8 +557,7 @@ class App extends Component {
 			return {
 					"rank": i,
 					"pattern_idx": similarPatternToQueries[i][0],
-					"relevance_score":similarPatternToQueries[i][1],
-					"tsne_coord":factors[similarPatternToQueries[i][0]].tsne_coord
+					"relevance_score":similarPatternToQueries[i][1]
 				};
 		});
 
@@ -771,8 +763,8 @@ class App extends Component {
 		this.setState({
 			domain: selectedDomain,
 			bar_data: bar_data,
-			screeData: selectedDataset.scree,
 			factors_data: factors,
+			screeData: metrics,
 			descriptors: selectedDataset.descriptors,
 			descriptors_mean: selectedDataset.average,
 			item_max_pattern: selectedDataset.item_max_pattern,
