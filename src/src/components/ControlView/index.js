@@ -68,7 +68,6 @@ class ControlView extends Component {
         (<DropdownItem 
           key={idx}
           value={dataset}
-          disabled
           onClick={this.handleClickDataset}>
           {dataset}
         </DropdownItem>));
@@ -84,8 +83,6 @@ class ControlView extends Component {
 						error_data,  stability_data, fit_data, entropy_data, normalized_entropy_data,
 						gini_data, theil_data, pctnonzeros_data, onClickPoint, domain,weights, metricAggregated } = this.props;
 
-		console.log(metricAggregated);
-		console.log(error_data);
 		var n = error_data.length, 
 				title = '',
 				labels = '',
@@ -188,7 +185,11 @@ class ControlView extends Component {
 					</div>
 					<div className={styles.screeCharts}>
 						<div className={styles.screeChart}>
-							<div className={styles.screeChartName}>Aggregated</div>
+							<div className={styles.screeChartName}>								
+								<Tooltip title="The weighted recommendation of the rank setting based on metrics on the right">	    					
+									Rank Suggestion
+	  							</Tooltip>	
+							</div>
 							<div>
 								<Slider 
 									className={styles.metricSlider}
@@ -204,7 +205,11 @@ class ControlView extends Component {
 							{this.svg_aggregated.toReact()}
 						</div>					
 						<div className={styles.screeChart}>
-							<div className={styles.screeChartName}>Reconstruction error</div>
+							<div className={styles.screeChartName}>								
+								<Tooltip title="The discrepancy between the reconstructed tensor and the original tensor">	    					
+									Error
+	  							</Tooltip>	
+							</div>
 							<div>
 								<Slider 
 									className={styles.metricSlider}
@@ -220,7 +225,11 @@ class ControlView extends Component {
 							{this.svg_error.toReact()}
 						</div>
 						<div className={styles.screeChart}>
-							<div className={styles.screeChartName}>Model fit</div>
+							<div className={styles.screeChartName}>								
+								<Tooltip title="The percentage of variance explained by the set of patterns">	    					
+									Fit
+	  							</Tooltip>	
+							</div>						
 							<div>
 								<Slider 
 									className={styles.metricSlider}
@@ -236,7 +245,11 @@ class ControlView extends Component {
 							{this.svg_fit.toReact()}
 						</div>
 						<div className={styles.screeChart}>
-							<div className={styles.screeChartName}>Model stability</div>
+							<div className={styles.screeChartName}>								
+								<Tooltip title="The similarity between the patterns from random trials of the tensor factorization">	    					
+									Stability
+	  							</Tooltip>							
+	  						</div>
 							<div>
 								<Slider 
 									className={styles.metricSlider}
@@ -252,7 +265,11 @@ class ControlView extends Component {
 							{this.svg_stability.toReact()}
 						</div>
 						<div className={styles.screeChart}>
-							<div className={styles.screeChartName}>Normalized entropy</div>
+							<div className={styles.screeChartName}>								
+								<Tooltip title="The uncertainty in the descriptors">	    					
+									Entropy
+	  							</Tooltip>	
+							</div>								
 							<div>
 								<Slider 
 									className={styles.metricSlider}
@@ -268,7 +285,11 @@ class ControlView extends Component {
 							{this.svg_normalized_entropy.toReact()}
 						</div>
 						<div className={styles.screeChart}>
-							<div className={styles.screeChartName}>Sparsity</div>
+							<div className={styles.screeChartName}>								
+								<Tooltip title="The percentage of nonzeros in the descriptors">	    					
+									Sparsity
+	  							</Tooltip>	
+							</div>		
 							<div>
 								<Slider 
 									className={styles.metricSlider}
