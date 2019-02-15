@@ -68,6 +68,7 @@ class ControlView extends Component {
         (<DropdownItem 
           key={idx}
           value={dataset}
+          disabled
           onClick={this.handleClickDataset}>
           {dataset}
         </DropdownItem>));

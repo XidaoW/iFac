@@ -22,6 +22,7 @@ class PatternBar extends Component {
   
 	constructor(props) {
 		super(props);
+		this.miniPatternBarSize = 80,
 		this.outerCircleRadius = parseInt(gs.outerCircleRadius);
 		this.innerCircleRadius = parseInt(gs.innerCircleRadius);
 		this.innerCircleStrokeWidth = parseInt(gs.innerCircleStrokeWidth);
@@ -38,16 +39,19 @@ class PatternBar extends Component {
 
 		let	descriptor_size = Object.keys(bar_data).length,
 			descriptor_size_list = Object.keys(bar_data).map((d) => Object.keys(bar_data[d][0]).length);
-
-		const x_offset = 30,
-			y_offset = 30,
-			outerRadius = 50,
-			innerRadius = 10;
+		
+		const patternSize = this.miniPatternBarSize,
+			width = patternSize,
+			height = patternSize,
+			x_offset = width/2,
+			y_offset = height/2,
+			outerRadius = width,
+			innerRadius = width/4;
 
 		let g,
 			svg = new ReactFauxDOM.Element('svg');
-		svg.setAttribute('width', 50);
-		svg.setAttribute('height',50);
+		svg.setAttribute('width', width);
+		svg.setAttribute('height',height);
 
 
 		// DRAW THE RADIAL BAR CHART

@@ -15,14 +15,14 @@ import styles from './styles.scss';
 import index from '../../index.css';
 import 'antd/dist/antd.css';
 
-// import metrics from '../../data/nbaplayer/factors_3_18_sample_fit_metrics.json';
-// import factors_data from '../../data/nbaplayer/factors_3_18_sample_fit.json';
-// import itemEmbeddings from '../../data/nbaplayer/factors_3_18_sample_item_embedding.json';
+import metrics from '../../data/nbaplayer/factors_3_18_sample_fit_metrics.json';
+import factors_data from '../../data/nbaplayer/factors_3_18_sample_fit.json';
+import itemEmbeddings from '../../data/nbaplayer/factors_3_18_sample_item_embedding.json';
 
 
-import metrics from '../../data/purchase/factors_6_7_sample_fit_metrics.json';
-import factors_data from '../../data/purchase/factors_6_7_sample_fit.json';
-import itemEmbeddings from '../../data/purchase/factors_6_7_sample_item_embedding.json';
+// import metrics from '../../data/purchase/factors_6_7_sample_fit_metrics.json';
+// import factors_data from '../../data/purchase/factors_6_7_sample_fit.json';
+// import itemEmbeddings from '../../data/purchase/factors_6_7_sample_item_embedding.json';
 
 
 const domainSetting = {
@@ -75,7 +75,7 @@ class App extends Component {
 			stability_data: [],
 			interpretability_data: [],
 			datasets: ['nbaplayer','purchase', 'policy', 'picso'],
-			domain: "purchase",
+			domain: "nbaplayer",
 			weights: [0,1,1,1,1,1],
 			metricAggregated: [],
 			itemEmbeddings: itemEmbeddings,
@@ -233,7 +233,7 @@ class App extends Component {
 
 	componentDidMount() {
 		const { domain } = this.state;
-		const selectedDataset = require("../../data/" + domain + "/factors_6_7" + "_sample_fit");
+		const selectedDataset = require("../../data/" + domain + "/factors_"+domainSetting[domain]["modes"]+"_"+domainSetting[domain]["cnt"]+ "_sample_fit");
 		// const selectedDataset = require("../../data/" + domain + "/factors_3_18" + "_sample_fit");
 
 		this.setState({
