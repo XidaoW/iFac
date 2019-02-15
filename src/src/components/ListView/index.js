@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import * as d3 from 'd3';
 import ReactFauxDOM from 'react-faux-dom';
 import d3tooltip from 'd3-tooltip';
+import ReactDOM from 'react-dom'
 import PatternGlyph from 'components/PatternGlyph';
 import PatternBar from 'components/PatternBar';
 
@@ -34,14 +35,19 @@ class ListView extends Component {
 				height: 1050
 			},
 		};
+		this.selector = React.createRef();		
 		this.handleOnClick = this.handleOnClick.bind(this);						
 		this.handleOnMouseEnter = this.handleOnMouseEnter.bind(this);						
 		this.handleOnMouseLeave = this.handleOnMouseLeave.bind(this);						
 	}
 
 	handleOnClick(rowIndex){
-		console.log(rowIndex);
-		console.log(d3.select('circle#pattern_' + rowIndex));
+		// const node = ReactDOM.findDOMNode(d3.select("Table").node());
+		// node.scrollTop = node.scrollHeight;
+		// var svg = d3.select('circle#pattern_mini_' + rowIndex);
+
+		// console.log(rowIndex);
+		// console.log(d3.select('circle#pattern_' + rowIndex));
 	}
 
 	handleOnMouseEnter(rowIndex){
@@ -59,12 +65,15 @@ class ListView extends Component {
 
 	render() {
 		console.log('listView rendered');
-		console.log('this.props.data: ', this.props.data);
 		const { data, bar_data, components_cnt, itemEmbeddings, clickedPatternIdx } = this.props;
 		const _self = this,
 					width = +this.layout.svg.width,
 					height = +this.layout.svg.height;
-		console.log(clickedPatternIdx);
+
+
+		var offsetTop = window.pageYOffset || document.documentElement.scrollTop;
+		// console.log(d3.select('circle#pattern_' + 5).getBoundingClientRect().top);
+		
 		const columns = [{
 			title: 'ID',
 			dataIndex: 'ID',
@@ -122,8 +131,9 @@ class ListView extends Component {
 					<Tooltip title="Pattern List">
     					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
   					</Tooltip>				
-				</div>	
-				<Table 
+				</div>
+				<div id="table" ref={this.selector}>	
+				<Table					
 					onRow={(record, rowIndex) => {
 						return {
 							onClick: (event) => {this.handleOnClick(rowIndex)},
@@ -138,6 +148,7 @@ class ListView extends Component {
 					pagination={false} 
 					dataSource={data_} 
 				/>
+				</div>
 
 			</div>
 		);

@@ -31,7 +31,8 @@ class ControlView extends Component {
 		this.toggleDatasetDropdown = this.toggleDatasetDropdown.bind(this);
 		this.handleClickDataset = this.handleClickDataset.bind(this);
 		this.handleSetWeight = this.handleSetWeight.bind(this);		
-		this.tipFormatter = this.tipFormatter.bind(this);		
+		this.tipFormatter = this.tipFormatter.bind(this);	
+		this.renderDescriptorDescription = this.renderDescriptorDescription.bind(this);
 	}
 
 	toggleDatasetDropdown() {
@@ -73,15 +74,20 @@ class ControlView extends Component {
         </DropdownItem>));
   }
 
+  	renderDescriptorDescription(){
+  		return this.props.descriptors_text.join(', ');
+  	}
+
 	render() {
 		if (!this.props.error_data || this.props.error_data.length === 0)
 			return <div />
 		// line charts adapted from https://bl.ocks.org/NGuernse/8dc8b9e96de6bedcb6ad2c5467f5ef9a
 		// slider bar/ zoom drag https://bl.ocks.org/ngminhtrung/7c5721a1504f3e29a36da9ddd9e5039b
 		const _self = this;
-		const { components_cnt, descriptors_text, 
-						error_data,  stability_data, fit_data, entropy_data, normalized_entropy_data,
-						gini_data, theil_data, pctnonzeros_data, onClickPoint, domain,weights, metricAggregated } = this.props;
+		const { descriptors, components_cnt, descriptors_text, 
+				error_data,  stability_data, fit_data, entropy_data, normalized_entropy_data,
+				gini_data, theil_data, pctnonzeros_data, onClickPoint, domain,weights, metricAggregated } = this.props;
+
 
 		var n = error_data.length, 
 				title = '',
@@ -174,7 +180,7 @@ class ControlView extends Component {
 						</DropdownMenu>
 					</Dropdown>
 					<div>#Patterns: {components_cnt}</div>
-					<div>#Descriptors: {descriptors_text.join(', ')}</div>
+					<div>#Descriptors: {this.renderDescriptorDescription()}</div>
 				</div>
 				<div className={styles.modelInspector}>
 					<div class={index.title}>
