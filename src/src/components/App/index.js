@@ -8,48 +8,26 @@ import ListView from 'components/ListView';
 import ControlView from 'components/ControlView';
 import { extractItemCoordinates, extractPetalBarCoordinates } from '../../lib/extract_coordinates.js'
 import { computeMeanStd } from '../../lib/draw_linechart.js'
-
 import { Row, Col } from 'antd';
-
 import styles from './styles.scss';
 import index from '../../index.css';
 import 'antd/dist/antd.css';
 
-import metrics from '../../data/nbaplayer/factors_3_18_sample_fit_metrics.json';
-import factors_data from '../../data/nbaplayer/factors_3_18_sample_fit.json';
-import itemEmbeddings from '../../data/nbaplayer/factors_3_18_sample_item_embedding.json';
-
-
-// import metrics from '../../data/purchase/factors_6_7_sample_fit_metrics.json';
-// import factors_data from '../../data/purchase/factors_6_7_sample_fit.json';
-// import itemEmbeddings from '../../data/purchase/factors_6_7_sample_item_embedding.json';
-
 
 const domainSetting = {
-					"picso": {"modes": "3", "cnt": "19"},
-					"nbaplayer": {"modes": "3", "cnt": "18"},
-					"policy": {"modes": "3", "cnt": "50"},
-					"purchase": {"modes": "6", "cnt": "7"}
+						"picso": {"modes": "3", "cnt": "19"},
+						"nbaplayer": {"modes": "3", "cnt": "18"},
+						"policy": {"modes": "3", "cnt": "50"},
+						"purchase": {"modes": "6", "cnt": "7"}
 					}
 
-
-// import metrics from '../../data/policy/factors_3_50_sample_fit_metrics.json';
-// import factors_data from '../../data/policy/factors_3_50_sample_fit.json';
-// import itemEmbeddings from '../../data/policy/factors_3_50_sample_item_embedding.json';
-
-
-// import metrics from '../../data/purchase/factors_4_17_sample_fit_metrics.json';
-// import factors_data from '../../data/purchase/factors_4_17_sample_fit.json';
-
-
-// import metrics from '../../data/policy/factors_3_40_sample_fit_metrics.json';
-// import factors_data from '../../data/policy/factors_3_40_sample_fit.json';
 
 class App extends Component {
 	constructor(props) {
 		super(props);
+		const domain = "nbaplayer";
+		const [factors_data, metrics, itemEmbeddings, patternEmbeddings] = this.loadDefaultDataset(domain);
 		this.state = {
-			screeData: factors_data.scree,
 			factors_data: factors_data.data,
 			descriptors: factors_data.descriptors,
 			screeData: metrics,
@@ -75,10 +53,11 @@ class App extends Component {
 			stability_data: [],
 			interpretability_data: [],
 			datasets: ['nbaplayer','purchase', 'policy', 'picso'],
-			domain: "nbaplayer",
+			domain: domain,
 			weights: [0,1,1,1,1,1],
 			metricAggregated: [],
 			itemEmbeddings: itemEmbeddings,
+			patternEmbeddings: patternEmbeddings,
 			clickedPatternIdx: [] /* listview */
 		};
 
@@ -95,9 +74,24 @@ class App extends Component {
 		this.handleResetPatterns = this.handleResetPatterns.bind(this);
 		this.handleResetItems = this.handleResetItems.bind(this);
 		this.handleAddingPattern = this.handleAddingPattern.bind(this);	
-
+		this.loadDefaultDataset = this.loadDefaultDataset.bind(this);
+		this.loadDatasetOnClickPoint = this.loadDatasetOnClickPoint.bind(this);
 	}
 
+
+	loadDefaultDataset(selectedDomain){
+		const factorsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_fit.json"),
+			metricsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_fit_metrics.json"),
+			itemEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_item_embedding.json"),
+			patternEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_pattern_embedding.json");
+		return [factorsLoad, metricsLoad, itemEmbeddingsLoad, patternEmbeddingsLoad]
+	}
+	loadDatasetOnClickPoint(selectedDomain, rank){
+		const factorsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_fit.json"),
+			itemEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_item_embedding.json"),
+			patternEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_pattern_embedding.json");
+		return [factorsLoad, itemEmbeddingsLoad, patternEmbeddingsLoad]
+	}	
 	componentWillUpdate(nextProps, nextState) {
 		if (this.state.domain !== nextState.domain)  {
 			console.log('domain changed: ', nextState.domain);
@@ -119,10 +113,11 @@ class App extends Component {
 		*/		
 		const _self = this,
 					factors = this.state.factors_data,
-					screeData = metrics,
+					screeData = this.state.screeData,
 					start_index = 2,
 					weights = this.state.weights,
 					itemEmbeddings = this.state.itemEmbeddings,
+					patternEmbeddings = this.state.patternEmbeddings,
 					queries = d3.range(factors[0].dims).reduce((obj, item) => {
 						obj[item] = [];
 						return obj;
@@ -227,7 +222,8 @@ class App extends Component {
 			theil_data: theil_data,			
 			pctnonzeros_data: pctnonzeros_data,
 			metricAggregated: metricAggregated,
-			itemEmbeddings: itemEmbeddings
+			itemEmbeddings: itemEmbeddings,
+			patternEmbeddings: patternEmbeddings
 		});    
 	}
 
@@ -369,6 +365,9 @@ class App extends Component {
 		var new_data = require("../../data/"+domain+"/factors_"+domainSetting[domain]['modes']+"_" + rank.toString() + "_sample_fit");
 		// var new_data = require("../../data/nbaplayer_factors_3_" + rank.toString() + "_sample_fit");
 
+		var [new_data, itemEmbeddings, patternEmbeddings] = this.loadDatasetOnClickPoint(domain, rank);		
+
+		
 
 		let bar_data = {},
 			max_pattern_item = {},
@@ -418,6 +417,8 @@ class App extends Component {
 			max_pattern_item: max_pattern_item,
 			modes: new_data.modes,
 			queries: queries,
+			itemEmbeddings: itemEmbeddings,
+			patternEmbeddings: patternEmbeddings			
 		}));		
 		
 	}
@@ -664,9 +665,7 @@ class App extends Component {
 
 	handleChangeDataset(selectedDomain) {
 		console.log('handleChangeDataset: ', selectedDomain);
-		const selectedDataset = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_fit.json"),
-			metrics = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_fit_metrics.json"),
-			itemEmbeddingsNew = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_item_embedding.json");
+		const [selectedDataset, metrics, itemEmbeddings, patternEmbeddings] = this.loadDefaultDataset(selectedDomain);
 		console.log('handleChangeDataset: ', selectedDataset);
 
 		const _self = this,
@@ -793,7 +792,8 @@ class App extends Component {
 			pctnonzeros_data: pctnonzeros_data,
 			weights: weights,
 			components_cnt: factors.length,
-			itemEmbeddings:itemEmbeddingsNew,
+			itemEmbeddings:itemEmbeddings,
+			patternEmbeddings: patternEmbeddings,
 			metricAggregated: metricAggregated
 		});
 	}
@@ -809,7 +809,7 @@ class App extends Component {
 			item_max_pattern,queries,similarPatternToQueries, item_links, mouseOveredDescriptorIdx, 
 			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
 			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricAggregated,
-			itemEmbeddings, clickedPatternIdx
+			itemEmbeddings, clickedPatternIdx, patternEmbeddings
 		} = this.state;
 
 
@@ -875,6 +875,7 @@ class App extends Component {
 						item_max_pattern={item_max_pattern}
 						item_similarity={item_similarity}
 						itemEmbeddings={itemEmbeddings}
+						patternEmbeddings={patternEmbeddings}
 						modes={modes}
 						queries={queries}
 						item_links={item_links}
