@@ -817,6 +817,7 @@ class App extends Component {
 		</header>
 		<div>
 			<ControlView
+				descriptors={descriptors}
 				components_cnt={components_cnt}
 				descriptors_text={descriptors_text}				
 				error_data={error_data}
