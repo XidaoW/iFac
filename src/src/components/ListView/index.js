@@ -66,37 +66,46 @@ class ListView extends Component {
 					height = +this.layout.svg.height;
 		console.log(clickedPatternIdx);
 		const columns = [{
-		  title: 'ID',
-		  dataIndex: 'ID',
-		  key: 'ID',
-		  render: text => <span >{text}</span>,
-		}, {
-		  title: 'Glyph',
-		  dataIndex: 'Glyph',
-		  key: 'Glyph',
-		  render: Glyph => (
-		    <span>
-				<PatternGlyph 
-						idx={Glyph} 
-						data={data}
-					/>
-		    </span>
-		  ),		  
-		}, {
-		  title: 'Snapshot',
-		  key: 'Snapshot',
-		  dataIndex: 'Snapshot',
-		  render: Snapshot => (
-		    <span>
-				<PatternBar 
-					idx={Snapshot} 
-					components_cnt={components_cnt}
-					itemEmbeddings={itemEmbeddings}
-					bar_data={bar_data}
-				/>				
-		    </span>
-		  ),
-		}];
+			title: 'ID',
+			dataIndex: 'ID',
+			key: 'ID',
+			render: (text, row, index) => {
+				return {
+					children: <span>{text}</span>,
+					props: {
+						width: 3,
+						align: 'left',
+						padding: 3,
+					},
+				};
+			}		  
+			}, {
+			  title: 'Glyph',
+			  dataIndex: 'Glyph',
+			  key: 'Glyph',
+			  render: Glyph => (
+			    <span>
+					<PatternGlyph 
+							idx={Glyph} 
+							data={data}
+						/>
+			    </span>
+			  ),		  
+			}, {
+			  title: 'Snapshot',
+			  key: 'Snapshot',
+			  dataIndex: 'Snapshot',
+			  render: Snapshot => (
+			    <span>
+					<PatternBar 
+						idx={Snapshot} 
+						components_cnt={components_cnt}
+						itemEmbeddings={itemEmbeddings}
+						bar_data={bar_data}
+					/>				
+			    </span>
+			  ),
+			}];
 
 
 		const data_ = d3.range(data.length).map((d) => {
@@ -107,9 +116,6 @@ class ListView extends Component {
 						Snapshot:d,
 					}
 		})
-		console.log(data_);
-
-
 		return (
 			<div className={styles.ListView}>					
 				<div className={index.title}>List View
@@ -127,9 +133,11 @@ class ListView extends Component {
 					}}
 					rowClassName={(record, rowIndex) => 'row' + rowIndex}
 					columns={columns} 
+					size={"small"}
+					scroll={{ y: 800 }}
 					pagination={false} 
 					dataSource={data_} 
-				/>;
+				/>
 
 			</div>
 		);

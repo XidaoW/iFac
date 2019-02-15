@@ -24,6 +24,7 @@ class PatternGlyph extends Component {
 		super(props);
 		this.pie;
 		this.compare_N = 2;
+		this.miniPatternSize = 30,
 		this.outerCircleRadius = parseInt(gs.outerCircleRadius);
 		this.innerCircleRadius = parseInt(gs.innerCircleRadius);
 		this.innerCircleStrokeWidth = parseInt(gs.innerCircleStrokeWidth);
@@ -36,23 +37,26 @@ class PatternGlyph extends Component {
 
 		const { data, idx } = this.props;
 		const _self = this,
-				descriptor_size = 3;
-
+				descriptor_size = data[0].dims;
 		let g,
-			svg = new ReactFauxDOM.Element('svg');
-		svg.setAttribute('width', 50);
-		svg.setAttribute('height',50);
+			svg = new ReactFauxDOM.Element('svg'),
+			patternSize = this.miniPatternSize,
+			width = patternSize,
+			height = patternSize			
+
+		svg.setAttribute('width', width);
+		svg.setAttribute('height',width);
 
 		this.pie = d3.pie().sort(null).value((d) => 1);
-		const x_offset = 30,
-			y_offset = 30;
+		const x_offset = width/2,
+			y_offset = height/2;
 		// Add the outer circles to the backdrop.
 		const circles = d3.select(svg).selectAll('.pattern_circles_mini')
 						.data([data[idx]])
 						.enter()
 						.append('circle')
 						.attr('class', 'pattern_circles_mini')
-						.attr('r', gs.innerCircleRadius)
+						.attr('r', width/2-2)
 						.attr('fill', '#fc8d12')
 						.attr('stroke-width', gs.innerCircleStrokeWidth)                
 						.attr('fill-opacity', (d) => d.weight) 
@@ -77,7 +81,7 @@ class PatternGlyph extends Component {
 					.attr('class', 'petal_mini')
 					.attr('id', (d) => 'petal_mini_'+d.data.id+'_' + d.index)
 					.attr('transform', (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
-					.attr('d', (d) => petal.petalPath(d, this.outerCircleRadius))
+					.attr('d', (d) => petal.petalPath(d, width/4))
 					.style('stroke', (d, i) => 'gray')
 					.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
 					.style('fill-opacity', 0.6);
