@@ -74,23 +74,26 @@ class QueryPanel extends Component {
 
 
   	renderExistingTags(){
-		const { onQueryItem, descriptors, components_cnt,modes,queries } = this.props;
-		const { tags, inputVisible, inputValue } = this.state;
+		const { onQueryItem, descriptors, components_cnt, modes, queries } = this.props;
+		var { tags, inputValue } = this.state;
+		tags = queries;
 		const color_list = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
 		if(Object.keys(tags).length > 0){
 	  		return Object.keys(tags).map((mode, idx) => {
-				if((idx in tags) && tags[idx].length > 0){	  						
-				return tags[idx].map((tag, index) => {						
+				if((mode in tags) && tags[mode].length > 0){	  						
+				return tags[mode].map((tag, index) => {						
 					const isLongTag = tag.length > 20;
 					const tagElem = (
-						<Tag
-							className={"itemTags"}
-							color={color_list[idx]}
-							key={tag} 
-							closable={true}
-							afterClose={() => this.handleClose(tag, idx)}>
-							{isLongTag ? `${tag.slice(0, 20)}...` : tag}
-						</Tag>
+						<span>
+							<Tag
+								className={"itemTags"}
+								color={color_list[mode]}
+								key={tag} 
+								closable={true}
+								afterClose={() => this.handleClose(tag, mode)}>
+								{isLongTag ? `${tag.slice(0, 20)}...` : tag}
+							</Tag>
+						</span>
 					);
 					return isLongTag ? <Tooltip title={tag} key={tag}>{tagElem}</Tooltip> : tagElem;
 				})
@@ -101,7 +104,7 @@ class QueryPanel extends Component {
 
   	renderNewTags() {
 		const { descriptors, components_cnt,modes,queries } = this.props;
-		const { tags, inputVisible, inputValue } = this.state;
+		var { tags, inputValue } = this.state;
 
 		return modes.map((mode, idx) => 
 			(				
