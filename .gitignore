@@ -1,8 +1,8 @@
 *.npy
-src/src/engine/multiview/
+**/src/src/engine/multiview/*
 *.pyc
 # ignore json data
 src/src/engine/data/
-src/src/data/*
+**/src/src/data/*
 src/src/data/*.json
 *.json
