@@ -243,7 +243,7 @@ class ControlView extends Component {
 									min={0}
 									max={1}
 									style={{ width: 100}}
-									defaultValue={1} 
+									defaultValue={0} 
 									tipFormatter={(value) => this.tipFormatter(value, 2)} 									
 									onChange={(e) => this.handleSetWeight(e, 2)} 
 								/>
@@ -263,7 +263,7 @@ class ControlView extends Component {
 									min={0}
 									max={1}
 									style={{ width: 100}}
-									defaultValue={1} 
+									defaultValue={0} 
 									tipFormatter={(value) => this.tipFormatter(value, 3)} 									
 									onChange={(e) => this.handleSetWeight(e, 3)} 
 								/>
@@ -283,7 +283,7 @@ class ControlView extends Component {
 									min={0}
 									max={1}
 									style={{ width: 100}}
-									defaultValue={1} 
+									defaultValue={0} 
 									tipFormatter={(value) => this.tipFormatter(value, 4)} 									
 									onChange={(e) => this.handleSetWeight(e, 4)} 
 								/>
@@ -303,7 +303,7 @@ class ControlView extends Component {
 									min={0}
 									max={1}
 									style={{ width: 100}}
-									defaultValue={1} 
+									defaultValue={0} 
 									tipFormatter={(value) => this.tipFormatter(value, 5)} 									
 									onChange={(e) => this.handleSetWeight(e, 5)} 
 								/>

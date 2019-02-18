@@ -186,7 +186,7 @@ class DetailView extends Component {
 		return (
 				<div className={styles.DetailView}>
 					<div className={index.title}>
-						Details
+						Content
 						<Tooltip title="Pattern narrative as word clouds">
 	    					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
 	  					</Tooltip>																							

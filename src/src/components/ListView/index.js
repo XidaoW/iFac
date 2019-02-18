@@ -29,10 +29,10 @@ class ListView extends Component {
 		super(props);
 		this.layout = {
 			width: 200,
-			height: 1050,
+			height: 1000,
 			svg: {
 				width: 200,
-				height: 1050
+				height: 1000
 			},
 		};
 		this.selector = React.createRef();		
@@ -65,14 +65,12 @@ class ListView extends Component {
 
 	render() {
 		console.log('listView rendered');
-		const { data, bar_data, components_cnt, itemEmbeddings, clickedPatternIdx } = this.props;
+		const { data, bar_data, similarPatternToQueries, components_cnt, itemEmbeddings, clickedPatternIdx } = this.props;
 		const _self = this,
 					width = +this.layout.svg.width,
 					height = +this.layout.svg.height;
+		console.log(similarPatternToQueries);
 
-
-		var offsetTop = window.pageYOffset || document.documentElement.scrollTop;
-		// console.log(d3.select('circle#pattern_' + 5).getBoundingClientRect().top);
 		
 		const columns = [{
 			title: 'ID',
@@ -116,8 +114,12 @@ class ListView extends Component {
 			  ),
 			}];
 
-
-		const data_ = d3.range(data.length).map((d) => {
+		if(similarPatternToQueries.length > 0){
+			var patternIndices = similarPatternToQueries.map((d) => d.pattern_idx);
+		}else{
+			var patternIndices = d3.range(data.length).map((d) => d);
+		}
+		const data_ = patternIndices.map((d) => {
 			return {
 						key: d, 
 						ID:d,
@@ -136,15 +138,15 @@ class ListView extends Component {
 				<Table					
 					onRow={(record, rowIndex) => {
 						return {
-							onClick: (event) => {this.handleOnClick(rowIndex)},
-							onMouseEnter: (event) => {this.handleOnMouseEnter(rowIndex)},
-							onMouseLeave: (event) => {this.handleOnMouseLeave(rowIndex)},
+							onClick: (event) => {this.handleOnClick(record.ID)},
+							onMouseEnter: (event) => {this.handleOnMouseEnter(record.ID)},
+							onMouseLeave: (event) => {this.handleOnMouseLeave(record.ID)},
 						};
 					}}
-					rowClassName={(record, rowIndex) => 'row' + rowIndex}
+					rowClassName={(record, rowIndex) => 'pattern_row' + record.ID}
 					columns={columns} 
 					size={"small"}
-					scroll={{ y: 800 }}
+					scroll={{ y: 650 }}
 					pagination={false} 
 					dataSource={data_} 
 				/>

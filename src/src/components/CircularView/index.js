@@ -437,7 +437,7 @@ class CircularView extends Component {
 
 			// Add the labels     
 			backdrop.selectAll("text.label_bar" + descriptor_index).remove();
-			var draw_label = true;
+			var draw_label = false;
 			if(draw_label){
 				descriptor_arcs.append('g')
 					.attr('class', 'descriptor_text' + descriptor_index)
