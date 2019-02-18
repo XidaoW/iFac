@@ -16,9 +16,9 @@ import 'antd/dist/antd.css';
 
 const domainSetting = {
 						"picso": {"modes": "3", "cnt": "19"},
-						"nbaplayer": {"modes": "3", "cnt": "18"},
+						"nbaplayer": {"modes": "3", "cnt": "20"},
 						"policy": {"modes": "3", "cnt": "36"},
-						"purchase": {"modes": "6", "cnt": "7"}
+						"purchase": {"modes": "4", "cnt": "20"}
 					};
 
 
@@ -52,9 +52,9 @@ class App extends Component {
 			error_data: [],
 			stability_data: [],
 			interpretability_data: [],
-			datasets: ['nbaplayer','purchase', 'policy', 'picso'],
+			datasets: Object.keys(domainSetting),
 			domain: domain,
-			weights: [0,1,1,1,1,1],
+			weights: [0,1,0,0,0,0],
 			metricAggregated: [],
 			itemEmbeddings: itemEmbeddings,
 			patternEmbeddings: patternEmbeddings,
@@ -168,9 +168,8 @@ class App extends Component {
 		screeData['theil'] = screeData['theil'].filter(Boolean);
 		screeData['pctnonzeros'] = screeData['pctnonzeros'].filter(Boolean);
 
-
 		var error_data = d3.range(screeData['error'].length).map(function(d, i) {
-			var rst = computeMeanStd(screeData.error[d]);
+			var rst = computeMeanStd(screeData.error[d]);			
 			return {"x": d+start_index, "y": rst[0], "e":rst[1]};
 		}), stability_data = d3.range(screeData.stability.length).map(function(d, i) {
 			var rst = computeMeanStd(screeData.stability[d]);
@@ -844,6 +843,7 @@ class App extends Component {
 					itemEmbeddings={itemEmbeddings}
 					clickedPatternIdx={clickedPatternIdx}
 					selectedPatterns={selectedPatterns}
+					similarPatternToQueries={similarPatternToQueries}
 					onClickPattern={this.handleClickPattern}
 				/>
 			  	<CircularView 

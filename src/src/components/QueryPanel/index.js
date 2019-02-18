@@ -64,7 +64,7 @@ class QueryPanel extends Component {
 			tags,
 			inputValue: '',
 		});				
-		this.props.onQueryItem(tags, 5);		
+		this.props.onQueryItem(tags, 5);	
 	}
 	handleInputChange = (e) => {
 		this.setState({ inputValue: e.target.value });
@@ -117,7 +117,7 @@ class QueryPanel extends Component {
 					ref={this.saveInputRef}
 					type="text"
 					size="small"
-					style={{ width: 200 }}
+					style={{ width: 150 }}
 					dataSource={descriptors[mode]}					
 					onSelect={(e) => this.handleOnSelect(idx, e)}					
 					onSearch={(e) => this.handleSearch(e)}					
