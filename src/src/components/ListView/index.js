@@ -50,14 +50,14 @@ class ListView extends Component {
 
 	handleOnMouseEnter(rowIndex){
 		if (!d3.select('#pattern_' + rowIndex).classed('selected')){
-			d3.select('circle#pattern_' + rowIndex).attr("stroke", "black");
-			d3.select('circle#pattern_mini_' + rowIndex).attr("stroke", "black"); 									
+			d3.select('circle#pattern_circles' + rowIndex).attr("stroke", "grey");
+			d3.select('circle#pattern_circles_mini' + rowIndex).attr("stroke", "grey"); 									
 		}					
 	}
 	handleOnMouseLeave(rowIndex){
 		if (!d3.select('#pattern_' + rowIndex).classed('selected')){
-			d3.select('circle#pattern_' + rowIndex).attr("stroke", "none"); 
-			d3.select('circle#pattern_mini_' + rowIndex).attr("stroke", "none"); 									
+			d3.select('circle#pattern_circles' + rowIndex).attr("stroke", "none"); 
+			d3.select('circle#pattern_circles_mini' + rowIndex).attr("stroke", "none"); 									
 		}
 	}
 
@@ -67,9 +67,7 @@ class ListView extends Component {
 		const _self = this,
 					width = +this.layout.svg.width,
 					height = +this.layout.svg.height;
-		console.log(similarPatternToQueries);
-		console.log(clickedPatternIdx);
-		
+
 		const columns = [{
 			title: 'ID',
 			dataIndex: 'ID',

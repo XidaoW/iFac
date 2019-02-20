@@ -91,9 +91,6 @@ class CircularView extends Component {
 		var patternEmbedding_original = patternEmbeddings['tsne'];
 		var min_tsne = [d3.min(patternEmbedding_original, (d) => d[0]), d3.min(patternEmbedding_original, (d) => d[1])];
 		var max_tsne = [d3.max(patternEmbedding_original, (d) => d[0]), d3.max(patternEmbedding_original, (d) => d[1])];
-		var size_petal_radius = d3.scaleLinear().domain([0, 1]).range([1, this.outerCircleRadius]);
-		var size_petal_arc = d3.scaleLinear().domain([0, 1]).range([0, 2 * Math.PI * this.outerCircleRadius/ descriptor_size]);
-
 		const _self = this,
 					width = +this.layout.svg.width,
 					height = +this.layout.svg.height,
@@ -174,20 +171,19 @@ class CircularView extends Component {
 						.attr('class', 'pattern_circles')
 						.attr('r', (d) => d.radius)
 						.attr('fill', '#fc8d12')
-						.attr('stroke', 'grey')
 						.attr('stroke-width', gs.innerCircleStrokeWidth)                
 						.attr('fill-opacity', (d) => d.weight) 
-						.attr('stroke-opacity', 0.3)						
+						.attr('stroke-opacity', gs.innerCircleStrokeOpacity)
 						.attr('id', (d) => 'pattern_' + d.id)                
 						.attr('transform', (d, i) => 'translate(' + d.x + ',' 
 									+ d.y + ')')
 						.on("mouseover", function(d){
 							tooltip.html('<div>pattern#' + d.id + '</div>'+ 
 								'<div>dominance: ' + d3.format(".0%")(d.weight) + '</div>');
-							tooltip.show();						
+							tooltip.show();
 							if (!d3.select('#pattern_' + d.id).classed('selected')){
-								d3.select('#pattern_' + d.id).attr('stroke-opacity', 1); 
-								d3.select('#pattern_mini_' + d.id).attr('stroke-opacity', 1); 
+								d3.select('circle#pattern_' + d.id).attr("stroke", "black");
+								d3.select('circle#pattern_mini_' + d.id).attr("stroke", "black"); 									
 							}							
 							
 							// console.log(d3.select("tr[data-row-key='"+d.id+"']").position())
@@ -196,8 +192,8 @@ class CircularView extends Component {
 						.on("mouseout", function(d){
 							tooltip.hide();
 							if (!d3.select('#pattern_' + d.id).classed('selected')){
-								d3.select('#pattern_' + d.id).attr('stroke-opacity', 0.2);
-								d3.select('#pattern_mini_' + d.id).attr('stroke-opacity', 0.2);
+								d3.select('circle#pattern_' + d.id).attr("stroke", "none"); 
+								d3.select('circle#pattern_mini_' + d.id).attr("stroke", "none"); 								
 							}						
 						})									
 						.on('click', (d) => {
@@ -215,20 +211,48 @@ class CircularView extends Component {
 							} else {
 								if (selectedPatterns.length < this.compare_N) {
 
-									// let petals_path_items = d3.range(descriptor_size).map(function(p){
-									// 	return {
-									// 		'd_flower': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('d'),
-									// 		'transform_petal': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('transform'),
-									// 		'translate_flower': backdrop.select('#flower_'+d.id).attr('transform'),
-									// 		'transform_bar': backdrop.select('g#descriptor_'+p+'_barchart').attr('transform'),
-									// 		'transform_g_flower': backdrop.select('g.g_flowers').attr('transform'),
-									// 		'd_bar': backdrop.select('path#bar_'+p+'_'+max_pattern_item[p][d.id]).attr('d'),
-									// 		'item': max_pattern_item[p][d.id],
-									// 		'descriptor_index': p,
-									// 		'pattern_id': d.id
-									// 	}
-									// });
-									let petals_path_items = [];
+									// scrollIntoView(document.getElementById("table").querySelector('.pattern_row_'+d.id), {
+									// 	align: {
+									// 		top: document.getElementById( 'table' ).scrollTop(),
+									// 	},
+									// 	block: 'start',inline: "nearest", behavior: 'smooth'
+									// });					
+
+
+									// var scrollToTarget = function(target, containerEl) {
+									// // Moved up here for readability:
+									// 	var isElement = target && target.nodeType === 1,
+									// 		isNumber = Object.prototype.toString.call(target) === '[object Number]';
+
+									// 		if (isElement) {
+									// 			containerEl.scrollTop = target.offsetTop;
+									// 		} else if (isNumber) {
+									// 			containerEl.scrollTop = target;
+									// 		} else if (target === 'bottom') {
+									// 			containerEl.scrollTop = containerEl.scrollHeight - containerEl.offsetHeight;
+									// 		} else if (target === 'top') {
+									// 			containerEl.scrollTop = 0;
+									// 		}
+									// };
+
+									// var scrollableDiv = document.getElementById('table');
+									// var targetElement= document.getElementById("table").querySelector('.pattern_row_'+d.id);
+									// scrollToTarget(targetElement, scrollableDiv);
+
+
+									let petals_path_items = d3.range(descriptor_size).map(function(p){
+										return {
+											'd_flower': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('d'),
+											'transform_petal': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('transform'),
+											'translate_flower': backdrop.select('#flower_'+d.id).attr('transform'),
+											'transform_bar': backdrop.select('g#descriptor_'+p+'_barchart').attr('transform'),
+											'transform_g_flower': backdrop.select('g.g_flowers').attr('transform'),
+											'd_bar': backdrop.select('path#bar_'+p+'_'+max_pattern_item[p][d.id]).attr('d'),
+											'item': max_pattern_item[p][d.id],
+											'descriptor_index': p,
+											'pattern_id': d.id
+										}
+									});
 									_self.props.onClickPattern(d.id, petals_path_items);
 									d3.select('#pattern_' + d.id).classed('selected', true);							
 									d3.select('#pattern_' + d.id).attr('stroke', color_list[0]);  
@@ -248,12 +272,20 @@ class CircularView extends Component {
 						.attr('transform', (d, i) => 'translate(' +d.x + ',' 
 									+ d.y + ')');
 
+		// add the petals to the flowers
 		const petals = flowers.selectAll('.petal')
 					.data((d) => this.pie(d.petals))
 					.enter()
-					.append('circle')
+					.append('path')
 					.attr('class', 'petal')
 					.attr('id', (d) => 'petal_'+d.data.id+'_' + d.index)
+					.attr('transform', (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
+					.attr('d', (d) => petal.petalPath(d, this.outerCircleRadius))
+					.style('stroke', (d, i) => 'gray')
+					.attr('stroke-width', function(d) {   
+					})
+					.attr('stroke', function(d) {   
+					})
 					.on("mouseover", function(d, i){
 						tooltip.html('<div>descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
 							'<div>informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
@@ -263,13 +295,8 @@ class CircularView extends Component {
 					.on("mouseout", function(d){
 						tooltip.hide();
 					})
-					.attr('transform', (d) => {var coords = petal.polarToCartesian(d.endAngle, size_petal_arc(1),this.outerCircleRadius, descriptor_size); return 'translate(' +coords.x + ',' 
-									+ coords.y + ')';})
-					.attr('r', (d) => size_petal_radius(d.data.length))
-					.style('stroke', (d, i) => 'gray')
 					.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
-					.style('fill-opacity', (d) => d.data.width);					
-
+					.style('fill-opacity', 0.6);
 
 		// DRAW THE RADIAL BAR CHART
 		for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
@@ -279,9 +306,9 @@ class CircularView extends Component {
 			if(selected_pattern_cnt > 0) {
 				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height);
 				// only show the line pointer (dominating items) when one pattern is selected.
-				// if (selected_pattern_cnt == 1) {
-				// 	draw_line_pointer(descriptor_index, arc_positions_bar_petal);
-				// }
+				if (selected_pattern_cnt == 1) {
+					draw_line_pointer(descriptor_index, arc_positions_bar_petal);
+				}
 			}else{
 				// draw the bar for the default values that show the average of the patterns.
 				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height);
