@@ -18,6 +18,7 @@ const domainSetting = {
 						"picso": {"modes": "3", "cnt": "19"},
 						"nbaplayer": {"modes": "3", "cnt": "20"},
 						"policy": {"modes": "3", "cnt": "36"},
+						"policyKeyword": {"modes": "4", "cnt": "10"},
 						"purchase": {"modes": "4", "cnt": "20"}
 					};
 

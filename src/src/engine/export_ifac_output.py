@@ -98,6 +98,14 @@ class iFacData():
 			policy_group = policy.groupby(self.column)['adoption'].sum()
 			self.hist, self.labels = self.createDataHistogram(policy_group, self.column)
 
+		elif self.domain == "policyKeyword":
+			policy = pd.read_csv("data/policy_keyword.csv")
+			policy = policy[policy.subject_name != "Unknown"]            
+			self.column = ['subject_name', 'adopted_year', 'state_id', 'key']
+			policy_group = policy.groupby(self.column)['val'].sum()
+			self.hist, self.labels = self.createDataHistogram(policy_group, self.column)
+
+
 		elif self.domain == "harvard":
 			harvard = pd.read_csv("/home/xidao/project/hipairfac/output/harvard_data_tensor_students.csv")
 			columns = ['id', 'country', 'student', 'education','days','certified','grade','daysq']
@@ -642,9 +650,9 @@ def generateData():
 	iFac.getFitForRanks(base, trials = nb_trials)
 if __name__ == '__main__':
 	
-	# generateData()
+	generateData()
 	# aggregateAll()
-	generateItemEmbedding()
-	generatePatternEmbedding()
+	# generateItemEmbedding()
+	# generatePatternEmbedding()
 
 

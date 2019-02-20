@@ -13,6 +13,7 @@ import gs from '../../config/_variables.scss'; // gs (=global style)
 import Circos, { SCATTER } from 'react-circos';
 import { Tag, Input, Tooltip, Icon, Button } from 'antd';
 import QueryPanel from 'components/QueryPanel';
+import scrollIntoView from 'scroll-into-view';
 
 const tooltip = d3tooltip(d3);
 
@@ -209,6 +210,36 @@ class CircularView extends Component {
 								}								
 							} else {
 								if (selectedPatterns.length < this.compare_N) {
+
+									// scrollIntoView(document.getElementById("table").querySelector('.pattern_row_'+d.id), {
+									// 	align: {
+									// 		top: document.getElementById( 'table' ).scrollTop(),
+									// 	},
+									// 	block: 'start',inline: "nearest", behavior: 'smooth'
+									// });					
+
+
+									// var scrollToTarget = function(target, containerEl) {
+									// // Moved up here for readability:
+									// 	var isElement = target && target.nodeType === 1,
+									// 		isNumber = Object.prototype.toString.call(target) === '[object Number]';
+
+									// 		if (isElement) {
+									// 			containerEl.scrollTop = target.offsetTop;
+									// 		} else if (isNumber) {
+									// 			containerEl.scrollTop = target;
+									// 		} else if (target === 'bottom') {
+									// 			containerEl.scrollTop = containerEl.scrollHeight - containerEl.offsetHeight;
+									// 		} else if (target === 'top') {
+									// 			containerEl.scrollTop = 0;
+									// 		}
+									// };
+
+									// var scrollableDiv = document.getElementById('table');
+									// var targetElement= document.getElementById("table").querySelector('.pattern_row_'+d.id);
+									// scrollToTarget(targetElement, scrollableDiv);
+
+
 									let petals_path_items = d3.range(descriptor_size).map(function(p){
 										return {
 											'd_flower': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('d'),
@@ -437,7 +468,7 @@ class CircularView extends Component {
 
 			// Add the labels     
 			backdrop.selectAll("text.label_bar" + descriptor_index).remove();
-			var draw_label = false;
+			var draw_label = true;
 			if(draw_label){
 				descriptor_arcs.append('g')
 					.attr('class', 'descriptor_text' + descriptor_index)
@@ -446,7 +477,7 @@ class CircularView extends Component {
 					.append('text')
 					.text((d) => d.key)
 					.attr('transform', (d) => (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'rotate(180)' : 'rotate(0)')
-					.style('font-size', '10px')
+					.style('font-size', '6px')
 					.attr('id', (d) => 'label_' + descriptor_index + '_' + d.key)
 					.attr('class', 'label_bar' + descriptor_index)
 					.attr('alignment-baseline', 'middle');						

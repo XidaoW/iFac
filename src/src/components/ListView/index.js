@@ -15,10 +15,8 @@ import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 import Circos, { SCATTER } from 'react-circos';
-import { Tooltip, Icon } from 'antd';
-import { List, Avatar } from 'antd';
-import { Table, Divider, Tag } from 'antd';
-
+import { Tooltip, Icon, Table, Divider, Tag, List, Avatar } from 'antd';
+import scrollIntoView from 'scroll-into-view';
 
 const tooltip = d3tooltip(d3);
 
@@ -48,7 +46,7 @@ class ListView extends Component {
 
 		// console.log(rowIndex);
 		// console.log(d3.select('circle#pattern_' + rowIndex));
-	}
+	}	
 
 	handleOnMouseEnter(rowIndex){
 		if (!d3.select('#pattern_' + rowIndex).classed('selected')){
@@ -70,7 +68,7 @@ class ListView extends Component {
 					width = +this.layout.svg.width,
 					height = +this.layout.svg.height;
 		console.log(similarPatternToQueries);
-
+		console.log(clickedPatternIdx);
 		
 		const columns = [{
 			title: 'ID',
@@ -143,7 +141,7 @@ class ListView extends Component {
 							onMouseLeave: (event) => {this.handleOnMouseLeave(record.ID)},
 						};
 					}}
-					rowClassName={(record, rowIndex) => 'pattern_row' + record.ID}
+					rowClassName={(record, rowIndex) => 'pattern_row_' + record.ID}
 					columns={columns} 
 					size={"small"}
 					scroll={{ y: 650 }}
