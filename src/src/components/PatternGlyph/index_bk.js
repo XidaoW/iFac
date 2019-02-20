@@ -50,19 +50,17 @@ class PatternGlyph extends Component {
 		this.pie = d3.pie().sort(null).value((d) => 1);
 		const x_offset = width/2,
 			y_offset = height/2;
-
 		// Add the outer circles to the backdrop.
 		const circles = d3.select(svg).selectAll('.pattern_circles_mini')
 						.data([data[idx]])
 						.enter()
 						.append('circle')
 						.attr('class', 'pattern_circles_mini')
-						.attr('r', width/2-1)
+						.attr('r', width/2-2)
 						.attr('fill', '#fc8d12')
-						.attr('stroke', 'grey')
 						.attr('stroke-width', gs.innerCircleStrokeWidth)                
 						.attr('fill-opacity', (d) => d.weight) 
-						.attr('stroke-opacity', 0.3)
+						.attr('stroke-opacity', gs.innerCircleStrokeOpacity)
 						.attr('id', (d) => 'pattern_mini_' + d.id)                
 						.attr('transform', (d, i) => 'translate(' + x_offset + ',' 
 									+ x_offset + ')');
@@ -75,23 +73,18 @@ class PatternGlyph extends Component {
 						.attr('id', (d) => 'flower_mini_' + d.id)
 						.attr('transform', (d, i) => 'translate(' +x_offset + ',' 
 									+ x_offset + ')');
-
-		var size_petal_radius = d3.scaleLinear().domain([0, 1]).range([1, width/4]);
-		var size_petal_arc = d3.scaleLinear().domain([0, 1]).range([0, 2 * Math.PI * width/ descriptor_size]);
 		// add the petals to the flowers
 		const petals = flowers.selectAll('.petal_mini')
 					.data((d) => this.pie(d.petals))
 					.enter()
-					.append('circle')
+					.append('path')
 					.attr('class', 'petal_mini')
 					.attr('id', (d) => 'petal_mini_'+d.data.id+'_' + d.index)
-					.attr('transform', (d) => {var coords = petal.polarToCartesian(d.endAngle, size_petal_arc(0.99),width/4, descriptor_size); return 'translate(' +coords.x + ',' 
-									+ coords.y + ')';})
-					.attr('r', (d) => size_petal_radius(d.data.length))
-					// .attr('d', (d) => {console.log(d); return petal.petalPath(d, width/4)})
+					.attr('transform', (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
+					.attr('d', (d) => petal.petalPath(d, width/4))
 					.style('stroke', (d, i) => 'gray')
 					.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
-					.style('fill-opacity', (d) => d.data.width);
+					.style('fill-opacity', 0.6);
 
 		return (
 			<span>					
