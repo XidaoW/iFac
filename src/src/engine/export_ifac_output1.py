@@ -159,6 +159,8 @@ class iFacData():
 		dstHist = ntfInstance.reconstruct()
 		srcHist = hist
 		diffHist = srcHist - dstHist
+		import pdb
+		pdb.set_trace()
 		diffHistSum = np.sum(diffHist*diffHist)
 		srcHistSum = np.sum(srcHist*srcHist)
 		return diffHistSum/srcHistSum

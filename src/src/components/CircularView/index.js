@@ -196,8 +196,8 @@ class CircularView extends Component {
 						.on("mouseout", function(d){
 							tooltip.hide();
 							if (!d3.select('#pattern_' + d.id).classed('selected')){
-								d3.select('#pattern_' + d.id).attr('stroke-opacity', 0.2);
-								d3.select('#pattern_mini_' + d.id).attr('stroke-opacity', 0.2);
+								d3.select('#pattern_' + d.id).attr('stroke-opacity', 0.3);
+								d3.select('#pattern_mini_' + d.id).attr('stroke-opacity', 0.3);
 							}						
 						})									
 						.on('click', (d) => {
@@ -205,9 +205,11 @@ class CircularView extends Component {
 							if (d3.select('#pattern_' + d.id).classed('selected')) {
 								_self.props.onUnClickPattern(d.id);
 								let cancel_color = d3.select('#pattern_' + d.id).attr('stroke');
-								d3.select('#pattern_' + d.id).classed('selected', false);                                       
-								d3.select('#pattern_' + d.id).attr('stroke', 'none');
-								d3.select('circle#pattern_mini_' + d.id).attr("stroke", "none"); 									
+								d3.select('#pattern_' + d.id).classed('selected', false); 
+								d3.select('#pattern_' + d.id).attr('stroke', 'grey');                                      
+								d3.select('#pattern_' + d.id).attr('stroke-opacity', 0.3);
+								d3.select('#pattern_mini_' + d.id).attr('stroke', 'grey');
+								d3.select('#pattern_mini_' + d.id).attr('stroke-opacity', 0.3);
 								// remove the lines between patterns and the dominating items.
 								for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
 									backdrop.select('path#link_'+descriptor_index).remove();
@@ -232,7 +234,9 @@ class CircularView extends Component {
 									_self.props.onClickPattern(d.id, petals_path_items);
 									d3.select('#pattern_' + d.id).classed('selected', true);							
 									d3.select('#pattern_' + d.id).attr('stroke', color_list[0]);  
-									d3.select('circle#pattern_mini_' + d.id).attr("stroke", color_list[0]); 					
+									d3.select('#pattern_mini_' + d.id).attr("stroke", color_list[0]); 					
+
+
 									color_list.splice(0, 1);
 								}
 							}

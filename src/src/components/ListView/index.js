@@ -50,14 +50,14 @@ class ListView extends Component {
 
 	handleOnMouseEnter(rowIndex){
 		if (!d3.select('#pattern_' + rowIndex).classed('selected')){
-			d3.select('circle#pattern_circles' + rowIndex).attr("stroke", "grey");
-			d3.select('circle#pattern_circles_mini' + rowIndex).attr("stroke", "grey"); 									
+			d3.select('#pattern_' + rowIndex).attr('stroke-opacity', 1); 
+			d3.select('#pattern_mini_' + rowIndex).attr('stroke-opacity', 1); 
 		}					
 	}
 	handleOnMouseLeave(rowIndex){
 		if (!d3.select('#pattern_' + rowIndex).classed('selected')){
-			d3.select('circle#pattern_circles' + rowIndex).attr("stroke", "none"); 
-			d3.select('circle#pattern_circles_mini' + rowIndex).attr("stroke", "none"); 									
+			d3.select('#pattern_' + rowIndex).attr('stroke-opacity', 0.3); 
+			d3.select('#pattern_mini_' + rowIndex).attr('stroke-opacity', 0.3); 
 		}
 	}
 
