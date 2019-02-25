@@ -21,8 +21,21 @@ $processView-individualFairness-width: 20%;
 $processView-individualFairness-height: 80%;
 
 
-$innerCircleRadius: 15;
-$outerCircleRadius: 6;
+	$innerCircleRadius: 15;
+	$outerCircleRadius: 6;
+
+/*
+	for the bubbles
+	$innerCircleRadius: 15;
+	$outerCircleRadius: 6;
+*/
+
+/*
+	for the petals
+	$innerCircleRadius: 25;
+	$outerCircleRadius: 12;
+
+*/
 
 $innerCircleStroke-width: 3;
 $innerCircleStroke-opacity: 1;

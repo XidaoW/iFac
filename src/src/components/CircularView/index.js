@@ -88,7 +88,7 @@ class CircularView extends Component {
 
 		const ButtonGroup = Button.Group;
 
-		var patternEmbedding_original = patternEmbeddings['tsne'];
+		var patternEmbedding_original = patternEmbeddings['sc'];
 		var min_tsne = [d3.min(patternEmbedding_original, (d) => d[0]), d3.min(patternEmbedding_original, (d) => d[1])];
 		var max_tsne = [d3.max(patternEmbedding_original, (d) => d[0]), d3.max(patternEmbedding_original, (d) => d[1])];
 		var size_petal_radius = d3.scaleLinear().domain([0, 1]).range([1, this.outerCircleRadius]);
@@ -147,7 +147,7 @@ class CircularView extends Component {
 			.force("x", d3.forceX(function(d) { return d.x; }).strength(0.1))
 			.force("y", d3.forceY(function(d) { return d.y; }).strength(0.1))
 			.force("collide", d3.forceCollide().radius(function(d){ return d.radius }))
-			.force("manyBody", d3.forceManyBody().strength(-10))
+			.force("manyBody", d3.forceManyBody().strength(-5))
 			.stop();
   		for (var i = 0; i < 50; ++i) simulation.tick();
 			// .force("center", d3.forceCenter((width)/2-(innerRadius)/2, (height)/2-( innerRadius)/2))
@@ -252,12 +252,44 @@ class CircularView extends Component {
 						.attr('transform', (d, i) => 'translate(' +d.x + ',' 
 									+ d.y + ')');
 
-		const petals = flowers.selectAll('.petal')
+		// bubbles
+		var use_bubbles = true;
+		if(use_bubbles){
+			const petals = flowers.selectAll('.petal')
+						.data((d) => this.pie(d.petals))
+						.enter()
+						.append('circle')
+						.attr('class', 'petal')
+						.attr('id', (d) => 'petal_'+d.data.id+'_' + d.index)
+						.on("mouseover", function(d, i){
+							tooltip.html('<div>descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
+								'<div>informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
+								'<div>similarity: ' + d3.format(".0%")(d.data.width) + '</div>');
+							tooltip.show();
+						})
+						.on("mouseout", function(d){
+							tooltip.hide();
+						})
+						.attr('transform', (d) => {var coords = petal.polarToCartesian(d.endAngle, size_petal_arc(1),this.outerCircleRadius, descriptor_size); return 'translate(' +coords.x + ',' 
+										+ coords.y + ')';})
+						.attr('r', (d) => size_petal_radius(d.data.length))
+						.style('stroke', (d, i) => 'gray')
+						.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
+						.style('fill-opacity', (d) => d.data.width);				
+					}else{
+			const petals = flowers.selectAll('.petal')
 					.data((d) => this.pie(d.petals))
 					.enter()
-					.append('circle')
+					.append('path')
 					.attr('class', 'petal')
 					.attr('id', (d) => 'petal_'+d.data.id+'_' + d.index)
+					.attr('transform', (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
+					.attr('d', (d) => petal.petalPath(d, this.outerCircleRadius))
+					.style('stroke', (d, i) => 'gray')
+					.attr('stroke-width', function(d) {   
+					})
+					.attr('stroke', function(d) {   
+					})
 					.on("mouseover", function(d, i){
 						tooltip.html('<div>descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
 							'<div>informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
@@ -267,12 +299,39 @@ class CircularView extends Component {
 					.on("mouseout", function(d){
 						tooltip.hide();
 					})
-					.attr('transform', (d) => {var coords = petal.polarToCartesian(d.endAngle, size_petal_arc(1),this.outerCircleRadius, descriptor_size); return 'translate(' +coords.x + ',' 
-									+ coords.y + ')';})
-					.attr('r', (d) => size_petal_radius(d.data.length))
-					.style('stroke', (d, i) => 'gray')
 					.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
-					.style('fill-opacity', (d) => d.data.width);					
+					.style('fill-opacity', (d) => d.data.width);						
+				}
+				
+
+
+		// original petals
+		// const petals = flowers.selectAll('.petal')
+		// 			.data((d) => this.pie(d.petals))
+		// 			.enter()
+		// 			.append('path')
+		// 			.attr('class', 'petal')
+		// 			.attr('id', (d) => 'petal_'+d.data.id+'_' + d.index)
+		// 			.attr('transform', (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
+		// 			.attr('d', (d) => petal.petalPath(d, this.outerCircleRadius))
+		// 			.style('stroke', (d, i) => 'gray')
+		// 			.attr('stroke-width', function(d) {   
+		// 			})
+		// 			.attr('stroke', function(d) {   
+		// 			})
+		// 			.on("mouseover", function(d, i){
+		// 				tooltip.html('<div>descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
+		// 					'<div>informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
+		// 					'<div>similarity: ' + d3.format(".0%")(d.data.width) + '</div>');
+		// 				tooltip.show();
+		// 			})
+		// 			.on("mouseout", function(d){
+		// 				tooltip.hide();
+		// 			})
+		// 			.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
+		// 			.style('fill-opacity', 0.6);
+
+
 
 
 		// DRAW THE RADIAL BAR CHART
@@ -316,13 +375,27 @@ class CircularView extends Component {
 			 * 
 			 */			
 			if(query_flag){
-				gFlowers.selectAll(".rankText")
-						.data(similarPatternToQueries)
-						.enter()
-						.append('text')
-						.attr('transform', (d, i) => 'translate(' + (data[d.pattern_idx].x- 3) + ',' 
-									+ (data[d.pattern_idx].y+3) + ')')
-	                	.text((d) => (d.rank+1).toString());
+				console.log(similarPatternToQueries);
+				var min_relevance = d3.min(similarPatternToQueries, (d) => d.relevance_score);
+				var max_relevance = d3.max(similarPatternToQueries, (d) => d.relevance_score);
+				var fill_scale = d3.scaleLinear().domain([min_relevance, max_relevance]).range([0, 1]);
+				for(let similarIndex = 0; similarIndex < similarPatternToQueries.length; similarIndex++){
+					// similarPatternToQueries[similarIndex]
+					gFlowers.select(".pattern_circles#pattern_" + similarPatternToQueries[similarIndex].pattern_idx)
+							.attr('fill-opacity', fill_scale(similarPatternToQueries[similarIndex].relevance_score));
+					d3.select(".pattern_circles_mini#pattern_mini_" + similarPatternToQueries[similarIndex].pattern_idx)
+							.attr('fill-opacity', fill_scale(similarPatternToQueries[similarIndex].relevance_score));
+
+				}
+
+				// gFlowers.selectAll(".rankText")
+				// 		.data(similarPatternToQueries)
+				// 		.enter()
+				// 		.append('text')
+				// 		.attr('transform', (d, i) => 'translate(' + (data[d.pattern_idx].x- 3) + ',' 
+				// 					+ (data[d.pattern_idx].y+3) + ')')
+	   //              	.text((d) => (d.rank+1).toString());
+
 			}else{
 				d3.select(".rankText").remove();
 			}
