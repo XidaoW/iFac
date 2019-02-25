@@ -48,6 +48,16 @@ export function petalPath(d, outerCircleRadius, descriptor_size) {
 		c1 = {x: outerCircleRadius + r / 2, y: s.y + size_petal_curve(d.data.length)},
 		c2 = {x: outerCircleRadius + r / 2, y: e.y - size_petal_curve(d.data.length)};
 
+	// fixing radius
+	// var angle = (d.endAngle - d.startAngle) / 2,
+	// 	s = polarToCartesian(-angle, size_petal_arc(0.8), outerCircleRadius, descriptor_size),
+	// 	e = polarToCartesian(angle, size_petal_arc(0.8), outerCircleRadius, descriptor_size),
+	// 	c = polarToCartesian(0, size_petal_arc(0.9), outerCircleRadius, descriptor_size),
+	// 	r = size_petal_radius(1),
+	// 	m = petalRadius(r, outerCircleRadius),
+	// 	c1 = {x: outerCircleRadius + r / 2, y: s.y + size_petal_curve(d.data.length)},
+	// 	c2 = {x: outerCircleRadius + r / 2, y: e.y - size_petal_curve(d.data.length)};
+
 	return "M" + s.x + "," + s.y + "Q" + c1.x + "," + c1.y + " " + m.x + "," + m.y +
 	"Q" + c2.x + "," + c2.y + " " + e.x + "," + e.y + "Q" + c.x + "," +  c.y +" " + s.x + "," + s.y + "Z";
 

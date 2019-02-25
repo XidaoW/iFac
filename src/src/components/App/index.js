@@ -553,7 +553,7 @@ class App extends Component {
 		similarPatternToQueries.sort(function(first, second) {
 			return second[1] - first[1];
 		}).slice(0, top_k);
-		similarPatternToQueries = d3.range(top_k).map(function(i){
+		similarPatternToQueries = d3.range(similarPatternToQueries.length).map(function(i){
 			return {
 					"rank": i,
 					"pattern_idx": similarPatternToQueries[i][0],
