@@ -142,14 +142,13 @@ class CircularView extends Component {
 				d.radius = parseInt(gs.innerCircleRadius);
 			}
 		);
-		// console.log(data);				
 		var simulation = d3.forceSimulation(data)
-			.force("x", d3.forceX(function(d) { return d.x; }).strength(0.1))
-			.force("y", d3.forceY(function(d) { return d.y; }).strength(0.1))
-			.force("collide", d3.forceCollide().radius(function(d){ return d.radius }))
+			.force("x", d3.forceX(function(d) { return d.x; }).strength(0.05))
+			.force("y", d3.forceY(function(d) { return d.y; }).strength(0.05))
+			.force("collide", d3.forceCollide().radius(function(d){ return 1.2*d.radius }))
 			.force("manyBody", d3.forceManyBody().strength(-5))
 			.stop();
-  		for (var i = 0; i < 50; ++i) simulation.tick();
+  		for (var i = 0; i < 2000; ++i) simulation.tick();
 			// .force("center", d3.forceCenter((width)/2-(innerRadius)/2, (height)/2-( innerRadius)/2))
 
 		// draw the backdrop
@@ -325,46 +324,15 @@ class CircularView extends Component {
 						})
 						.on("mouseout", function(d){
 							tooltip.hide();
-						})
-						.attr('transform', (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
-						.attr('cx', (d) => {var coords = petal.polarToCartesian(d.endAngle, size_petal_arc(1),this.outerCircleRadius, descriptor_size); return coords.x;})
-						.attr('cy', (d) => {var coords = petal.polarToCartesian(d.endAngle, size_petal_arc(1),this.outerCircleRadius, descriptor_size); return coords.y;})
-						.attr('rx', (d) => size_petal_radius(d.data.width))
+						})						
+						.attr('transform', (d) => petal.rotateTransform((d.startAngle + d.endAngle) / 2 , size_petal_arc(1),this.outerCircleRadius, descriptor_size))						
+						.attr('rx', (d) => size_petal_radius(1))
 						.attr('ry', (d) => size_petal_radius(d.data.length))						
 						.style('stroke', (d, i) => 'gray')
 						.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
-						.style('fill-opacity', (d) => color_threshold(d.data.width));			
+						.style('fill-opacity', (d) => color_threshold(d.data.width));
 		}
 				
-
-
-		// original petals
-		// const petals = flowers.selectAll('.petal')
-		// 			.data((d) => this.pie(d.petals))
-		// 			.enter()
-		// 			.append('path')
-		// 			.attr('class', 'petal')
-		// 			.attr('id', (d) => 'petal_'+d.data.id+'_' + d.index)
-		// 			.attr('transform', (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
-		// 			.attr('d', (d) => petal.petalPath(d, this.outerCircleRadius))
-		// 			.style('stroke', (d, i) => 'gray')
-		// 			.attr('stroke-width', function(d) {   
-		// 			})
-		// 			.attr('stroke', function(d) {   
-		// 			})
-		// 			.on("mouseover", function(d, i){
-		// 				tooltip.html('<div>descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
-		// 					'<div>informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
-		// 					'<div>similarity: ' + d3.format(".0%")(d.data.width) + '</div>');
-		// 				tooltip.show();
-		// 			})
-		// 			.on("mouseout", function(d){
-		// 				tooltip.hide();
-		// 			})
-		// 			.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
-		// 			.style('fill-opacity', 0.6);
-
-
 
 
 		// DRAW THE RADIAL BAR CHART
