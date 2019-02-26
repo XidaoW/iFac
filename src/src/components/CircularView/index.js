@@ -253,7 +253,8 @@ class CircularView extends Component {
 									+ d.y + ')');
 
 		// bubbles
-		var use_bubbles = true;
+		var use_bubbles = false,
+			use_petal = false;
 		if(use_bubbles){
 			const petals = flowers.selectAll('.petal')
 						.data((d) => this.pie(d.petals))
@@ -276,7 +277,7 @@ class CircularView extends Component {
 						.style('stroke', (d, i) => 'gray')
 						.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
 						.style('fill-opacity', (d) => d.data.width);				
-					}else{
+		}else if(use_petal){
 			const petals = flowers.selectAll('.petal')
 					.data((d) => this.pie(d.petals))
 					.enter()
@@ -301,7 +302,39 @@ class CircularView extends Component {
 					})
 					.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
 					.style('fill-opacity', (d) => d.data.width);						
-				}
+		}else{
+			// var min_width = d3.min(data, (d) => {console.log(d); return d.data.width});
+			// var max_width = d3.max(data, (d) => d.data.width);
+
+			var color_threshold = d3.scaleQuantize()
+				.domain([0, 1]).range([0, 1]);
+
+			// width => similarity
+			// height => informativeness
+			const petals = flowers.selectAll('.petal')
+						.data((d) => this.pie(d.petals))
+						.enter()
+						.append('ellipse')
+						.attr('class', 'petal')
+						.attr('id', (d) => 'petal_'+d.data.id+'_' + d.index)
+						.on("mouseover", function(d, i){
+							tooltip.html('<div>descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
+								'<div>informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
+								'<div>similarity: ' + d3.format(".0%")(d.data.width) + '</div>');
+							tooltip.show();
+						})
+						.on("mouseout", function(d){
+							tooltip.hide();
+						})
+						.attr('transform', (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
+						.attr('cx', (d) => {var coords = petal.polarToCartesian(d.endAngle, size_petal_arc(1),this.outerCircleRadius, descriptor_size); return coords.x;})
+						.attr('cy', (d) => {var coords = petal.polarToCartesian(d.endAngle, size_petal_arc(1),this.outerCircleRadius, descriptor_size); return coords.y;})
+						.attr('rx', (d) => size_petal_radius(d.data.width))
+						.attr('ry', (d) => size_petal_radius(d.data.length))						
+						.style('stroke', (d, i) => 'gray')
+						.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
+						.style('fill-opacity', (d) => color_threshold(d.data.width));			
+		}
 				
 
 
