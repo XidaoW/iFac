@@ -128,17 +128,24 @@ export function flowerSum(d) {
 
 
 export function rotateAngle(angle) {
+	// console.log(angle / Math.PI * 180);
   return "rotate(" + (angle / Math.PI * 180 ) + ")";
 }
 
-export function polarToCartesian(angle, arc_length, outerCircleRadius, descriptor_size) {
+export function rotateTransform(degree, arc_length, outerCircleRadius, descriptor_size){
+	var coords = polarToCartesian(degree, arc_length, outerCircleRadius, descriptor_size);
+	return 'translate(' +coords.x + ',' + coords.y + ') ' + rotateAngle(degree);
+}
+
+
+export function polarToCartesian(degree, arc_length, outerCircleRadius, descriptor_size) {
 	
-	var angle_arc = arc_length / (2 * Math.PI * outerCircleRadius / descriptor_size) * angle
+	// var angle_arc = arc_length / (2 * Math.PI * outerCircleRadius / descriptor_size) * angle
 	return {
 		// start and end of the petal
 		// size of the petal
-		x: Math.cos(angle) * outerCircleRadius,
-		y: Math.sin(angle) * outerCircleRadius
+		x: Math.cos(degree) * outerCircleRadius,
+		y: Math.sin(degree) * outerCircleRadius
 	};
 };
 
