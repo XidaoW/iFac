@@ -28,7 +28,7 @@ const domainSetting = {
 class App extends Component {
 	constructor(props) {
 		super(props);
-		const domain = "nbaplayer";
+		const domain = "purchase";
 		const [factors_data, metrics, itemEmbeddings, patternEmbeddings] = this.loadDefaultDataset(domain);
 		this.state = {
 			factors_data: factors_data.data,
