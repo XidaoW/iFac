@@ -2,8 +2,10 @@ import React, { Component } from 'react';
 import * as d3 from 'd3';
 import Overview from 'components/Overview';
 import CircularView from 'components/CircularView';
-import DetailView from 'components/DetailView';
+// import DetailView from 'components/DetailView';
+import TreeMapView from 'components/TreeMapView';
 import ListView from 'components/ListView';
+
 // import InspectionView from 'components/InspectionView';
 import ControlView from 'components/ControlView';
 import { extractItemCoordinates, extractPetalBarCoordinates } from '../../lib/extract_coordinates.js'
@@ -26,7 +28,7 @@ const domainSetting = {
 class App extends Component {
 	constructor(props) {
 		super(props);
-		const domain = "nbaplayer";
+		const domain = "purchase";
 		const [factors_data, metrics, itemEmbeddings, patternEmbeddings] = this.loadDefaultDataset(domain);
 		this.state = {
 			factors_data: factors_data.data,
@@ -553,7 +555,7 @@ class App extends Component {
 		similarPatternToQueries.sort(function(first, second) {
 			return second[1] - first[1];
 		}).slice(0, top_k);
-		similarPatternToQueries = d3.range(top_k).map(function(i){
+		similarPatternToQueries = d3.range(similarPatternToQueries.length).map(function(i){
 			return {
 					"rank": i,
 					"pattern_idx": similarPatternToQueries[i][0],
@@ -878,11 +880,11 @@ class App extends Component {
 						similarPatternToQueries={similarPatternToQueries}
 						onAddingPattern={this.handleAddingPattern}					
 			  />  
-				<DetailView
+				<TreeMapView
 					bar_data={bar_data}				
 					selectedPatterns={selectedPatterns}
 					components_cnt={components_cnt}
-				/>
+				/>						  
 			</div>
 		</div>
 	  </div>
