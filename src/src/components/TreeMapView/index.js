@@ -7,6 +7,7 @@ import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 import { Tooltip, Icon } from 'antd';
+import {transition} from "d3-transition";
 
 
 class TreeMapView extends Component {
@@ -16,10 +17,10 @@ class TreeMapView extends Component {
 
 		this.layout = {
 			width: 250,
-			height: 1000,
+			height: 850,
 			svg: {
 				width: 250, // 90% of whole layout
-				height: 1000 // 100% of whole layout
+				height: 850 // 100% of whole layout
 			},
 			detailView: {
 				margin: {
@@ -30,9 +31,9 @@ class TreeMapView extends Component {
 				}
 			}			
 		};
-	  	this.detailViewMarginTop = gs.detailViewMarginTop;
+		this.detailViewMarginTop = gs.detailViewMarginTop;
 		this.detailViewMarginBottom = gs.detailViewMarginBottom;
-	  	this.detailViewMarginLeft = gs.detailViewMarginLeft;
+		this.detailViewMarginLeft = gs.detailViewMarginLeft;
 		this.detailViewMarginRight = gs.detailViewMarginRight;
 		this.backgroundBarOpacity = gs.detailViewBKBarOpacity;
 		this.foregroundBarOpacity = gs.detailViewFGBarOpacity;
@@ -42,233 +43,230 @@ class TreeMapView extends Component {
 
 	render() {
 		const { bar_data, selectedPatterns,components_cnt } = this.props;
+	var cur_data = Object.keys(bar_data).map((d) => bar_data[d][0])
+	var test_data = d3.nest().key((d) => d.key).entries(cur_data)
+	console.log(test_data);
 
-    const data = require("../../data/imports.json");
+	const data = require("../../data/imports.json");
 
-    const svg = new ReactFauxDOM.Element('svg');
-		svg.setAttribute('width', this.layout.svg.width);
-		svg.setAttribute('height', this.layout.svg.height);
+  //   const svg = new ReactFauxDOM.Element('svg');
+		// svg.setAttribute('width', this.layout.svg.width);
+		// svg.setAttribute('height', this.layout.svg.height);
 
-		var margin = { top: 15, right: 15, bottom: 40, left: 60 }
-		var width = 250 - margin.left - margin.right
-		var height = 1000 - margin.top - margin.bottom
+	var margin = { top: 15, right: 15, bottom: 40, left: 60 }
+	var width = this.layout.svg.width - margin.left - margin.right
+	var height = this.layout.svg.height - margin.top - margin.bottom
+	var svg = d3.select("div#content")
+		.append('svg')
+		.attr('width', width + margin.left + margin.right)
+		.attr('height', height + margin.top + margin.bottom)
+		.append('g')
+		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+
+
 
 		var orderedContinents = ['Asia', 'North America', 'Europe', 'South America', 'Africa', 'Australia']
 		var color = d3.scaleOrdinal()
-		    .domain(orderedContinents)
-		    .range(['#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854', '#ffd92f'])
+			.domain(orderedContinents)
+			.range(['#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854', '#ffd92f'])
 
 		var dollarFormat = d3.format('$,')
 		var tickFormat = function (n) {
-		    return n === 0 ? '$0'
-		        : n < 1000000 ? dollarFormat(n / 1000) + ' billion'
-		            : dollarFormat(n / 1000000) + ' trillion'
+			return n === 0 ? '$0'
+				: n < 1000000 ? dollarFormat(n / 1000) + ' billion'
+					: dollarFormat(n / 1000000) + ' trillion'
 		}
 
 		var options = {
-		    key: 'value',
-		    country: null
+			key: 'value',
+			country: null
 		}
+
+
 		initialize(data);
+
 
 		function initialize(data) {
 
-		  var root = d3.hierarchy(data).sum(function (d) { return d['value'] })
-		  var root = d3.hierarchy(data)
+			var root = d3.hierarchy(data).sum(function (d) { return d['value'] })
+			root.children.sort(function (a, b) { return a.data.year - b.data.year })
 
-      root.children.sort(function (a, b) { return a.data.year - b.data.year })
+			var x0 = d3.scaleBand()
+				.range([0, width])
+				.padding(0.15)
 
-      var g = d3.select(svg)
-          .append('g')
-          .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+			var x1 = d3.scaleBand()
+				.domain(['Imports', 'Exports'])
+				.paddingInner(0.1)
 
-      var x0 = d3.scaleBand()
-          .range([0, width])
-          .padding(0.15)
+			var y = d3.scaleLinear()
+				.range([0, height])
 
-      var x1 = d3.scaleBand()
-          .domain(['Imports', 'Exports'])
-          .paddingInner(0.1)
+			var x0Axis = d3.axisBottom()
+				.scale(x0)
+				.tickSize(0)
 
-      var y = d3.scaleLinear()
-          .range([0, height])
+			var x1Axis = d3.axisBottom()
+				.scale(x1)
 
-      var x0Axis = d3.axisBottom()
-          .scale(x0)
-          .tickSize(0)
+			var yAxis = d3.axisLeft()
+				.tickSize(-width)
+				.tickFormat(tickFormat)
 
-      var x1Axis = d3.axisBottom()
-          .scale(x1)
+			var gx0 = svg.append('g')
+				.attr('class', 'x0 axis')
+				.attr('transform', 'translate(0,' + (height + 22) + ')')
 
-      var yAxis = d3.axisLeft()
-          .tickSize(-width)
-          .tickFormat(tickFormat)
-
-      var gx0 = g.append('g')
-          .attr('class', 'x0 axis')
-          .attr('transform', 'translate(0,' + (height + 22) + ')')
-
-      var gy = g.append('g')
-          .attr('class', 'y axis')
+			var gy = svg.append('g')
+				.attr('class', 'y axis')
 
 
-      update('value');
 
-      function update(key) {
-          root.sum(function (d) { return d[key] })
+			update();
 
-          var yearData = root.children
-          var typeData = d3.merge(yearData.map(function (d) { return d.children }))
 
-          x0.domain(yearData.map(function (d) { return d.data.year }).sort())
-          x1.rangeRound([0, x0.bandwidth()])
-          y.domain([0, d3.max(typeData.map(function (d) { return d.value }))]).nice()
+			function sum(d) {
+				return !options.country || options.country === d.country ? d['value'] : 0
+			}
 
-          // We use a copied Y scale to invert the range for display purposes
-          yAxis.scale(y.copy().range([height, 0]))
+			function update() {
+				root.sum(sum)
+				// root.sum(function (d) { return d[key] })
+				var t = d3.transition()
 
-          gx0.call(x0Axis)
-          gy.call(yAxis)
+				var yearData = root.children
+				var typeData = d3.merge(yearData.map(function (d) { return d.children }))
 
-          var t = d3.transition()
+				x0.domain(yearData.map(function (d) { return d.data.year }).sort())
+				x1.rangeRound([0, x0.bandwidth()])
+				y.domain([0, d3.max(typeData.map(function (d) { return d.value }))]).nice()
 
-          var years = g.selectAll('.year')
-              .data(root.children, function (d) { return d.data.year })
+				// We use a copied Y scale to invert the range for display purposes
+				yAxis.scale(y.copy().range([height, 0]))
 
-          var enterYears = years.enter().append('g')
-              .attr('class', 'year')
+				gx0.call(x0Axis)
+				gy.call(yAxis)
 
-          enterYears.append('g')
-              .attr('class', 'x1 axis')
-              .attr('transform', 'translate(0,' + height + ')')
-              .call(x1Axis)
 
-          years = years.merge(enterYears)
-              .attr('transform', function (d) {
-                  return 'translate(' + x0(d.data.year) + ',0)'
-              })
+				var years = svg.selectAll('.year')
+					.data(root.children, function (d) { return d.data.year })
 
-          var types = years.selectAll('.type')
-              .data(function (d) { return d.children },
-                    function (d) { return d.data.type })
-              .each(function (d) {
-                  // UPDATE
-                  // The copied branches are orphaned from the larger hierarchy, and must be
-                  // updated separately (see note at L152).
-                  d.treemapRoot.sum(function (d) { return d[key] })
-                  d.treemapRoot.children.forEach(function (d) {
-                      d.sort(function (a, b) { return b.value - a.value })
-                  })
-              })
+				var enterYears = years.enter().append('g')
+					.attr('class', 'year')
 
-          types = types.enter().append('g')
-              .attr('class', 'type')
-              .attr('transform', function (d) {
-                  return 'translate(' + x1(d.data.type) + ',' + (height - y(d.value)) + ')'
-              })
-              .each(function (d) {
-                  // ENTER
-                  // Note that we can use .each on selections as a way to perform operations
-                  // at a given depth of the hierarchy tree.
-                  d.children.sort(function (a, b) {
-                      return orderedContinents.indexOf(b.data.continent) -
-                          orderedContinents.indexOf(a.data.continent)
-                  })
-                  d.children.forEach(function (d) {
-                      d.sort(function (a, b) { return b.value - a.value })
-                  })
-                  d.treemap = d3.treemap().tile(d3.treemapResquarify)
+				enterYears.append('g')
+					.attr('class', 'x1 axis')
+					.attr('transform', 'translate(0,' + height + ')')
+					.call(x1Axis)
 
-                  // The treemap layout must be given a root node, so we make a copy of our
-                  // child node, which creates a new tree from the branch.
-                  d.treemapRoot = d.copy()
-              })
-              .merge(types)
-              .each(function (d) {
-                  // UPDATE + ENTER
-                  d.treemap.size([x1.bandwidth(), y(d.value)])(d.treemapRoot)
-              })
+				years = years.merge(enterYears)
+					.attr('transform', function (d) {
+						return 'translate(' + x0(d.data.year) + ',0)'
+				})
 
-          // d3.hierarchy gives us a convenient way to access the parent datum. This line
-          // adds an index property to each node that we'll use for the transition delay.
-          root.each(function (d) { d.index = d.parent ? d.parent.children.indexOf(d) : 0 })
+				var types = years.selectAll('.type')
+					.data(function (d) { return d.children },
+						function (d) { return d.data.type })
+					.each(function (d) {
+						// UPDATE
+						// The copied branches are orphaned from the larger hierarchy, and must be
+						// updated separately (see note at L152).
+						d.treemapRoot.sum(sum)
+						d.treemapRoot.children.forEach(function (d) {
+						d.sort(function (a, b) { return b.value - a.value })
+					})
+				})
 
-          types.transition(t)
-              .delay(function (d, i) { return d.parent.index * 150 + i * 50 })
-              .attr('transform', function (d) {
-                  return 'translate(' + x1(d.data.type) + ',' + (height - y(d.value)) + ')'
-              })
+				types = types.enter().append('g')
+					.attr('class', 'type')
+					.attr('transform', function (d) {
+						return 'translate(' + x1(d.data.type) + ',' + height + ')'
+					})
+					.each(function (d) {
+						// ENTER
+						// Note that we can use .each on selections as a way to perform operations
+						// at a given depth of the hierarchy tree.
+						d.children.sort(function (a, b) {
+							return orderedContinents.indexOf(b.data.continent) -
+							orderedContinents.indexOf(a.data.continent)
+						})
+						d.children.forEach(function (d) {
+							d.sort(function (a, b) { return b.value - a.value })
+						})
+						d.treemap = d3.treemap().tile(d3.treemapResquarify)
 
-          var continents = types.selectAll('.continent')
-              // Note that we're using our copied branch.
-              .data(function (d) { return d.treemapRoot.children },
-                    function (d) { return d.data.continent })
+						// The treemap layout must be given a root node, so we make a copy of our
+						// child node, which creates a new tree from the branch.
+						d.treemapRoot = d.copy()
+					})
+					.merge(types)
+					.each(function (d) {
+						// UPDATE + ENTER
+						d.treemap.size([x1.bandwidth(), y(d.value)])(d.treemapRoot)
+					})
 
-          continents = continents.enter().append('g')
-              .attr('class', 'continent')
-              .merge(continents)
+				// d3.hierarchy gives us a convenient way to access the parent datum. This line
+				// adds an index property to each node that we'll use for the transition delay.
+				root.each(function (d) { d.index = d.parent ? d.parent.children.indexOf(d) : 0 })
 
-          var countries = continents.selectAll('.country')
-              .data(function (d) { return d.children },
-                    function (d) { return d.data.country })
+				types.transition()
+					.delay(function (d, i) { return d.parent.index * 150 + i * 50 })
+					.attr('transform', function (d) {
+						return 'translate(' + x1(d.data.type) + ',' + (height - y(d.value)) + ')'
+				})
 
-          var enterCountries = countries.enter().append('rect')
-              .attr('class', 'country')
-              .attr('x', function (d) { return d.x0 })
-              .attr('width', function (d) { return d.x1 - d.x0 })
-              .attr('y', function (e) { return e.y0 })
-              .attr('height', function (d) { return d.y1 - d.y0 })
-              .style('fill', function (d) { return color(d.parent.data.continent) })
+				var continents = types.selectAll('.continent')
+					// Note that we're using our copied branch.
+					.data(function (d) { return d.treemapRoot.children },
+					function (d) { return d.data.continent })
 
-          countries = countries.merge(enterCountries)
+				continents = continents.enter().append('g')
+					.attr('class', 'continent')
+					.merge(continents)
 
-          enterCountries
-              .on('mouseover', function (d) {
-                  g.classed('hover-active', true)
-                  countries.classed('hover', function (e) {
-                      return e.data.country === d.data.country
-                  })
-              })
-              .on('mouseout', function () {
-                  g.classed('hover-active', false)
-                  countries.classed('hover', false)
-              })
-              .append('title')
-              .text(function (d) { return d.data.country })
+				var countries = continents.selectAll('.country')
+					.data(function (d) { return d.children },
+						function (d) { return d.data.country })
 
-              console.log(countries);
-          countries.filter(function (d) { return d.data.country === options.country })
-              .each(function (d) { d3.select(this.parentNode).raise() })
-              .raise()
+				var enterCountries = countries.enter().append('rect')
+					.attr('class', 'country')
+					.attr('x', function (d) { return d.x0 })
+					.attr('width', function (d) { return d.x1 - d.x0 })
+					.attr('y', function (e) { return e.y0 })
+					.attr('height', function (d) { return d.y1 - d.y0 })
+					.style('fill', function (d) { return color(d.parent.data.continent) })
 
-          // countries
-          //     .transition(t)
-          //     .attr('x', function (d) { return d.value ? d.x0 : x1.bandwidth() / 2 })
-          //     .attr('width', function (d) { return d.value ? d.x1 - d.x0 : 0 })
-          //     .attr('y', function (d) { return d.value ? d.y0 : d.parent.parent.y1 / 2 })
-          //     .attr('height', function (d) { return d.value ? d.y1 - d.y0 : 0 })
+				countries = countries.merge(enterCountries)
 
-          countries
-            .transition(t)
-            .attr('x', function (d) { return d.x0 })
-            .attr('width', function (d) { return d.x1 - d.x0 })
-            .attr('y', function (d) { return d.y0 })
-            .attr('height', function (d) { return d.y1 - d.y0 })
+				enterCountries
+					.on('mouseover', function (d) {
+						svg.classed('hover-active', true)                  
+						countries.classed('hover', function (e) {
+						return e.data.country === d.data.country
+						})
+					})
+					.on('mouseout', function () {                
+						svg.classed('hover-active', false)
+						countries.classed('hover', false)
+					})
+					.on('click', function (d) {
+						options.country = options.country === d.data.country ? null : d.data.country                              
+						update()
+					})              
+					.append('title')
+					.text(function (d) { return d.data.country })
 
-          // continents.selectAll('.country')
-          //     .each(function(d, i){
-          //       console.log('dd')
-          //       d3.select(this)
-          //         .transition(t)
-          //         .attr('x', function (e) { return e.x0 })
-          //         .attr('width', function (e) { return e.x1 - e.x0 })
-          //         .attr('y', function (e) { return e.y0 })
-          //         .attr('height', function (e) { 
-          //           console.log(e.y1, e.y0);
-          //           return e.y1 - e.y0 })
-          //       console.log('dd')
-          //     });
-      }
+				countries.filter(function (d) { return d.data.country === options.country })
+					.each(function (d) { console.log(d); d3.select(this.parentNode).raise() })
+					.raise()
+				countries
+					.transition()
+					.attr('x', function (d) { return d.value ? d.x0 : x1.bandwidth() / 2 })
+					.attr('width', function (d) { return d.value ? d.x1 - d.x0 : 0 })
+					.attr('y', function (d) { return d.value ? d.y0 : d.parent.parent.y1 / 2 })
+					.attr('height', function (d) { return d.value ? d.y1 - d.y0 : 0 })
+
+			}
 		}
 		  
 
@@ -277,10 +275,12 @@ class TreeMapView extends Component {
 					<div className={index.title}>
 						Content
 						<Tooltip title="Pattern narrative as word clouds">
-	    					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
-	  					</Tooltip>																							
+							<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
+						</Tooltip>																							
 					</div>
-					{svg.toReact()}
+				  <div id="content">
+				  
+				  </div>					
 				</div>
 		);
 
