@@ -738,6 +738,7 @@ class CircularView extends Component {
 			return (d.id >= components_cnt)? barFillOpacityConst : 1;
 		};
 
+
 		return (
 			<div className={styles.CircularOverview}>					
 				<div className={index.title}>Circular View

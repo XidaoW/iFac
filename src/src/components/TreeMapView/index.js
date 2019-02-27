@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import * as d3 from 'd3';
 import * as cloud from 'd3-cloud';
 import ReactFauxDOM from 'react-faux-dom';
-
+import d3tooltip from 'd3-tooltip';
 import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
@@ -17,10 +17,10 @@ class TreeMapView extends Component {
 
 		this.layout = {
 			width: 250,
-			height: 850,
+			height: 800,
 			svg: {
 				width: 250, // 90% of whole layout
-				height: 850 // 100% of whole layout
+				height: 800 // 100% of whole layout
 			},
 			detailView: {
 				margin: {
@@ -42,20 +42,32 @@ class TreeMapView extends Component {
 
 
 	render() {
-		const { bar_data, selectedPatterns,components_cnt } = this.props;
-	var cur_data = Object.keys(bar_data).map((d) => bar_data[d][0])
-	var test_data = d3.nest().key((d) => d.key).entries(cur_data)
-	console.log(test_data);
+		const { bar_data, selectedPatterns, components_cnt } = this.props;
+	// var cur_data = Object.keys(bar_data).map((d) => {}bar_data[d][0])
+	var selectedPatterns_cur;
+	if(selectedPatterns.length == 0){
+		selectedPatterns_cur = [components_cnt]
+	}else{
+		selectedPatterns_cur = selectedPatterns
+	}
+	var cur_data = {children: selectedPatterns_cur.map((idx) => {
+		return {pattern: idx, children: [{type: "Imports", children: 
+			Object.keys(bar_data).map((d, i) => {
+			return {descriptor: i, children: 
+				Object.keys(bar_data[d][idx]).filter((d) => d !== "id").map((f) => {
+					return {item: f, value: bar_data[d][idx][f]}
+				})
+			}
+		})
+		}]}		
+	})};
 
-	const data = require("../../data/imports.json");
-
-  //   const svg = new ReactFauxDOM.Element('svg');
-		// svg.setAttribute('width', this.layout.svg.width);
-		// svg.setAttribute('height', this.layout.svg.height);
+	const tooltip = d3tooltip(d3);
 
 	var margin = { top: 15, right: 15, bottom: 40, left: 60 }
 	var width = this.layout.svg.width - margin.left - margin.right
 	var height = this.layout.svg.height - margin.top - margin.bottom
+	d3.select("div#content").selectAll('svg').remove()
 	var svg = d3.select("div#content")
 		.append('svg')
 		.attr('width', width + margin.left + margin.right)
@@ -64,39 +76,40 @@ class TreeMapView extends Component {
 		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
 
-
-		var orderedContinents = ['Asia', 'North America', 'Europe', 'South America', 'Africa', 'Australia']
+		var color_list = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
+		var orderedDescriptors = Object.keys(bar_data)
 		var color = d3.scaleOrdinal()
-			.domain(orderedContinents)
-			.range(['#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3', '#a6d854', '#ffd92f'])
+			.domain(orderedDescriptors)
+			.range(color_list)
 
 		var dollarFormat = d3.format('$,')
-		var tickFormat = function (n) {
-			return n === 0 ? '$0'
-				: n < 1000000 ? dollarFormat(n / 1000) + ' billion'
-					: dollarFormat(n / 1000000) + ' trillion'
-		}
+		// var tickFormat = function (n) {
+		// 	return n === 0 ? '$0'
+		// 		: n < 1000000 ? dollarFormat(n / 1000) + ' billion'
+		// 			: dollarFormat(n / 1000000) + ' trillion'
+		// }
 
 		var options = {
 			key: 'value',
-			country: null
+			item: null
 		}
 
 
-		initialize(data);
+		initialize(cur_data);
 
 
 		function initialize(data) {
-
+			console.log(data);
 			var root = d3.hierarchy(data).sum(function (d) { return d['value'] })
-			root.children.sort(function (a, b) { return a.data.year - b.data.year })
+			console.log(root);
+			root.children.sort(function (a, b) { return a.data.pattern - b.data.pattern })
 
 			var x0 = d3.scaleBand()
 				.range([0, width])
 				.padding(0.15)
 
 			var x1 = d3.scaleBand()
-				.domain(['Imports', 'Exports'])
+				.domain(['Imports'])
 				.paddingInner(0.1)
 
 			var y = d3.scaleLinear()
@@ -110,8 +123,8 @@ class TreeMapView extends Component {
 				.scale(x1)
 
 			var yAxis = d3.axisLeft()
-				.tickSize(-width)
-				.tickFormat(tickFormat)
+				// .tickSize(-width)
+				// .tickFormat(tickFormat)
 
 			var gx0 = svg.append('g')
 				.attr('class', 'x0 axis')
@@ -126,7 +139,7 @@ class TreeMapView extends Component {
 
 
 			function sum(d) {
-				return !options.country || options.country === d.country ? d['value'] : 0
+				return !options.item || options.item === d.item ? d['value'] : 0
 			}
 
 			function update() {
@@ -134,10 +147,10 @@ class TreeMapView extends Component {
 				// root.sum(function (d) { return d[key] })
 				var t = d3.transition()
 
-				var yearData = root.children
-				var typeData = d3.merge(yearData.map(function (d) { return d.children }))
+				var patternData = root.children
+				var typeData = d3.merge(patternData.map(function (d) { return d.children }))
 
-				x0.domain(yearData.map(function (d) { return d.data.year }).sort())
+				x0.domain(patternData.map(function (d) { return d.data.pattern }).sort())
 				x1.rangeRound([0, x0.bandwidth()])
 				y.domain([0, d3.max(typeData.map(function (d) { return d.value }))]).nice()
 
@@ -148,23 +161,23 @@ class TreeMapView extends Component {
 				gy.call(yAxis)
 
 
-				var years = svg.selectAll('.year')
-					.data(root.children, function (d) { return d.data.year })
+				var patterns = svg.selectAll('.pattern')
+					.data(root.children, function (d) { return d.data.pattern })
 
-				var enterYears = years.enter().append('g')
-					.attr('class', 'year')
+				var enterPatterns = patterns.enter().append('g')
+					.attr('class', 'pattern')
 
-				enterYears.append('g')
+				enterPatterns.append('g')
 					.attr('class', 'x1 axis')
 					.attr('transform', 'translate(0,' + height + ')')
 					.call(x1Axis)
 
-				years = years.merge(enterYears)
+				patterns = patterns.merge(enterPatterns)
 					.attr('transform', function (d) {
-						return 'translate(' + x0(d.data.year) + ',0)'
+						return 'translate(' + x0(d.data.pattern) + ',0)'
 				})
 
-				var types = years.selectAll('.type')
+				var types = patterns.selectAll('.type')
 					.data(function (d) { return d.children },
 						function (d) { return d.data.type })
 					.each(function (d) {
@@ -187,8 +200,8 @@ class TreeMapView extends Component {
 						// Note that we can use .each on selections as a way to perform operations
 						// at a given depth of the hierarchy tree.
 						d.children.sort(function (a, b) {
-							return orderedContinents.indexOf(b.data.continent) -
-							orderedContinents.indexOf(a.data.continent)
+							return orderedDescriptors.indexOf(b.data.descriptor) -
+							orderedDescriptors.indexOf(a.data.descriptor)
 						})
 						d.children.forEach(function (d) {
 							d.sort(function (a, b) { return b.value - a.value })
@@ -215,52 +228,57 @@ class TreeMapView extends Component {
 						return 'translate(' + x1(d.data.type) + ',' + (height - y(d.value)) + ')'
 				})
 
-				var continents = types.selectAll('.continent')
+				var descriptors = types.selectAll('.descriptor')
 					// Note that we're using our copied branch.
 					.data(function (d) { return d.treemapRoot.children },
-					function (d) { return d.data.continent })
+					function (d) { return d.data.descriptor })
 
-				continents = continents.enter().append('g')
-					.attr('class', 'continent')
-					.merge(continents)
+				descriptors = descriptors.enter().append('g')
+					.attr('class', 'descriptor')
+					.merge(descriptors)
 
-				var countries = continents.selectAll('.country')
+				var items = descriptors.selectAll('.item')
 					.data(function (d) { return d.children },
-						function (d) { return d.data.country })
+						function (d) { return d.data.item })
 
-				var enterCountries = countries.enter().append('rect')
-					.attr('class', 'country')
+				var enterItems = items.enter().append('rect')
+					.attr('class', 'item')
 					.attr('x', function (d) { return d.x0 })
 					.attr('width', function (d) { return d.x1 - d.x0 })
 					.attr('y', function (e) { return e.y0 })
 					.attr('height', function (d) { return d.y1 - d.y0 })
-					.style('fill', function (d) { return color(d.parent.data.continent) })
+					.style('fill', function (d) { return color(d.parent.data.descriptor) })
 
-				countries = countries.merge(enterCountries)
 
-				enterCountries
+				items = items.merge(enterItems)
+
+				enterItems
 					.on('mouseover', function (d) {
-						svg.classed('hover-active', true)                  
-						countries.classed('hover', function (e) {
-						return e.data.country === d.data.country
+						svg.classed('hover-active', true)   							
+						items.classed('hover', function (e) {
+							tooltip.html('<div>' + d.data.item +"(" + d3.format(".0%")(d.data.value) + ")"+ '</div>');
+							tooltip.show();						
+							return e.data.item === d.data.item
 						})
+
 					})
 					.on('mouseout', function () {                
 						svg.classed('hover-active', false)
-						countries.classed('hover', false)
+						items.classed('hover', false)
+						tooltip.hide();						
 					})
 					.on('click', function (d) {
-						options.country = options.country === d.data.country ? null : d.data.country                              
+						options.item = options.item === d.data.item ? null : d.data.item                              
 						update()
 					})              
-					.append('title')
-					.text(function (d) { return d.data.country })
+					// .append('title')
+					// .text(function (d) { return d.data.item })
 
-				countries.filter(function (d) { return d.data.country === options.country })
+				items.filter(function (d) { return d.data.item === options.item })
 					.each(function (d) { console.log(d); d3.select(this.parentNode).raise() })
 					.raise()
-				countries
-					.transition()
+				items
+					.transition(t)
 					.attr('x', function (d) { return d.value ? d.x0 : x1.bandwidth() / 2 })
 					.attr('width', function (d) { return d.value ? d.x1 - d.x0 : 0 })
 					.attr('y', function (d) { return d.value ? d.y0 : d.parent.parent.y1 / 2 })

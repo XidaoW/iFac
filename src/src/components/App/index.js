@@ -453,7 +453,6 @@ class App extends Component {
 			selectedPatternCnt = prev_selected_patterns.length + 1;
 
 		console.log(this.state);
-
 		let mostSimilarPattern = [],
 			max_ids = [],
 			min_ids = [],			
@@ -509,7 +508,6 @@ class App extends Component {
 		 */
 		const newSelectedPattern = idx,
 			factors = this.state.factors_data;
-
 		factors.forEach(function(d, id) {
 			d.petals = d3.range(d.dims).map(function(i) { 
 				return {
