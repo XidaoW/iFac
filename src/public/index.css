@@ -99,12 +99,21 @@ body {
 }
 
 /* ant design => customize */
-.ant-slider-track,
+.ant-slider-track {
+  background-color: gray !important;
+}
 .ant-slider-handle {
-  background-color: #00346b !important;
+  background-color: gray !important;
+  border: 1px solid #7d7d7d !important;
 }
 
 
 .title {
   width: 100%;
+}
+
+.btn-secondary {
+  color: rgba(0, 0, 0, 0.65) !important;
+  background-color: #dadada !important;
+  border: none !important;
 }

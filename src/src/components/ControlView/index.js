@@ -74,9 +74,10 @@ class ControlView extends Component {
         </DropdownItem>));
   }
 
-  	renderDescriptorDescription(){
-  		return this.props.descriptors_text.join(', ');
-  	}
+	renderDescriptorDescription(){
+		const descriptor_names = this.props.descriptors_text;
+		return descriptor_names.map((d) => <div className={styles.descriptorName}>{d}</div>)
+	}
 
 	render() {
 		if (!this.props.error_data || this.props.error_data.length === 0)
@@ -179,8 +180,10 @@ class ControlView extends Component {
 							{this.renderDatasets()}
 						</DropdownMenu>
 					</Dropdown>
-					<div>#Patterns: {components_cnt}</div>
-					<div>#Descriptors: {this.renderDescriptorDescription()}</div>
+					<div className={styles.descriptionPattern}>Patterns: {components_cnt}</div>
+					<div className={styles.descriptionDescriptors}>
+						<div>Descriptors:</div>
+						{this.renderDescriptorDescription()}</div>
 				</div>
 				<div className={styles.modelInspector}>
 					<div class={index.title}>
@@ -202,7 +205,7 @@ class ControlView extends Component {
 									step={0.2} 
 									min={0}
 									max={1}
-									style={{ width: 100}}
+									style={{ width: '90%'}}
 									defaultValue={0}
 									tipFormatter={(value) => this.tipFormatter(value, 0)} 									
 									onChange={(e) => this.handleSetWeight(e, 0)} 
@@ -222,7 +225,7 @@ class ControlView extends Component {
 									step={0.2} 
 									min={0}
 									max={1}
-									style={{ width: 100}}
+									style={{ width: '90%'}}
 									defaultValue={1} 
 									tipFormatter={(value) => this.tipFormatter(value, 1)} 									
 									onChange={(e) => this.handleSetWeight(e, 1)} 
@@ -242,7 +245,7 @@ class ControlView extends Component {
 									step={0.2} 
 									min={0}
 									max={1}
-									style={{ width: 100}}
+									style={{ width: '90%'}}
 									defaultValue={0} 
 									tipFormatter={(value) => this.tipFormatter(value, 2)} 									
 									onChange={(e) => this.handleSetWeight(e, 2)} 
@@ -262,7 +265,7 @@ class ControlView extends Component {
 									step={0.2} 
 									min={0}
 									max={1}
-									style={{ width: 100}}
+									style={{ width: '90%'}}
 									defaultValue={0} 
 									tipFormatter={(value) => this.tipFormatter(value, 3)} 									
 									onChange={(e) => this.handleSetWeight(e, 3)} 
@@ -282,7 +285,7 @@ class ControlView extends Component {
 									step={0.2} 
 									min={0}
 									max={1}
-									style={{ width: 100}}
+									style={{ width: '90%'}}
 									defaultValue={0} 
 									tipFormatter={(value) => this.tipFormatter(value, 4)} 									
 									onChange={(e) => this.handleSetWeight(e, 4)} 
@@ -302,7 +305,7 @@ class ControlView extends Component {
 									step={0.2} 
 									min={0}
 									max={1}
-									style={{ width: 100}}
+									style={{ width: '90%'}}
 									defaultValue={0} 
 									tipFormatter={(value) => this.tipFormatter(value, 5)} 									
 									onChange={(e) => this.handleSetWeight(e, 5)} 
