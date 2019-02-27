@@ -51,7 +51,8 @@ class TreeMapView extends Component {
 			selectedPatterns_cur = selectedPatterns
 		}
 		var cur_data = {children: selectedPatterns_cur.map((idx) => {
-			return {pattern: idx, children: [{type: "Imports", children: 
+			var cur_idx = idx == components_cnt ? "Average" : "Pattern " + idx;
+			return {pattern:  cur_idx, children: [{type: "Imports", children: 
 				Object.keys(bar_data).map((d, i) => {
 				return {descriptor: i, children: 
 					Object.keys(bar_data[d][idx]).filter((d) => d !== "id").map((f) => {
@@ -109,7 +110,7 @@ class TreeMapView extends Component {
 				.padding(0.15)
 
 			var x1 = d3.scaleBand()
-				.domain(['Imports'])
+				.domain([''])
 				.paddingInner(0.1)
 
 			var y = d3.scaleLinear()
