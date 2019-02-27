@@ -75,8 +75,11 @@ class ControlView extends Component {
   }
 
 	renderDescriptorDescription(){
+		var color_list = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];
 		const descriptor_names = this.props.descriptors_text;
-		return descriptor_names.map((d) => <div className={styles.descriptorName}>{d}</div>)
+		return descriptor_names.map((d, i) => <div className={styles.descriptorName}>
+				<text style={{color:color_list[i]}}>{d}</text>
+		</div>)
 	}
 
 	render() {
