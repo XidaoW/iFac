@@ -43,37 +43,37 @@ class TreeMapView extends Component {
 
 	render() {
 		const { bar_data, selectedPatterns, components_cnt } = this.props;
-	// var cur_data = Object.keys(bar_data).map((d) => {}bar_data[d][0])
-	var selectedPatterns_cur;
-	if(selectedPatterns.length == 0){
-		selectedPatterns_cur = [components_cnt]
-	}else{
-		selectedPatterns_cur = selectedPatterns
-	}
-	var cur_data = {children: selectedPatterns_cur.map((idx) => {
-		return {pattern: idx, children: [{type: "Imports", children: 
-			Object.keys(bar_data).map((d, i) => {
-			return {descriptor: i, children: 
-				Object.keys(bar_data[d][idx]).filter((d) => d !== "id").map((f) => {
-					return {item: f, value: bar_data[d][idx][f]}
-				})
-			}
-		})
-		}]}		
-	})};
+		// var cur_data = Object.keys(bar_data).map((d) => {}bar_data[d][0])
+		var selectedPatterns_cur;
+		if(selectedPatterns.length == 0){
+			selectedPatterns_cur = [components_cnt]
+		}else{
+			selectedPatterns_cur = selectedPatterns
+		}
+		var cur_data = {children: selectedPatterns_cur.map((idx) => {
+			return {pattern: idx, children: [{type: "Imports", children: 
+				Object.keys(bar_data).map((d, i) => {
+				return {descriptor: i, children: 
+					Object.keys(bar_data[d][idx]).filter((d) => d !== "id").map((f) => {
+						return {item: f, value: bar_data[d][idx][f]}
+					})
+				}
+			})
+			}]}		
+		})};
 
-	const tooltip = d3tooltip(d3);
+		const tooltip = d3tooltip(d3);
 
-	var margin = { top: 15, right: 15, bottom: 40, left: 60 }
-	var width = this.layout.svg.width - margin.left - margin.right
-	var height = this.layout.svg.height - margin.top - margin.bottom
-	d3.select("div#content").selectAll('svg').remove()
-	var svg = d3.select("div#content")
-		.append('svg')
-		.attr('width', width + margin.left + margin.right)
-		.attr('height', height + margin.top + margin.bottom)
-		.append('g')
-		.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+		var margin = { top: 15, right: 15, bottom: 40, left: 60 }
+		var width = this.layout.svg.width - margin.left - margin.right
+		var height = this.layout.svg.height - margin.top - margin.bottom
+		d3.select("div#content").selectAll('svg').remove()
+		var svg = d3.select("div#content")
+			.append('svg')
+			.attr('width', width + margin.left + margin.right)
+			.attr('height', height + margin.top + margin.bottom)
+			.append('g')
+			.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
 
 		var color_list = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
@@ -193,7 +193,7 @@ class TreeMapView extends Component {
 				types = types.enter().append('g')
 					.attr('class', 'type')
 					.attr('transform', function (d) {
-						return 'translate(' + x1(d.data.type) + ',' + height + ')'
+						return 'translate(' + x1(d.data.type) + ',' + 0 + ')'
 					})
 					.each(function (d) {
 						// ENTER
@@ -248,6 +248,7 @@ class TreeMapView extends Component {
 					.attr('y', function (e) { return e.y0 })
 					.attr('height', function (d) { return d.y1 - d.y0 })
 					.style('fill', function (d) { return color(d.parent.data.descriptor) })
+					.style("stroke", "grey")
 
 
 				items = items.merge(enterItems)

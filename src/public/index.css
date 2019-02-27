@@ -118,6 +118,9 @@ body {
   border: none !important;
 }
 
+.item rect {
+  stroke: grey;
+}
 
 .hover-active rect { opacity: .75; }
 .hover-active rect.hover { opacity: 1; }
