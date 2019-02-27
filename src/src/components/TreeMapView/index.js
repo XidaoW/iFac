@@ -52,7 +52,7 @@ class TreeMapView extends Component {
 		}
 		var cur_data = {children: selectedPatterns_cur.map((idx) => {
 			var cur_idx = idx == components_cnt ? "Average" : "Pattern " + idx;
-			return {pattern:  cur_idx, children: [{type: "Imports", children: 
+			return {pattern:  cur_idx, children: [{type: "", children: 
 				Object.keys(bar_data).map((d, i) => {
 				return {descriptor: i, children: 
 					Object.keys(bar_data[d][idx]).filter((d) => d !== "id").map((f) => {
@@ -111,7 +111,7 @@ class TreeMapView extends Component {
 
 			var x1 = d3.scaleBand()
 				.domain([''])
-				.paddingInner(0.1)
+				// .paddingInner(0.1)
 
 			var y = d3.scaleLinear()
 				.range([0, height])
@@ -259,14 +259,16 @@ class TreeMapView extends Component {
 						svg.classed('hover-active', true)   							
 						items.classed('hover', function (e) {
 							tooltip.html('<div>' + d.data.item +"(" + d3.format(".0%")(d.data.value) + ")"+ '</div>');
-							tooltip.show();						
+							tooltip.show();
+							d3.selectAll('path#bar_' + d.parent.data.descriptor+ '_'+ d.data.item).attr("stroke-width", "2px");
 							return e.data.item === d.data.item
 						})
 
 					})
-					.on('mouseout', function () {                
+					.on('mouseout', function (d) {                
 						svg.classed('hover-active', false)
 						items.classed('hover', false)
+						d3.selectAll('path#bar_' + d.parent.data.descriptor+ '_'+ d.data.item).attr("stroke-width", "0px");
 						tooltip.hide();						
 					})
 					.on('click', function (d) {
