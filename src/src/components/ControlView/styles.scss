@@ -5,6 +5,7 @@
   margin-bottom: 20px;
   padding: 10px;
   display: flex;
+  height: 250px;
 }
 
 .dataInspectorTitle,
@@ -17,7 +18,18 @@
 
 .dataInspector {
   width: 20%;
+  height: 263px;
   margin-right: 5px;
+  border: 1px solid #808080;
+}
+
+.descriptionPattern,
+.descriptionDescriptors {
+  margin: 0 10px;
+}
+
+.descriptorName {
+  margin-left: 10px;
 }
 
 .datasetDropdown {
@@ -36,22 +48,22 @@
 }
 
 .screeCharts {
-  border: 1px solid #c7c7c7;
+  border: 1px solid #808080;
   height: 100%;
   display: flex;
 }
 
 .screeChart {
   width: 20%;
+  margin: 5px 10px;
 }
 
 .screeChartName {
   font-size: 0.9rem;
   margin: 5px;
-  background-color: #ececec;
-  border: 1px solid lightgrey;
+  border-bottom: 1px solid lightgrey;
   padding: 2px;
-  text-align: center;
+  margin-right: 10px;
 }
 
 .line {
