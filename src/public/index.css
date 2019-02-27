@@ -117,3 +117,7 @@ body {
   background-color: #dadada !important;
   border: none !important;
 }
+
+
+.hover-active rect { opacity: .75; }
+.hover-active rect.hover { opacity: 1; }
