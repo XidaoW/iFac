@@ -16,10 +16,10 @@ body {
 } */
 
 .title {
-  font-weight: bolder;
-  background-color: darkgray;
   color: white;
+  background-color: gray;
   padding: 5px;
+  
 }
 
 .petal {
