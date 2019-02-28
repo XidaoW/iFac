@@ -21,7 +21,7 @@ const domainSetting = {
 						"nbaplayer": {"modes": "3", "cnt": "20"},
 						"policy": {"modes": "3", "cnt": "36"},
 						"policyKeyword": {"modes": "4", "cnt": "10"},
-						"purchase": {"modes": "4", "cnt": "20"}
+						"purchase": {"modes": "5", "cnt": "30"}
 					};
 
 
@@ -557,7 +557,8 @@ class App extends Component {
 			return {
 					"rank": i,
 					"pattern_idx": similarPatternToQueries[i][0],
-					"relevance_score":similarPatternToQueries[i][1]
+					"relevance_score":similarPatternToQueries[i][1],
+					"dominance": similarPatternToQueries[i][2]
 				};
 		});
 
@@ -616,7 +617,7 @@ class App extends Component {
 			// p = \prod_{d\in D^{'}}~p_d
 			query_result = query_result.reduce((a,b) => a * b)
 			return [
-				i, query_result
+				i, query_result, all_factors[i].weight
 			];
 		});
 	}
@@ -879,9 +880,16 @@ class App extends Component {
 						onAddingPattern={this.handleAddingPattern}					
 			  />  
 				<TreeMapView
-					bar_data={bar_data}				
+					bar_data={bar_data}		
+					data={factors_data}		
 					selectedPatterns={selectedPatterns}
 					components_cnt={components_cnt}
+					descriptors={descriptors}
+					modes={modes}
+					queries={queries}
+					onClickItem={this.handleClickItem}
+					onResetPatterns={this.handleResetPatterns}
+					onResetItems={this.handleResetItems}					
 				/>						  
 			</div>
 		</div>

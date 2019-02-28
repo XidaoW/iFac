@@ -63,8 +63,9 @@ class CircularView extends Component {
 	}
 
 	handleResetPatterns() {
-		d3.selectAll('.pattern_circles').classed('selected', false);                                       
-		d3.selectAll('.pattern_circles').attr('stroke', 'none');
+		d3.selectAll('.pattern_circles').attr('stroke-opacity', 0.3);
+		d3.selectAll('.pattern_mini_circles').attr('stroke-opacity', 0.3);
+		// d3.selectAll('.pattern_circles').attr('stroke', 'none');
 		this.props.onResetPatterns();
 	}
 	handleResetItems() {
@@ -88,7 +89,7 @@ class CircularView extends Component {
 
 		const ButtonGroup = Button.Group;
 
-		var patternEmbedding_original = patternEmbeddings['sc'];
+		var patternEmbedding_original = patternEmbeddings['mds'];
 		var min_tsne = [d3.min(patternEmbedding_original, (d) => d[0]), d3.min(patternEmbedding_original, (d) => d[1])];
 		var max_tsne = [d3.max(patternEmbedding_original, (d) => d[0]), d3.max(patternEmbedding_original, (d) => d[1])];
 		var size_petal_radius = d3.scaleLinear().domain([0, 1]).range([1, this.outerCircleRadius]);
@@ -358,7 +359,6 @@ class CircularView extends Component {
 			
 
 		}
-
 		draw_query_result(similarPatternToQueries, query_flag);
 
 		function draw_query_result(similarPatternToQueries, query_flag){
@@ -376,7 +376,6 @@ class CircularView extends Component {
 			 * 
 			 */			
 			if(query_flag){
-				console.log(similarPatternToQueries);
 				var min_relevance = d3.min(similarPatternToQueries, (d) => d.relevance_score);
 				var max_relevance = d3.max(similarPatternToQueries, (d) => d.relevance_score);
 				var fill_scale = d3.scaleLinear().domain([min_relevance, max_relevance]).range([0, 1]);
@@ -389,16 +388,15 @@ class CircularView extends Component {
 
 				}
 
-				// gFlowers.selectAll(".rankText")
-				// 		.data(similarPatternToQueries)
-				// 		.enter()
-				// 		.append('text')
-				// 		.attr('transform', (d, i) => 'translate(' + (data[d.pattern_idx].x- 3) + ',' 
-				// 					+ (data[d.pattern_idx].y+3) + ')')
-	   //              	.text((d) => (d.rank+1).toString());
-
 			}else{
-				d3.select(".rankText").remove();
+				for(let similarIndex = 0; similarIndex < similarPatternToQueries.length; similarIndex++){
+					// similarPatternToQueries[similarIndex]
+					gFlowers.select(".pattern_circles#pattern_" + similarPatternToQueries[similarIndex].pattern_idx)
+							.attr('fill-opacity', similarPatternToQueries[similarIndex].dominance);
+					d3.select(".pattern_circles_mini#pattern_mini_" + similarPatternToQueries[similarIndex].pattern_idx)
+							.attr('fill-opacity', similarPatternToQueries[similarIndex].dominance);
+
+				}
 			}
 
 		}
@@ -754,14 +752,6 @@ class CircularView extends Component {
 						Reset Item Selection
 					</Button>
 					</ButtonGroup>
-					<QueryPanel
-						onQueryItem={this.props.onClickItem}
-						onResetItem={this.handleResetItems}
-						descriptors={descriptors}
-						components_cnt={components_cnt}
-						modes={modes}
-						queries={this.props.queries}
-					/>
 				{svg.toReact()}				
 			</div>
 		);

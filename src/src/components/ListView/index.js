@@ -111,7 +111,9 @@ class ListView extends Component {
 			}];
 
 		if(similarPatternToQueries.length > 0){
-			var patternIndices = similarPatternToQueries.map((d) => d.pattern_idx);
+			var patternIndices = similarPatternToQueries.sort((first, second) => 
+				first[2] - second[2]
+			).map((d) => d.pattern_idx);
 		}else{
 			var patternIndices = d3.range(data.length).map((d) => d);
 		}
