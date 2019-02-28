@@ -8,7 +8,8 @@ import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 import { Tooltip, Icon } from 'antd';
 import {transition} from "d3-transition";
-
+import QueryPanel from 'components/QueryPanel';
+import PatternGlyph from 'components/PatternGlyph';
 
 class TreeMapView extends Component {
 	
@@ -17,10 +18,10 @@ class TreeMapView extends Component {
 
 		this.layout = {
 			width: 250,
-			height: 800,
+			height: 600,
 			svg: {
 				width: 250, // 90% of whole layout
-				height: 800 // 100% of whole layout
+				height: 600 // 100% of whole layout
 			},
 			detailView: {
 				margin: {
@@ -37,12 +38,25 @@ class TreeMapView extends Component {
 		this.detailViewMarginRight = gs.detailViewMarginRight;
 		this.backgroundBarOpacity = gs.detailViewBKBarOpacity;
 		this.foregroundBarOpacity = gs.detailViewFGBarOpacity;
+		this.handleResetItems = this.handleResetItems.bind(this);				
+
 	}
 	// https://github.com/jasondavies/d3-cloud/blob/master/examples/browserify.js
 
+	handleResetPatterns() {
+		d3.selectAll('.pattern_circles').attr('stroke-opacity', 0.3);
+		d3.selectAll('.pattern_mini_circles').attr('stroke-opacity', 0.3);
+		this.props.onResetPatterns();
+	}
+	handleResetItems() {
+		d3.selectAll('.query_bar').classed('queried', false)	
+		d3.selectAll('.query_bar').attr("stroke", "none");
+		d3.selectAll('.itemTags').remove()
+		this.props.onResetItems();		
+	}
 
 	render() {
-		const { bar_data, selectedPatterns, components_cnt } = this.props;
+		const { data, bar_data, selectedPatterns, components_cnt, descriptors, modes, queries } = this.props;
 		// var cur_data = Object.keys(bar_data).map((d) => {}bar_data[d][0])
 		var selectedPatterns_cur;
 		if(selectedPatterns.length == 0){
@@ -83,13 +97,6 @@ class TreeMapView extends Component {
 			.domain(orderedDescriptors)
 			.range(color_list)
 
-		var dollarFormat = d3.format('$,')
-		// var tickFormat = function (n) {
-		// 	return n === 0 ? '$0'
-		// 		: n < 1000000 ? dollarFormat(n / 1000) + ' billion'
-		// 			: dollarFormat(n / 1000000) + ' trillion'
-		// }
-
 		var options = {
 			key: 'value',
 			item: null
@@ -100,10 +107,8 @@ class TreeMapView extends Component {
 
 
 		function initialize(data) {
-			console.log(data);
-			var root = d3.hierarchy(data).sum(function (d) { return d['value'] })
-			console.log(root);
-			root.children.sort(function (a, b) { return a.data.pattern - b.data.pattern })
+			var root = d3.hierarchy(data).sum((d) => d['value'] )
+			root.children.sort((a, b) => a.data.pattern - b.data.pattern )
 
 			var x0 = d3.scaleBand()
 				.range([0, width])
@@ -120,12 +125,12 @@ class TreeMapView extends Component {
 				.scale(x0)
 				.tickSize(0)
 
+
 			var x1Axis = d3.axisBottom()
 				.scale(x1)
 
 			var yAxis = d3.axisLeft()
-				// .tickSize(-width)
-				// .tickFormat(tickFormat)
+				.tickSize(-width)
 
 			var gx0 = svg.append('g')
 				.attr('class', 'x0 axis')
@@ -149,21 +154,34 @@ class TreeMapView extends Component {
 				var t = d3.transition()
 
 				var patternData = root.children
-				var typeData = d3.merge(patternData.map(function (d) { return d.children }))
+				var typeData = d3.merge(patternData.map((d) => d.children ))
 
-				x0.domain(patternData.map(function (d) { return d.data.pattern }).sort())
+				x0.domain(patternData.map((d) => d.data.pattern).sort())
 				x1.rangeRound([0, x0.bandwidth()])
-				y.domain([0, d3.max(typeData.map(function (d) { return d.value }))]).nice()
+				y.domain([0, d3.max(typeData.map((d) => d.value ))]).nice()
 
 				// We use a copied Y scale to invert the range for display purposes
 				yAxis.scale(y.copy().range([height, 0]))
 
-				gx0.call(x0Axis)
-				gy.call(yAxis)
+				var xaxis = gx0.call(x0Axis)
+				var yaxis = gy.call(yAxis)
+				xaxis.selectAll("text")
+					.style("stroke", (d) => {
+						if(d == "Average"){
+							return "black";
+						}else{
+							var patternIdx = d.replace("Pattern ","")
+							return d3.select('#pattern_' + patternIdx).attr('stroke')						
+						}
+					})
+				// xaxis.selectAll(".tick")
+				// 	.append("circle")
+				// 	.attr("r", 32)
+				// 	.attr("fill", "black")
 
 
 				var patterns = svg.selectAll('.pattern')
-					.data(root.children, function (d) { return d.data.pattern })
+					.data(root.children,  (d) => d.data.pattern )
 
 				var enterPatterns = patterns.enter().append('g')
 					.attr('class', 'pattern')
@@ -174,39 +192,34 @@ class TreeMapView extends Component {
 					.call(x1Axis)
 
 				patterns = patterns.merge(enterPatterns)
-					.attr('transform', function (d) {
-						return 'translate(' + x0(d.data.pattern) + ',0)'
-				})
+					.attr('transform', (d) => 'translate(' + x0(d.data.pattern) + ',0)')
 
 				var types = patterns.selectAll('.type')
-					.data(function (d) { return d.children },
-						function (d) { return d.data.type })
+					.data((d) => d.children ,
+						(d) => d.data.type )
 					.each(function (d) {
 						// UPDATE
 						// The copied branches are orphaned from the larger hierarchy, and must be
 						// updated separately (see note at L152).
 						d.treemapRoot.sum(sum)
 						d.treemapRoot.children.forEach(function (d) {
-						d.sort(function (a, b) { return b.value - a.value })
+						d.sort((a, b)  => b.value - a.value )
 					})
 				})
 
 				types = types.enter().append('g')
 					.attr('class', 'type')
-					.attr('transform', function (d) {
-						return 'translate(' + x1(d.data.type) + ',' + 0 + ')'
-					})
+					.attr('transform', (d) => 'translate(' + x1(d.data.type) + ',' + 0 + ')')
 					.each(function (d) {
 						// ENTER
 						// Note that we can use .each on selections as a way to perform operations
 						// at a given depth of the hierarchy tree.
-						d.children.sort(function (a, b) {
-							return orderedDescriptors.indexOf(b.data.descriptor) -
+						d.children.sort( (a, b) => orderedDescriptors.indexOf(b.data.descriptor) -
 							orderedDescriptors.indexOf(a.data.descriptor)
-						})
-						d.children.forEach(function (d) {
-							d.sort(function (a, b) { return b.value - a.value })
-						})
+						)
+						d.children.forEach( (d) =>
+							d.sort( (a, b) => b.value - a.value )
+						)
 						d.treemap = d3.treemap().tile(d3.treemapResquarify)
 
 						// The treemap layout must be given a root node, so we make a copy of our
@@ -224,31 +237,30 @@ class TreeMapView extends Component {
 				root.each(function (d) { d.index = d.parent ? d.parent.children.indexOf(d) : 0 })
 
 				types.transition()
-					.delay(function (d, i) { return d.parent.index * 150 + i * 50 })
-					.attr('transform', function (d) {
-						return 'translate(' + x1(d.data.type) + ',' + (height - y(d.value)) + ')'
-				})
+					.delay((d, i) => d.parent.index * 150 + i * 50 )
+					.attr('transform', (d) => 'translate(' + x1(d.data.type) + ',' + (height - y(d.value)) + ')'
+				)
 
 				var descriptors = types.selectAll('.descriptor')
 					// Note that we're using our copied branch.
-					.data(function (d) { return d.treemapRoot.children },
-					function (d) { return d.data.descriptor })
+					.data((d) => d.treemapRoot.children ,
+					(d) => d.data.descriptor )
 
 				descriptors = descriptors.enter().append('g')
 					.attr('class', 'descriptor')
 					.merge(descriptors)
 
 				var items = descriptors.selectAll('.item')
-					.data(function (d) { return d.children },
-						function (d) { return d.data.item })
+					.data( (d) => d.children ,
+						 (d) => d.data.item )
 
 				var enterItems = items.enter().append('rect')
 					.attr('class', 'item')
-					.attr('x', function (d) { return d.x0 })
-					.attr('width', function (d) { return d.x1 - d.x0 })
-					.attr('y', function (e) { return e.y0 })
-					.attr('height', function (d) { return d.y1 - d.y0 })
-					.style('fill', function (d) { return color(d.parent.data.descriptor) })
+					.attr('x',  (d) => d.x0 )
+					.attr('width',  (d) => d.x1 - d.x0 )
+					.attr('y',  (e) => e.y0 )
+					.attr('height',  (d) => d.y1 - d.y0 )
+					.style('fill',  (d) => color(d.parent.data.descriptor) )
 					.style("stroke", "grey")
 
 
@@ -274,12 +286,10 @@ class TreeMapView extends Component {
 					.on('click', function (d) {
 						options.item = options.item === d.data.item ? null : d.data.item                              
 						update()
-					})              
-					// .append('title')
-					// .text(function (d) { return d.data.item })
+					})              	
 
-				items.filter(function (d) { return d.data.item === options.item })
-					.each(function (d) { console.log(d); d3.select(this.parentNode).raise() })
+				items.filter(function (d) {  d.data.item === options.item })
+					.each(function (d) { d3.select(this.parentNode).raise() })
 					.raise()
 				items
 					.transition(t)
@@ -294,6 +304,22 @@ class TreeMapView extends Component {
 
 		return (
 				<div className={styles.DetailView}>
+					<div className={index.title}>
+						Multi-Faceted Pattern Query
+						<Tooltip title="Input item">
+							<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
+						</Tooltip>																							
+					</div>	
+					<div>			
+						<QueryPanel
+							onQueryItem={this.props.onClickItem}
+							onResetItem={this.handleResetItems}
+							descriptors={descriptors}
+							components_cnt={components_cnt}
+							modes={modes}
+							queries={this.props.queries}
+						/>	
+					</div>				
 					<div className={index.title}>
 						Content
 						<Tooltip title="Pattern narrative as word clouds">
