@@ -6,6 +6,8 @@ import {scaleRadial} from '../../lib/draw_radial.js';
 import * as quadPath from '../../lib/draw_quadratic_path.js';
 import * as petal from '../../lib/draw_petals.js';
 
+import { legendColor } from 'd3-svg-legend'
+
 import _ from 'lodash';
 import styles from './styles.scss';
 import index from '../../index.css';
@@ -155,6 +157,7 @@ class CircularView extends Component {
   		for (var i = 0; i < 2000; ++i) simulation.tick();
 			// .force("center", d3.forceCenter((width)/2-(innerRadius)/2, (height)/2-( innerRadius)/2))
 
+
 		// draw the backdrop
 		const backdrop = d3.select(svg)
 						.append('g')
@@ -165,10 +168,44 @@ class CircularView extends Component {
 						.attr('transform', 'translate(' + ((width)/2-(innerRadius)/2) + ',' + ((height)/2-( innerRadius)/2) + ')')
 						.attr('class', 'g_flowers');
 
-		// remove the lines between patterns and dominating items.
-		// questionable functions
-		backdrop.selectAll('path.line_pointer').remove();
 
+
+
+		// d3.selectAll("div#svg-color-quant").selectAll("svg").remove()
+		// var sequentialScale = d3.scaleSequential(d3.interpolateRainbow)
+		// 	.domain([0,10]);
+
+		// var legendSequential = legendColor()
+		// 	.shapeWidth(30)
+		// 	.cells(10)
+		// 	.orient("horizontal")
+		// 	.scale(sequentialScale) 
+		
+		// var svg_legend = d3.selectAll("div#svg-color-quant").append("svg")
+		// svg_legend.append("g")
+		// 	.attr("class", "legendQuant")
+		// 	.attr("transform", "translate(20,20)");
+
+
+		// var linearColor = d3.scaleLinear()
+		// 	.domain([0,1])
+		// 	.range(['white','#fc8d12']);
+
+
+		// var legendLinear = legendColor()
+		// 	.shapeWidth(30)
+		// 	.cells([0.1, 0.8])
+		// 	.orient('horizontal')
+		// 	.scale(linearColor);
+
+		// // svg.select(".legendLinear")
+		// // 	.call(legendLinear);
+		// svg_legend.select(".legendQuant")
+		// 	.call(legendLinear);		  
+
+
+
+		
 		// Add the outer circles to the backdrop.
 		const circles = gFlowers.selectAll('.pattern_circles')
 						.data(data)
@@ -754,6 +791,7 @@ class CircularView extends Component {
 						Reset Item Selection
 					</Button>
 					</ButtonGroup>
+				<div id="svg-color-quant" className={styles.legend}></div>
 				{svg.toReact()}				
 			</div>
 		);
