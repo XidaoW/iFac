@@ -18,10 +18,10 @@ class TreeMapView extends Component {
 
 		this.layout = {
 			width: 250,
-			height: 600,
+			height: 450,
 			svg: {
 				width: 250, // 90% of whole layout
-				height: 600 // 100% of whole layout
+				height: 450 // 100% of whole layout
 			},
 			detailView: {
 				margin: {
@@ -79,7 +79,7 @@ class TreeMapView extends Component {
 
 		const tooltip = d3tooltip(d3);
 
-		var margin = { top: 15, right: 15, bottom: 40, left: 60 }
+		var margin = { top: 5, right: 5, bottom: 25, left: 5 }
 		var width = this.layout.svg.width - margin.left - margin.right
 		var height = this.layout.svg.height - margin.top - margin.bottom
 		d3.select("div#content").selectAll('svg').remove()
@@ -112,7 +112,7 @@ class TreeMapView extends Component {
 
 			var x0 = d3.scaleBand()
 				.range([0, width])
-				.padding(0.15)
+				.padding(0.05)
 
 			var x1 = d3.scaleBand()
 				.domain([''])
@@ -123,18 +123,18 @@ class TreeMapView extends Component {
 
 			var x0Axis = d3.axisBottom()
 				.scale(x0)
-				.tickSize(0)
+				// .tickSize(0)
 
 
 			var x1Axis = d3.axisBottom()
 				.scale(x1)
 
-			var yAxis = d3.axisLeft()
-				.tickSize(-width)
+			// var yAxis = d3.axisLeft()
+				// .tickSize(-width)
 
 			var gx0 = svg.append('g')
 				.attr('class', 'x0 axis')
-				.attr('transform', 'translate(0,' + (height + 22) + ')')
+				.attr('transform', 'translate(0,' + (height) + ')')
 
 			var gy = svg.append('g')
 				.attr('class', 'y axis')
@@ -161,10 +161,10 @@ class TreeMapView extends Component {
 				y.domain([0, d3.max(typeData.map((d) => d.value ))]).nice()
 
 				// We use a copied Y scale to invert the range for display purposes
-				yAxis.scale(y.copy().range([height, 0]))
+				// yAxis.scale(y.copy().range([height, 0]))
 
 				var xaxis = gx0.call(x0Axis)
-				var yaxis = gy.call(yAxis)
+				// var yaxis = gy.call(yAxis)
 				xaxis.selectAll("text")
 					.style("stroke", (d) => {
 						if(d == "Average"){
@@ -262,6 +262,7 @@ class TreeMapView extends Component {
 					.attr('height',  (d) => d.y1 - d.y0 )
 					.style('fill',  (d) => color(d.parent.data.descriptor) )
 					.style("stroke", "grey")
+					.style("stroke-opacity", 0.4)
 
 
 				items = items.merge(enterItems)
@@ -326,9 +327,9 @@ class TreeMapView extends Component {
 							<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
 						</Tooltip>																							
 					</div>
-				  <div id="content">
-				  
-				  </div>					
+					  <div id="content" className={styles.treeMap}>
+					  
+					  </div>					
 				</div>
 		);
 
