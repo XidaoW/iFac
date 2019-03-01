@@ -76,7 +76,8 @@ class PatternGlyph extends Component {
 						.attr('transform', (d, i) => 'translate(' +x_offset + ',' 
 									+ x_offset + ')');
 
-		var size_petal_radius = d3.scaleLinear().domain([0, 1]).range([1, width/4]);
+		var petal_Radius = width/4 * Math.sin(360 / (descriptor_size*2) * (Math.PI / 180));
+		var size_petal_radius = d3.scaleLinear().domain([0, 1]).range([1, petal_Radius]);
 		var size_petal_arc = d3.scaleLinear().domain([0, 1]).range([0, 2 * Math.PI * width/ descriptor_size]);
 		// add the petals to the flowers
 
@@ -154,7 +155,7 @@ class PatternGlyph extends Component {
 						.on("mouseout", function(d){
 							tooltip.hide();
 						})						
-						.attr('transform', (d) => petal.rotateTransform((d.startAngle + d.endAngle) / 2 , size_petal_arc(1),this.outerCircleRadius, descriptor_size))						
+						.attr('transform', (d) => petal.rotateTransform((d.startAngle + d.endAngle) / 2 , this.outerCircleRadius))						
 						.attr('rx', (d) => size_petal_radius(1))
 						.attr('ry', (d) => size_petal_radius(d.data.length))						
 						.style('stroke', (d, i) => 'gray')
