@@ -27,10 +27,10 @@ class ListView extends Component {
 		super(props);
 		this.layout = {
 			width: 200,
-			height: 1000,
+			height: 700,
 			svg: {
 				width: 200,
-				height: 1000
+				height: 700
 			},
 		};
 		this.selector = React.createRef();		
