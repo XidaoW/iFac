@@ -131,10 +131,6 @@ class InspectionView extends Component {
                   }
                 });
 
-
-
-
-
     return (
       <div className={styles.InspectionView}>
         <div>Details</div>
