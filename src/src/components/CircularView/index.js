@@ -333,8 +333,6 @@ class CircularView extends Component {
 						.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
 						.style('fill-opacity', (d) => color_threshold(d.data.width));
 		}
-				
-
 
 		// DRAW THE RADIAL BAR CHART
 		for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){

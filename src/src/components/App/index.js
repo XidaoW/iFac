@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import * as d3 from 'd3';
 import Overview from 'components/Overview';
 import CircularView from 'components/CircularView';
-// import DetailView from 'components/DetailView';
+import EmbeddingView from 'components/EmbeddingView';
 import TreeMapView from 'components/TreeMapView';
 import ListView from 'components/ListView';
 
@@ -20,7 +20,7 @@ const domainSetting = {
 						"picso": {"modes": "3", "cnt": "19"},
 						"nbaplayer": {"modes": "3", "cnt": "20"},
 						"policy": {"modes": "3", "cnt": "36"},
-						"policyKeyword": {"modes": "4", "cnt": "10"},
+						"policyKeyword": {"modes": "4", "cnt": "20"},
 						"purchase": {"modes": "5", "cnt": "30"}
 					};
 
@@ -28,7 +28,7 @@ const domainSetting = {
 class App extends Component {
 	constructor(props) {
 		super(props);
-		const domain = "nbaplayer";
+		const domain = "purchase";
 		const [factors_data, metrics, itemEmbeddings, patternEmbeddings] = this.loadDefaultDataset(domain);
 		this.state = {
 			factors_data: factors_data.data,
@@ -550,9 +550,9 @@ class App extends Component {
 			relevance_score,
 			coordinates;
 
-		similarPatternToQueries.sort(function(first, second) {
-			return second[1] - first[1];
-		}).slice(0, top_k);
+		// similarPatternToQueries.sort(function(first, second) {
+		// 	return second[1] - first[1];
+		// }).slice(0, top_k);
 		similarPatternToQueries = d3.range(similarPatternToQueries.length).map(function(i){
 			return {
 					"rank": i,
