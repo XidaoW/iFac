@@ -70,12 +70,13 @@ class TreeMapView extends Component {
 				Object.keys(bar_data).map((d, i) => {
 				return {descriptor: i, children: 
 					Object.keys(bar_data[d][idx]).filter((d) => d !== "id").map((f) => {
-						return {item: f, value: bar_data[d][idx][f]}
+						return {item: i + "_" + f, value: bar_data[d][idx][f]}
 					})
 				}
 			})
 			}]}		
 		})};
+		console.log(descriptors);
 
 		const tooltip = d3tooltip(d3);
 
@@ -112,7 +113,7 @@ class TreeMapView extends Component {
 
 			var x0 = d3.scaleBand()
 				.range([0, width])
-				.padding(0.05)
+				.padding(0.01)
 
 			var x1 = d3.scaleBand()
 				.domain([''])
@@ -168,17 +169,12 @@ class TreeMapView extends Component {
 				xaxis.selectAll("text")
 					.style("stroke", (d) => {
 						if(d == "Average"){
-							return "black";
+							return "grey";
 						}else{
 							var patternIdx = d.replace("Pattern ","")
 							return d3.select('#pattern_' + patternIdx).attr('stroke')						
 						}
 					})
-				// xaxis.selectAll(".tick")
-				// 	.append("circle")
-				// 	.attr("r", 32)
-				// 	.attr("fill", "black")
-
 
 				var patterns = svg.selectAll('.pattern')
 					.data(root.children,  (d) => d.data.pattern )
@@ -239,39 +235,49 @@ class TreeMapView extends Component {
 				types.transition()
 					.delay((d, i) => d.parent.index * 150 + i * 50 )
 					.attr('transform', (d) => 'translate(' + x1(d.data.type) + ',' + (height - y(d.value)) + ')'
-				)
+				);
 
-				var descriptors = types.selectAll('.descriptor')
+				var svg_descriptors = types.selectAll('.descriptor')
 					// Note that we're using our copied branch.
 					.data((d) => d.treemapRoot.children ,
-					(d) => d.data.descriptor )
+					(d) => d.data.descriptor );
 
-				descriptors = descriptors.enter().append('g')
+				svg_descriptors = svg_descriptors.enter().append('g')
 					.attr('class', 'descriptor')
-					.merge(descriptors)
+					.merge(svg_descriptors);
 
-				var items = descriptors.selectAll('.item')
+				var items = svg_descriptors.selectAll('.item')
 					.data( (d) => d.children ,
-						 (d) => d.data.item )
+						 (d) => d.data.item );
 
 				var enterItems = items.enter().append('rect')
 					.attr('class', 'item')
-					.attr('x',  (d) => d.x0 )
+					.attr('x',  (d) => {return d.x0 })
 					.attr('width',  (d) => d.x1 - d.x0 )
 					.attr('y',  (e) => e.y0 )
 					.attr('height',  (d) => d.y1 - d.y0 )
 					.style('fill',  (d) => color(d.parent.data.descriptor) )
+					.style('fill-opacity',  0.6 )
 					.style("stroke", "grey")
-					.style("stroke-opacity", 0.4)
+					.style("stroke-opacity", 0.4);
+
+					items.enter()
+						.append("text")
+	        			.attr("class", "ctext")
+	        			.text(function(d) { return d.data.item.split('_')[1]; })				        
+	        			.call(text2);
+				
+				svg_descriptors.selectAll(".ctext").style("opacity", (options.item == null) ? 0.4:0);	        			
 
 
-				items = items.merge(enterItems)
+
+				items = items.merge(enterItems);
 
 				enterItems
 					.on('mouseover', function (d) {
 						svg.classed('hover-active', true)   							
 						items.classed('hover', function (e) {
-							tooltip.html('<div>' + d.data.item +"(" + d3.format(".0%")(d.data.value) + ")"+ '</div>');
+							tooltip.html('<div>' + Object.keys(descriptors)[d.parent.data.descriptor] + ": " + d.data.item.split('_')[1] +"(" + d3.format(".0%")(d.data.value) + ")"+ '</div>');
 							tooltip.show();
 							d3.selectAll('path#bar_' + d.parent.data.descriptor+ '_'+ d.data.item).attr("stroke-width", "2px");
 							return e.data.item === d.data.item
@@ -286,18 +292,30 @@ class TreeMapView extends Component {
 					})
 					.on('click', function (d) {
 						options.item = options.item === d.data.item ? null : d.data.item                              
-						update()
-					})              	
+						update()				
+					});              	
 
 				items.filter(function (d) {  d.data.item === options.item })
 					.each(function (d) { d3.select(this.parentNode).raise() })
-					.raise()
+					.raise();
 				items
 					.transition(t)
 					.attr('x', function (d) { return d.value ? d.x0 : x1.bandwidth() / 2 })
 					.attr('width', function (d) { return d.value ? d.x1 - d.x0 : 0 })
 					.attr('y', function (d) { return d.value ? d.y0 : d.parent.parent.y1 / 2 })
-					.attr('height', function (d) { return d.value ? d.y1 - d.y0 : 0 })
+					.attr('height', function (d) { return d.value ? d.y1 - d.y0 : 0 });
+
+		    
+
+
+				function text2(text) {
+					text.attr("x", function(d) { return d.x0; })
+						.attr("y", function(d) { return d.y0; })
+						.style("font-size", function(d) { return  (d.y1 - d.y0) * Math.pow((d.x1 - d.x0), 1.) / this.getComputedTextLength() / 20  + "px"; })
+						.attr("dy", ".8em")						
+						.style("opacity", function(d) { return 0.4; });
+				}        			
+					
 
 			}
 		}
