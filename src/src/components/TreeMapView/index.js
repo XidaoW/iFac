@@ -70,7 +70,7 @@ class TreeMapView extends Component {
 				Object.keys(bar_data).map((d, i) => {
 				return {descriptor: i, children: 
 					Object.keys(bar_data[d][idx]).filter((d) => d !== "id").map((f) => {
-						return {item: i + "_" + f, value: bar_data[d][idx][f]}
+						return {item: i + "_" + f, value: bar_data[d][idx][f] * Object.keys(bar_data[d][idx]).length}
 					})
 				}
 			})
