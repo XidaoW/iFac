@@ -89,11 +89,27 @@ class CircularView extends Component {
 
 		const ButtonGroup = Button.Group;
 
+		let	descriptor_size = Object.keys(bar_data).length,
+			descriptor_size_list = Object.keys(bar_data).map((d) => Object.keys(bar_data[d][0]).length),
+			color_list = ['#ffff99', '#beaed4'],
+			used_color = '',
+			shift_size = 0.1,
+			label_flag = false,
+			reorder_item = false,
+			translate_x = 0,
+			translate_y = 0,
+			top_k = 5;
+
+
 		var patternEmbedding_original = patternEmbeddings['mds'];
 		var min_tsne = [d3.min(patternEmbedding_original, (d) => d[0]), d3.min(patternEmbedding_original, (d) => d[1])];
 		var max_tsne = [d3.max(patternEmbedding_original, (d) => d[0]), d3.max(patternEmbedding_original, (d) => d[1])];
-		var size_petal_radius = d3.scaleLinear().domain([0, 1]).range([1, this.outerCircleRadius]);
+		var petal_Radius = this.outerCircleRadius * Math.sin(360 / (descriptor_size*2) * (Math.PI / 180)) + 0.5;
+		var size_petal_radius = d3.scaleLinear().domain([0, 1]).range([1, petal_Radius]);
+		// var size_petal_radius = d3.scaleLinear().domain([0, 1]).range([1, this.outerCircleRadius]);
 		var size_petal_arc = d3.scaleLinear().domain([0, 1]).range([0, 2 * Math.PI * this.outerCircleRadius/ descriptor_size]);
+
+
 
 		const _self = this,
 					width = +this.layout.svg.width,
@@ -105,19 +121,6 @@ class CircularView extends Component {
 						return queries[key].length;
 					}).reduce((a,b)=>a+b);			
 
-		// max_tsne = data[0].max_tsne,
-		// min_tsne = data[0].min_tsne;
-
-		let	descriptor_size = Object.keys(bar_data).length,
-			descriptor_size_list = Object.keys(bar_data).map((d) => Object.keys(bar_data[d][0]).length),
-			color_list = ['#ffff99', '#beaed4'],
-			used_color = '',
-			shift_size = 0.1,
-			label_flag = false,
-			reorder_item = false,
-			translate_x = 0,
-			translate_y = 0,
-			top_k = 5;
 
 		let g,
 			svg = new ReactFauxDOM.Element('svg');
@@ -252,6 +255,7 @@ class CircularView extends Component {
 						.attr('transform', (d, i) => 'translate(' +d.x + ',' 
 									+ d.y + ')');
 
+		
 		// bubbles
 		var use_bubbles = false,
 			use_petal = false;
@@ -271,7 +275,7 @@ class CircularView extends Component {
 						.on("mouseout", function(d){
 							tooltip.hide();
 						})
-						.attr('transform', (d) => {var coords = petal.polarToCartesian(d.endAngle, size_petal_arc(1),this.outerCircleRadius, descriptor_size); return 'translate(' +coords.x + ',' 
+						.attr('transform', (d) => {var coords = petal.polarToCartesian(d.endAngle, this.outerCircleRadius); return 'translate(' +coords.x + ',' 
 										+ coords.y + ')';})
 						.attr('r', (d) => size_petal_radius(d.data.length))
 						.style('stroke', (d, i) => 'gray')
@@ -326,7 +330,7 @@ class CircularView extends Component {
 						.on("mouseout", function(d){
 							tooltip.hide();
 						})						
-						.attr('transform', (d) => petal.rotateTransform((d.startAngle + d.endAngle) / 2 , size_petal_arc(1),this.outerCircleRadius, descriptor_size))						
+						.attr('transform', (d) => petal.rotateTransform((d.startAngle + d.endAngle) / 2 , this.outerCircleRadius))						
 						.attr('rx', (d) => size_petal_radius(1))
 						.attr('ry', (d) => size_petal_radius(d.data.length))						
 						.style('stroke', (d, i) => 'gray')
