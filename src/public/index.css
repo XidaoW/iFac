@@ -107,6 +107,13 @@ body {
   border: 1px solid #7d7d7d !important;
 }
 
+.ant-table-scroll .ant-table-header::-webkit-scrollbar {
+    opacity: 0.001;
+}
+
+::-webkit-scrollbar {
+display: none;
+}
 
 .title {
   width: 100%;
