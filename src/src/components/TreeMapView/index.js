@@ -310,7 +310,7 @@ class TreeMapView extends Component {
 							<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
 						</Tooltip>																							
 					</div>	
-					<div>			
+					<div className={styles.queryPanel} >			
 						<QueryPanel
 							onQueryItem={this.props.onClickItem}
 							onResetItem={this.handleResetItems}

@@ -112,6 +112,16 @@ body {
   width: 100%;
 }
 
+.ant-btn-group {
+  padding: 5px !important;
+}
+
+.atn-btn {
+  background-color: lightgray !important;
+  color: white !important;
+  border: 1px solid #c1c1c1 !important;
+}
+
 .btn-secondary {
   color: rgba(0, 0, 0, 0.65) !important;
   background-color: #dadada !important;
