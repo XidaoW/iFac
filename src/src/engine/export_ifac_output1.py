@@ -159,8 +159,6 @@ class iFacData():
 		dstHist = ntfInstance.reconstruct()
 		srcHist = hist
 		diffHist = srcHist - dstHist
-		import pdb
-		pdb.set_trace()
 		diffHistSum = np.sum(diffHist*diffHist)
 		srcHistSum = np.sum(srcHist*srcHist)
 		return diffHistSum/srcHistSum
@@ -191,6 +189,26 @@ class iFacData():
 			self.item_mds['sc'][item_index] = SC_embeddings.fit_transform(self.data[item_index].T).tolist()
 		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(self.column_cnt)+'_'+str(self.cur_base)+'_sample_item_embedding.json', 'w') as fp:
 			json.dump(self.item_mds, fp)
+
+
+	def saveItemAllMDS(self):
+
+		from sklearn.manifold import MDS
+		self.loadFactors()
+		MDS_embeddings = MDS(n_components=2)
+		SC_embeddings = MDS(n_components=2)
+		
+		self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(self.column_cnt)]
+		self.item_mds = {}
+		self.item_mds['mds'] = {}
+		self.item_mds['sc'] = {}
+		all_data = np.concatenate([x.T for x in self.data])
+		self.item_mds['mds'] = MDS_embeddings.fit_transform(all_data).tolist()
+		self.item_mds['sc'] = SC_embeddings.fit_transform(all_data).tolist()
+		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(self.column_cnt)+'_'+str(self.cur_base)+'_sample_item_embedding_all.json', 'w') as fp:
+			json.dump(self.item_mds, fp)
+
+
 
 	def savePatternEmbedding(self):
 		self.loadFactors()
@@ -606,7 +624,7 @@ def generateItemEmbedding():
 	iFac.domain = str(sys.argv[3])
 	for cur_base in range(2+1, max_base+1):
 		iFac.cur_base = cur_base
-		iFac.saveItemMDS()
+		iFac.saveItemAllMDS()
 
 def generatePatternEmbedding():
 	iFac = iFacData()
@@ -652,9 +670,9 @@ def generateData():
 	iFac.getFitForRanks(base, trials = nb_trials)
 if __name__ == '__main__':
 	
-	generateData()
+	# generateData()
 	# aggregateAll()
-	# generateItemEmbedding()
+	generateItemEmbedding()
 	# generatePatternEmbedding()
 
 
