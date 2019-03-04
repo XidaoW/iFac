@@ -663,9 +663,10 @@ def generateSingleOutput():
 
 if __name__ == '__main__':
 	
-	generateData()
-	# aggregateAll()
-	# generateItemEmbedding()
-	# generatePatternEmbedding()
+	# generateSingleOutput() # generate output from a single tensor factorization
+	# generateData() # generate factor matrices with metrics
+	# aggregateAll() # aggreate metrics
+	# generateItemEmbedding() # generate item embeddings
+	# generatePatternEmbedding() # generate pattern embeddings
 
 
