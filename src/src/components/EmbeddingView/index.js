@@ -89,10 +89,10 @@ class EmbeddingView extends Component {
 
 		const ButtonGroup = Button.Group;
 
-		const itemEmbeddingAll = require("../../data/" + "nbaplayer" + "/factors_"+"3"+"_"+ "20" + "_sample_item_embedding_all.json");
+		const itemEmbeddingAll = require("../../data/" + "nbaplayer" + "/factors_"+"3"+"_"+ "20" + "_sample_item_embedding_2.json");
 		console.log(itemEmbeddingAll);
-		var itemEmbeddingAll_original = itemEmbeddingAll['mds'];
-		var patternEmbedding_original = patternEmbeddings['mds'];
+		var itemEmbeddingAll_original = itemEmbeddingAll['mds'][1];
+		console.log(itemEmbeddingAll);
 		var min_tsne = [d3.min(itemEmbeddingAll_original, (d) => d[0]), d3.min(itemEmbeddingAll_original, (d) => d[1])];
 		var max_tsne = [d3.max(itemEmbeddingAll_original, (d) => d[0]), d3.max(itemEmbeddingAll_original, (d) => d[1])];
 		var size_petal_radius = d3.scaleLinear().domain([0, 1]).range([1, this.outerCircleRadius]);
@@ -110,6 +110,7 @@ class EmbeddingView extends Component {
 
 		console.log(descriptors);
 		var all_items = [].concat(...Object.keys(descriptors).map((d) => descriptors[d]))
+
 		console.log(all_items);
 		// max_tsne = data[0].max_tsne,
 		// min_tsne = data[0].min_tsne;
@@ -143,18 +144,13 @@ class EmbeddingView extends Component {
 			color_list.splice( color_list.indexOf(used_color), 1 );
 		}
 
-		data.forEach((d, i) => {			
-				d.x = _self.circle_position_x(patternEmbedding_original[i][0]);
-				d.y = _self.circle_position_y(patternEmbedding_original[i][1]);
-				d.radius = parseInt(gs.innerCircleRadius);
-			}
-		);
 
+		// console.log(descriptors[Object.keys(descriptors)[2]]);
 		var item_data = d3.range(itemEmbeddingAll_original.length).map((d, i) => {		
 			return {
 				x: _self.circle_position_x(itemEmbeddingAll_original[d][0]),
 				y: _self.circle_position_y(itemEmbeddingAll_original[d][1]),
-				label: all_items[d],
+				label: descriptors[Object.keys(descriptors)[1]][d],
 				weight: 1,
 				radius: 20
 				}
@@ -202,7 +198,7 @@ class EmbeddingView extends Component {
 						.attr('transform', (d, i) => 'translate(' + d.x + ',' 
 									+ d.y + ')')
 						.on("mouseover", function(d){
-							tooltip.html('<div>pattern#' + d.label + '</div>'
+							tooltip.html('<div>item#' + d.label + '</div>'
 								);
 							tooltip.show();						
 							

@@ -277,7 +277,8 @@ class TreeMapView extends Component {
 					.on('mouseover', function (d) {
 						svg.classed('hover-active', true)   							
 						items.classed('hover', function (e) {
-							tooltip.html('<div>' + Object.keys(descriptors)[d.parent.data.descriptor] + ": " + d.data.item.split('_')[1] +"(" + d3.format(".0%")(d.data.value) + ")"+ '</div>');
+							// console.log(descriptors[Object.keys(descriptors)[d.parent.data.descriptor]]);
+							tooltip.html('<div>' + Object.keys(descriptors)[d.parent.data.descriptor] + ": " + d.data.item.split('_')[1] +"(" + d3.format(".0%")(d.data.value/descriptors[Object.keys(descriptors)[d.parent.data.descriptor]].length) + ")"+ '</div>');
 							tooltip.show();
 							d3.selectAll('path#bar_' + d.parent.data.descriptor+ '_'+ d.data.item).attr("stroke-width", "2px");
 							return e.data.item === d.data.item
