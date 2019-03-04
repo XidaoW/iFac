@@ -323,7 +323,7 @@ class iFacData():
 					self.cur_weights = self.weights_all[self.base_cnt-self.start_index][random_seed]
 					self.metrics["stability"][self.base_cnt-self.start_index].append(self.maxFactorSimilarity(self.cur_factors, self.cur_weights, self.best_factors, self.best_weights, self.base_cnt))   
 				self.cur_base = self.base_cnt                 
-				self.saveAttributes()
+				self.saveAttributes(random_seed = self.metrics["min_error_index"][self.cur_base-self.start_index])
 			except:
 				raise
 				# continue
@@ -538,16 +538,16 @@ class iFacData():
 		self.data_output["data"] = output        
 			
 	def saveOutput(self):
-		
-		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit.json', 'w') as fp:
-			json.dump(self.data_output, fp)
+		if self.data_output:		
+			with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit.json', 'w') as fp:
+				json.dump(self.data_output, fp)
+		if self.metrics:
+			with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit_metrics.json', 'w') as fp:
+				json.dump(self.metrics, fp)			
 
-		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit_metrics.json', 'w') as fp:
-			json.dump(self.metrics, fp)			
-
-	def saveAttributes(self):
+	def saveAttributes(self, random_seed = 1):
 		_log.info("Factorize Tensor")   
-		self.factorizeTensor(ones = False, random_seed = self.metrics["min_error_index"][self.cur_base-self.start_index])
+		self.factorizeTensor(ones = False, random_seed = random_seed)
 		_log.info("Get Factors")          
 		self.normalizeFactor()
 		self.getFactors()
@@ -565,6 +565,8 @@ class iFacData():
 		_log.info("Saving Output")                              
 		self.formatOutput()
 		self.saveOutput()
+
+
 
 	def readJSON(self, base_cnt=10, domain = ""):
 		self.base_cnt = base_cnt
@@ -648,6 +650,17 @@ def generateData():
 	iFac.readData(domain = domain)
 	_log.info("Fitting Different Ranks up to {}".format(base))
 	iFac.getFitForRanks(base, trials = nb_trials)
+
+def generateSingleOutput():
+	iFac = iFacData()
+	base = 30	
+	domain = "policy"	
+	base = int(sys.argv[1])
+	domain = str(sys.argv[2])
+	iFac.cur_base = base
+	iFac.saveAttributes()
+
+
 if __name__ == '__main__':
 	
 	generateData()
