@@ -679,9 +679,9 @@ def generateSingleOutput():
 if __name__ == '__main__':
 	
 	# generateSingleOutput() # generate output from a single tensor factorization
-	generateData() # generate factor matrices with metrics
+	# generateData() # generate factor matrices with metrics
 	# aggregateAll() # aggreate metrics
-	# generateItemEmbedding() # generate item embeddings
-	# generatePatternEmbedding() # generate pattern embeddings
+	generateItemEmbedding() # generate item embeddings
+	generatePatternEmbedding() # generate pattern embeddings
 
 

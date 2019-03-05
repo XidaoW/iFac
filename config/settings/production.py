@@ -156,7 +156,7 @@ AWS_PRELOAD_METADATA = True
 # more details on how to customize your logging configuration.
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': True,
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
@@ -175,7 +175,7 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler'
         },
         'console': {
-            'level': 'DEBUG',
+            'level': 'NOTSET',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
@@ -190,7 +190,16 @@ LOGGING = {
             'level': 'ERROR',
             'handlers': ['console', 'mail_admins'],
             'propagate': True
-        }
+        },
+        '': {
+            'handlers': ['console'],
+            'level': 'NOTSET',
+        },        
+        'django.request': {
+            'handlers': ['console'],
+            'propagate': False,
+            'level': 'ERROR'
+        }        
     }
 }
 

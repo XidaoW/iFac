@@ -34,9 +34,13 @@ django_coverage_plugin = "==1.5.0"
 pytest-django = "==3.3.3"
 django-cors-headers = "*"
 pandas = "*"
-csv = "*"
-json = "*"
 numpy = "*"
+scikit-tensor = {editable = true,path = "./app/static/lib/scikit-tensor"}
+sklearn = "*"
+py4j = "*"
 
 [requires]
-python_version = "3.5"
+python_version = "3.6.8"
+
+[pipenv]
+allow_prereleases = true
