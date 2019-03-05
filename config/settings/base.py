@@ -41,6 +41,8 @@ USE_TZ = True
 DATABASES = {
     'default': env.db('DATABASE_URL', default='postgres:///ifac'),
 }
+DATABASES = { 'default': { 'ENGINE': 'django.db.backends.postgresql_psycopg2', 'NAME': 'ifac', 'USER': 'xidao', 'PASSWORD': 'wenxidao', 'HOST': 'localhost', 'PORT': '5432', } }
+
 DATABASES['default']['ATOMIC_REQUESTS'] = True
 
 # URLS
