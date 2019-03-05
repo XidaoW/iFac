@@ -89,6 +89,21 @@ class iFacData():
 			shots_group_data_attempted = shots_group_data_made.div(shots_group_data_attempted, level=0)
 			self.hist, self.labels = self.createDataHistogram(shots_group_data_attempted, self.column)
 
+		if self.domain == "nbaplayer1":
+			top_cnt = 15
+			shots = pd.read_csv("data/NBA_shots_201415.csv")
+			shots = shots[['PLAYER_ID','PLAYER_NAME','TEAM_ID','TEAM_NAME','ZoneName','PERIOD','SHOT_ATTEMPTED_FLAG','SHOT_MADE_FLAG']]
+			shots.PERIOD[shots.PERIOD > 4] = 5
+			self.column = ['PERIOD','PLAYER_NAME','ZoneName']
+			shots_total = shots.groupby(['PLAYER_NAME'])['SHOT_ATTEMPTED_FLAG'].sum()
+			top_players = list(shots_total.sort_values(ascending=False).iloc[:top_cnt].index)
+			shots = shots[shots.PLAYER_NAME.isin(top_players)]
+			shots_group_data_attempted = shots.groupby(self.column)['SHOT_ATTEMPTED_FLAG'].sum()
+			shots_group_data_made = shots.groupby(self.column)['SHOT_MADE_FLAG'].sum()
+			shots_group_data_attempted = shots_group_data_made.div(shots_group_data_attempted, level=0)
+			self.hist, self.labels = self.createDataHistogram(shots_group_data_attempted, self.column)
+
+
 		elif self.domain == "policy":
 			policy = pd.read_csv("data/policy_adoption.csv")
 			policy['adoption'] = 1
@@ -283,7 +298,7 @@ class iFacData():
 				for random_seed in range(self.trials):
 					_log.info("Current Trial: {}".format(random_seed))
 					ntfInstance = ntf.NTF(self.base_cnt, self.hist, parallelCalc=True, ones = False, random_seed = random_seed)
-					ntfInstance.factorize(self.hist, showProgress=True)
+					ntfInstance.factorize(self.hist, showProgress=True, default = False)
 					each_rank_trials.append(ntfInstance)
 
 				self.all_trials.append(each_rank_trials)
@@ -375,7 +390,7 @@ class iFacData():
 		
 		print("Start factorization...")
 		self.ntfInstance = ntf.NTF(self.cur_base, self.hist, parallelCalc=True, ones = ones, random_seed = random_seed)
-		self.ntfInstance.factorize(self.hist, showProgress=True)
+		self.ntfInstance.factorize(self.hist, showProgress=True, default = False)
 		self.ntfInstance.normalizeFactor()        
 
 		
@@ -664,7 +679,7 @@ def generateSingleOutput():
 if __name__ == '__main__':
 	
 	# generateSingleOutput() # generate output from a single tensor factorization
-	# generateData() # generate factor matrices with metrics
+	generateData() # generate factor matrices with metrics
 	# aggregateAll() # aggreate metrics
 	# generateItemEmbedding() # generate item embeddings
 	# generatePatternEmbedding() # generate pattern embeddings
