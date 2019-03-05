@@ -71,7 +71,7 @@ THIRD_PARTY_APPS = [
     'corsheaders',  # To accept requests from React
 ]
 LOCAL_APPS = [
-    'app.users.apps.UsersAppConfig',
+    'app.dataset.apps.DatasetConfig',  # dataset app
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -91,12 +91,12 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
-# https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
-AUTH_USER_MODEL = 'users.User'
-# https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
-LOGIN_REDIRECT_URL = 'users:redirect'
-# https://docs.djangoproject.com/en/dev/ref/settings/#login-url
-LOGIN_URL = 'account_login'
+# # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
+# AUTH_USER_MODEL = 'users.User'
+# # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
+# LOGIN_REDIRECT_URL = 'users:redirect'
+# # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
+# LOGIN_URL = 'account_login'
 
 # PASSWORDS
 # ------------------------------------------------------------------------------
@@ -224,19 +224,19 @@ ADMINS = [
 MANAGERS = ADMINS
 
 
-# django-allauth
-# ------------------------------------------------------------------------------
-ACCOUNT_ALLOW_REGISTRATION = env.bool('DJANGO_ACCOUNT_ALLOW_REGISTRATION', True)
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_AUTHENTICATION_METHOD = 'username'
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_EMAIL_REQUIRED = True
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-ACCOUNT_ADAPTER = 'app.users.adapters.AccountAdapter'
-# https://django-allauth.readthedocs.io/en/latest/configuration.html
-SOCIALACCOUNT_ADAPTER = 'app.users.adapters.SocialAccountAdapter'
+# # django-allauth
+# # ------------------------------------------------------------------------------
+# ACCOUNT_ALLOW_REGISTRATION = env.bool('DJANGO_ACCOUNT_ALLOW_REGISTRATION', True)
+# # https://django-allauth.readthedocs.io/en/latest/configuration.html
+# ACCOUNT_AUTHENTICATION_METHOD = 'username'
+# # https://django-allauth.readthedocs.io/en/latest/configuration.html
+# ACCOUNT_EMAIL_REQUIRED = True
+# # https://django-allauth.readthedocs.io/en/latest/configuration.html
+# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+# # https://django-allauth.readthedocs.io/en/latest/configuration.html
+# ACCOUNT_ADAPTER = 'app.users.adapters.AccountAdapter'
+# # https://django-allauth.readthedocs.io/en/latest/configuration.html
+# SOCIALACCOUNT_ADAPTER = 'app.users.adapters.SocialAccountAdapter'
 
 
 # Your stuff...
