@@ -2,7 +2,7 @@
   "name": "src",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:8000",
+  "proxy": "http://picso.org:9003",
   "dependencies": {
     "ajv": "^6.5.5",
     "antd": "^3.13.2",

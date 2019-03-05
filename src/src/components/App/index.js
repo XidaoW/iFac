@@ -20,6 +20,7 @@ import 'antd/dist/antd.css';
 const domainSetting = {
 						"picso": {"modes": "3", "cnt": "19"},
 						"nbaplayer": {"modes": "3", "cnt": "20"},
+						// "nbaplayer1": {"modes": "3", "cnt": "20"},
 						"policy": {"modes": "3", "cnt": "36"},
 						"policyKeyword": {"modes": "4", "cnt": "20"},
 						"purchase": {"modes": "5", "cnt": "30"}
