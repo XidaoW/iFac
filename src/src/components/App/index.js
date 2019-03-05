@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import * as d3 from 'd3';
+import _ from 'lodash';
 import Overview from 'components/Overview';
 import CircularView from 'components/CircularView';
 import EmbeddingView from 'components/EmbeddingView';
@@ -233,6 +234,17 @@ class App extends Component {
 		const { domain } = this.state;
 		const selectedDataset = require("../../data/" + domain + "/factors_"+domainSetting[domain]["modes"]+"_"+domainSetting[domain]["cnt"]+ "_sample_fit");
 		// const selectedDataset = require("../../data/" + domain + "/factors_3_18" + "_sample_fit");
+
+		console.log('here');
+
+		fetch('/dataset/file')
+			.then( (response) => {
+					return response.json();
+			})   
+			.then( (file) => {
+				const dataset = _.values(JSON.parse(file));
+				console.log('fetch: ', dataset);
+			});
 
 		this.setState({
 			screeData: selectedDataset.scree,
