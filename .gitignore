@@ -1,3 +1,4 @@
+app/static/data/*
 src/src/engine/metastore_db/
 *.npy
 **/src/src/engine/multiview/*
