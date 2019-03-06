@@ -60,6 +60,8 @@ class EmbeddingView extends Component {
 		this.barLabelFontSize = gs.barLabelFontSize;
 		this.handleResetPatterns = this.handleResetPatterns.bind(this);				
 		this.handleResetItems = this.handleResetItems.bind(this);				
+		this.handleDeletePattern = this.handleDeletePattern.bind(this);						
+		this.handleMergePattern = this.handleMergePattern.bind(this);						
 	}
 
 	handleResetPatterns() {
@@ -73,6 +75,20 @@ class EmbeddingView extends Component {
 		d3.selectAll('.query_bar').attr("stroke", "none");
 		d3.selectAll('.itemTags').remove()
 		this.props.onResetItems();		
+	}
+
+	handleDeletePattern() {
+		d3.selectAll('.query_bar').classed('queried', false)	
+		d3.selectAll('.query_bar').attr("stroke", "none");
+		d3.selectAll('.itemTags').remove()
+		this.props.onDeletePattern();
+	}
+
+	handleMergePattern() {
+		d3.selectAll('.query_bar').classed('queried', false)	
+		d3.selectAll('.query_bar').attr("stroke", "none");
+		d3.selectAll('.itemTags').remove()
+		this.props.onMergePattern();
 	}
 
 	render() {
@@ -165,7 +181,7 @@ class EmbeddingView extends Component {
 			.force("collide", d3.forceCollide().radius(function(d){ return 1.2*d.radius }))
 			.force("manyBody", d3.forceManyBody().strength(-5))
 			.stop();
-  		for (var i = 0; i < 2000; ++i) simulation.tick();
+		for (var i = 0; i < 2000; ++i) simulation.tick();
 			// .force("center", d3.forceCenter((width)/2-(innerRadius)/2, (height)/2-( innerRadius)/2))
 
 		// draw the backdrop
@@ -233,8 +249,8 @@ class EmbeddingView extends Component {
 			<div className={styles.CircularOverview}>					
 				<div className={index.title}>Circular View
 					<Tooltip title="Pattern Examination">
-    					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
-  					</Tooltip>					
+						<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
+					</Tooltip>					
 				</div>
 				 <ButtonGroup>
 					<Button onClick={this.handleResetPatterns}>
@@ -243,6 +259,12 @@ class EmbeddingView extends Component {
 					<Button onClick={this.handleResetItems}>
 						Reset Item Selection
 					</Button>
+					<Button onClick={this.handleDeletePattern}>
+						Delete Pattern
+					</Button>				
+					<Button onClick={this.handleMergePattern}>
+						Merge Pattern
+					</Button>									
 					</ButtonGroup>
 				{svg.toReact()}				
 			</div>

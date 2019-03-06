@@ -76,8 +76,6 @@ class TreeMapView extends Component {
 			})
 			}]}		
 		})};
-		console.log(descriptors);
-
 		const tooltip = d3tooltip(d3);
 
 		var margin = { top: 5, right: 5, bottom: 25, left: 5 }

@@ -20,7 +20,7 @@ import 'antd/dist/antd.css';
 const domainSetting = {
 						"picso": {"modes": "3", "cnt": "19"},
 						"nbaplayer": {"modes": "3", "cnt": "20"},
-						// "nbaplayer1": {"modes": "3", "cnt": "20"},
+						"nbaplayer1": {"modes": "3", "cnt": "30"},
 						"policy": {"modes": "3", "cnt": "36"},
 						"policyKeyword": {"modes": "4", "cnt": "20"},
 						"purchase": {"modes": "5", "cnt": "30"}
@@ -30,7 +30,7 @@ const domainSetting = {
 class App extends Component {
 	constructor(props) {
 		super(props);
-		const domain = "nbaplayer";
+		const domain = "nbaplayer1";
 		const [factors_data, metrics, itemEmbeddings, patternEmbeddings] = this.loadDefaultDataset(domain);
 		this.state = {
 			factors_data: factors_data.data,
@@ -63,6 +63,7 @@ class App extends Component {
 			metricAggregated: [],
 			itemEmbeddings: itemEmbeddings,
 			patternEmbeddings: patternEmbeddings,
+			deletedPatternIdx: [],			
 			clickedPatternIdx: [] /* listview */
 		};
 
@@ -78,6 +79,9 @@ class App extends Component {
 		this.handleSetWeight = this.handleSetWeight.bind(this);
 		this.handleResetPatterns = this.handleResetPatterns.bind(this);
 		this.handleResetItems = this.handleResetItems.bind(this);
+		this.handleDeletePatterns = this.handleDeletePatterns.bind(this);
+		this.handleMergePatterns = this.handleMergePatterns.bind(this);
+		this.handleUpdatePatterns = this.handleUpdatePatterns.bind(this);	
 		this.handleAddingPattern = this.handleAddingPattern.bind(this);	
 		this.loadDefaultDataset = this.loadDefaultDataset.bind(this);
 		this.loadDatasetOnClickPoint = this.loadDatasetOnClickPoint.bind(this);
@@ -326,6 +330,69 @@ class App extends Component {
 		});		 
 	}
 
+
+
+	handleDeletePatterns(newDeletedPatternIdxs){
+		/**
+		 * Handles the delete pattern event in circular view
+		 *
+		 * add the delete pattern to deletedPatternIdx
+		 *
+		 * @since      0.0.0
+		 *
+		 * @fires   click
+		 *
+		 * 
+		 */	
+		newDeletedPatternIdxs.map((idx) => 
+			this.setState(prevState => ({
+				deletedPatternIdx: [
+					...prevState.deletedPatternIdx,
+					idx
+				],
+				selectedPatterns: prevState.selectedPatterns.filter((d) => d !== idx),			
+				currentSelectedPatternIdx: ''
+				})
+			)
+		);
+
+
+	}
+
+	handleUpdatePatterns(){
+		/**
+		 * Handles the update pattern event in circular view
+		 *
+		 * add the delete pattern to deletedPatternIdx
+		 *
+		 * @since      0.0.0
+		 *
+		 * @fires   click
+		 *
+		 * 
+		 */	
+
+	}	
+
+	handleMergePatterns(newDeletedPatternIdx){
+		/**
+		 * Handles the delete pattern event in circular view
+		 *
+		 * add the delete pattern to deletedPatternIdx
+		 *
+		 * @since      0.0.0
+		 *
+		 * @fires   click
+		 *
+		 * 
+		 */	
+		this.setState(prevState => ({
+			deletedPatternIdx: [
+				...prevState.deletedPatternIdx,
+				newDeletedPatternIdx
+			]
+		}));
+	}	
 
 
 	handleSetWeight(weight, idx) {
@@ -815,7 +882,8 @@ class App extends Component {
 			item_max_pattern,queries,similarPatternToQueries, item_links, mouseOveredDescriptorIdx, 
 			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
 			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricAggregated,
-			itemEmbeddings, clickedPatternIdx, patternEmbeddings
+			itemEmbeddings, clickedPatternIdx, patternEmbeddings,
+			deletedPatternIdx
 		} = this.state;
 
 
@@ -858,6 +926,7 @@ class App extends Component {
 					itemEmbeddings={itemEmbeddings}
 					clickedPatternIdx={clickedPatternIdx}
 					selectedPatterns={selectedPatterns}
+					deletedPatternIdx={deletedPatternIdx}
 					similarPatternToQueries={similarPatternToQueries}
 					onClickPattern={this.handleClickPattern}
 				/>
@@ -873,6 +942,9 @@ class App extends Component {
 						onMouseOutItem={this.handleMouseOutItem}
 						onResetPatterns={this.handleResetPatterns}
 						onResetItems={this.handleResetItems}
+						onDeletePatterns={this.handleDeletePatterns}
+						onMergePatterns={this.handleMergePatterns}
+						onUpdatePatterns={this.handleUpdatePatterns}
 						leastSimilarPatternToSelectedPatternIdx={leastSimilarPatternToSelectedPatternIdx}              
 						mostSimilarPatternToSelectedPatternIdx={mostSimilarPatternToSelectedPatternIdx}          
 						bar_data={bar_data}     
@@ -888,6 +960,7 @@ class App extends Component {
 						queries={queries}
 						item_links={item_links}
 						descriptors={descriptors}
+						deletedPatternIdx={deletedPatternIdx}
 						mouseOveredDescriptorIdx={mouseOveredDescriptorIdx}
 						similarPatternToQueries={similarPatternToQueries}
 						onAddingPattern={this.handleAddingPattern}					

@@ -13,7 +13,7 @@ import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 import Circos, { SCATTER } from 'react-circos';
-import { Tag, Input, Tooltip, Icon, Button } from 'antd';
+import { Modal, Tag, Input, Tooltip, Icon, Button } from 'antd';
 import QueryPanel from 'components/QueryPanel';
 import scrollIntoView from 'scroll-into-view';
 
@@ -61,7 +61,11 @@ class CircularView extends Component {
 		this.circularInnerRadius = gs.circularInnerRadius;
 		this.barLabelFontSize = gs.barLabelFontSize;
 		this.handleResetPatterns = this.handleResetPatterns.bind(this);				
-		this.handleResetItems = this.handleResetItems.bind(this);				
+		this.handleResetItems = this.handleResetItems.bind(this);		
+		this.handleDeletePattern = this.handleDeletePattern.bind(this);						
+		this.handleMergePattern = this.handleMergePattern.bind(this);						
+		this.handleUpdatePatterns = this.handleUpdatePatterns.bind(this);								
+
 	}
 
 	handleResetPatterns() {
@@ -77,9 +81,26 @@ class CircularView extends Component {
 		this.props.onResetItems();		
 	}
 
+	handleDeletePattern(deletedPatternsIdx) {
+		console.log(deletedPatternsIdx);
+		this.props.onDeletePatterns(deletedPatternsIdx);
+	}
+
+	handleUpdatePatterns() {
+		// console.log(deletedPatternsIdx);
+		// this.props.onDeletePatterns(deletedPatternsIdx);
+	}	
+
+	handleMergePattern() {
+		d3.selectAll('.query_bar').classed('queried', false)	
+		d3.selectAll('.query_bar').attr("stroke", "none");
+		d3.selectAll('.itemTags').remove()
+		this.props.onMergePatterns();
+	}	
+
 	render() {
 		console.log('circularView rendered');
-		console.log('this.props.data: ', this.props.data);
+		// console.log('this.props.data: ', this.props.data);
 		const { data, selectedPatterns,
 				mostSimilarPatternToSelectedPatternIdx,
 				leastSimilarPatternToSelectedPatternIdx, 
@@ -87,9 +108,10 @@ class CircularView extends Component {
 				bar_data, max_pattern_item,modes,
 				queries, similarPatternToQueries, item_links, descriptors,
 				mouseOveredDescriptorIdx, item_similarity, components_cnt,
-				itemEmbeddings,patternEmbeddings } = this.props;  
+				itemEmbeddings,patternEmbeddings,deletedPatternIdx } = this.props;  
 
 		const ButtonGroup = Button.Group;
+		const confirm = Modal.confirm;
 
 		let	descriptor_size = Object.keys(bar_data).length,
 			descriptor_size_list = Object.keys(bar_data).map((d) => Object.keys(bar_data[d][0]).length),
@@ -169,8 +191,6 @@ class CircularView extends Component {
 						.attr('class', 'g_flowers');
 
 
-
-
 		// d3.selectAll("div#svg-color-quant").selectAll("svg").remove()
 		// var sequentialScale = d3.scaleSequential(d3.interpolateRainbow)
 		// 	.domain([0,10]);
@@ -205,7 +225,6 @@ class CircularView extends Component {
 
 
 
-		
 		// Add the outer circles to the backdrop.
 		const circles = gFlowers.selectAll('.pattern_circles')
 						.data(data)
@@ -250,33 +269,15 @@ class CircularView extends Component {
 								d3.select('#pattern_' + d.id).attr('stroke-opacity', 0.3);
 								d3.select('#pattern_mini_' + d.id).attr('stroke', 'grey');
 								d3.select('#pattern_mini_' + d.id).attr('stroke-opacity', 0.3);
-								// remove the lines between patterns and the dominating items.
-								for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
-									backdrop.select('path#link_'+descriptor_index).remove();
-								}								
+								
 							} else {
 								if (selectedPatterns.length < this.compare_N) {
 
-									// let petals_path_items = d3.range(descriptor_size).map(function(p){
-									// 	return {
-									// 		'd_flower': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('d'),
-									// 		'transform_petal': backdrop.select('path#petal_'+d.id+'_'+p+'.petal').attr('transform'),
-									// 		'translate_flower': backdrop.select('#flower_'+d.id).attr('transform'),
-									// 		'transform_bar': backdrop.select('g#descriptor_'+p+'_barchart').attr('transform'),
-									// 		'transform_g_flower': backdrop.select('g.g_flowers').attr('transform'),
-									// 		'd_bar': backdrop.select('path#bar_'+p+'_'+max_pattern_item[p][d.id]).attr('d'),
-									// 		'item': max_pattern_item[p][d.id],
-									// 		'descriptor_index': p,
-									// 		'pattern_id': d.id
-									// 	}
-									// });
 									let petals_path_items = [];
 									_self.props.onClickPattern(d.id, petals_path_items);
 									d3.select('#pattern_' + d.id).classed('selected', true);							
 									d3.select('#pattern_' + d.id).attr('stroke', color_list[0]);  
-									d3.select('#pattern_mini_' + d.id).attr("stroke", color_list[0]); 					
-
-
+									d3.select('#pattern_mini_' + d.id).attr("stroke", color_list[0]); 
 									color_list.splice(0, 1);
 								}
 							}
@@ -375,6 +376,7 @@ class CircularView extends Component {
 						.style('fill-opacity', (d) => color_threshold(d.data.width));
 		}
 
+
 		// DRAW THE RADIAL BAR CHART
 		for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
 			let selected_pattern_cnt = selectedPatterns.length;
@@ -398,6 +400,14 @@ class CircularView extends Component {
 			
 
 		}
+
+		//Hide the deleted patterns
+		deletedPatternIdx.map((idx) => {
+			d3.select('.pattern_circles#pattern_' + idx).style("display", "none");
+			d3.select('.flower#flower_' + idx).attr("display", "none");
+			d3.select('tr.pattern_row_' + idx).remove()
+		});
+
 		draw_query_result(similarPatternToQueries, query_flag);
 
 		function draw_query_result(similarPatternToQueries, query_flag){
@@ -715,11 +725,45 @@ class CircularView extends Component {
 				}								
 			}
 
+		}	
+
+		function showConfirmDelete() {
+			confirm({
+				title: 'Do you want to delete these patterns?',
+				content: '',
+				onOk() {	
+
+					_self.handleDeletePattern(selectedPatterns);
+				},
+				onCancel() {},
+				});
+		}
+		function showConfirmMerge() {
+			confirm({
+				title: 'Do you want to merge these items?',
+				content: 'When clicked the OK button, this dialog will be closed after 1 second',
+				onOk() {
+					return new Promise((resolve, reject) => {
+						setTimeout(Math.random() > 0.5 ? resolve : reject, 100);
+					}).catch(() => console.log('Oops errors!'));
+				},
+				onCancel() {},
+				});
+		}
+		function showConfirmUpdate() {
+			confirm({
+				title: 'Do you want to update the patterns?',
+				content: '',
+				onOk() {	
+					_self.handleUpdatePatterns();
+				},
+				onCancel() {},
+				});
 		}		
 
 		function axisStroke(i, descriptor_size) {
-			var color_list = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
-			return color_list[i];
+			var color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
+			return color_list_petal[i];
 			// return d3.hcl(i / descriptor_size * 360, 60, 70);
 		};
 
@@ -790,6 +834,17 @@ class CircularView extends Component {
 					<Button onClick={this.handleResetItems}>
 						Reset Item Selection
 					</Button>
+					</ButtonGroup>
+					<ButtonGroup>
+					<Button onClick={showConfirmDelete}>
+						Delete Pattern
+					</Button>				
+					<Button onClick={showConfirmMerge}>
+						Merge Pattern
+					</Button>	
+					<Button onClick={showConfirmUpdate}>
+						Update
+					</Button>						
 					</ButtonGroup>
 				<div id="svg-color-quant" className={styles.legend}></div>
 				{svg.toReact()}				
