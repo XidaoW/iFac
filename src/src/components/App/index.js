@@ -63,7 +63,8 @@ class App extends Component {
 			metricAggregated: [],
 			itemEmbeddings: itemEmbeddings,
 			patternEmbeddings: patternEmbeddings,
-			deletedPatternIdx: [],			
+			deletedPatternIdx: [],		
+			mergePatternIdx: [],
 			clickedPatternIdx: [] /* listview */
 		};
 
@@ -240,16 +241,16 @@ class App extends Component {
 		const selectedDataset = require("../../data/" + domain + "/factors_"+domainSetting[domain]["modes"]+"_"+domainSetting[domain]["cnt"]+ "_sample_fit");
 		// const selectedDataset = require("../../data/" + domain + "/factors_3_18" + "_sample_fit");
 
-		console.log('here');
+		// console.log('here');
 
-		fetch('/dataset/file')
-			.then( (response) => {
-					return response.json();
-			})   
-			.then( (file) => {
-				const dataset = _.values(JSON.parse(file));
-				console.log('fetch: ', dataset);
-			});
+		// fetch('/dataset/file')
+		// 	.then( (response) => {
+		// 			return response.json();
+		// 	})   
+		// 	.then( (file) => {
+		// 		const dataset = _.values(JSON.parse(file));
+		// 		console.log('fetch: ', dataset);
+		// 	});
 
 		this.setState({
 			screeData: selectedDataset.scree,
@@ -355,9 +356,81 @@ class App extends Component {
 				})
 			)
 		);
-
-
 	}
+
+	handleMergePatterns(){
+		/**
+		 * Handles the delete pattern event in circular view
+		 *
+		 * add the delete pattern to deletedPatternIdx
+		 *
+		 * @since      0.0.0
+		 *
+		 * @fires   click
+		 *
+		 * 
+		 */	
+		let seletedPatternIdxs = this.state.selectedPatterns;
+		var factors_cur = this.state.factors_data,
+			target = seletedPatternIdxs[0],
+			source = seletedPatternIdxs[1],
+			bar_data = {},
+			components_cnt = this.state.components_cnt;
+
+		d3.range(this.state.modes.length)
+			.map((mode) => {
+				let sum_value = 0,
+					sum_similarity = 0;
+				Object.keys(factors_cur[target]["factors"][mode].values)
+					.filter((item) => item !== "id")
+					.map((item) => {
+						factors_cur[target].factors[mode].values[item] += factors_cur[source].factors[mode].values[item];
+						sum_value += factors_cur[target].factors[mode].values[item]
+				});
+				Object.keys(factors_cur[target].factors[mode].values)
+					.filter((item) => item !== "id")
+					.map((item) => {						
+						factors_cur[target].factors[mode].values[item] /= sum_value;
+				});
+				Object.keys(factors_cur[target].factors[mode].similarity)
+					.filter((item) => ["average", "max_idx", "min_idx"].indexOf(item) < 0)
+					.map((item) => {
+						factors_cur[target].factors[mode].similarity[item] += factors_cur[source].factors[mode].similarity[item];
+						factors_cur[target].factors[mode].similarity[item] /= 2;
+						sum_similarity += factors_cur[target].factors[mode].similarity[item]
+				});
+				factors_cur[target].factors[mode].similarity.average = sum_similarity / components_cnt;
+				factors_cur[target].factors[mode].entropy = (factors_cur[target].factors[mode].entropy + factors_cur[source].factors[mode].entropy) / 2;
+				factors_cur[target].petals[mode].length = 1 - factors_cur[target].factors[mode].entropy;
+				factors_cur[target].petals[mode].width = factors_cur[target].factors[mode].similarity.average;
+
+			}
+		)
+		factors_cur[target].weight += factors_cur[source].weight;
+		factors_cur[target].circles.dominance = factors_cur[target].weight;
+
+
+		for(let i = 0; i < this.state.modes.length; i++){
+			bar_data[i] = [];
+			let pattern_cnt = factors_cur.length;
+			for(let j = 0; j < pattern_cnt; j++) {
+				bar_data[i].push(factors_cur[j].factors[i].values); 
+			}      
+			bar_data[i].push(this.state.descriptors_mean[i]); 
+		}
+
+
+		this.setState(prevState => ({
+			factors_data: factors_cur,
+			bar_data: bar_data,
+			deletedPatternIdx: [
+				...prevState.deletedPatternIdx,
+				source
+			],
+			mergePatternIdx: [...prevState.mergePatternIdx, {target:target, source:source}],
+			selectedPatterns: []
+		}));
+	}	
 
 	handleUpdatePatterns(){
 		/**
@@ -371,27 +444,33 @@ class App extends Component {
 		 *
 		 * 
 		 */	
+		const bar_data = this.state.bar_data,
+			deletedIdx = this.state.deletedPatternIdx,			
+			components_cnt = bar_data[0].length - 1;			
 
-	}	
+		
 
-	handleMergePatterns(newDeletedPatternIdx){
-		/**
-		 * Handles the delete pattern event in circular view
-		 *
-		 * add the delete pattern to deletedPatternIdx
-		 *
-		 * @since      0.0.0
-		 *
-		 * @fires   click
-		 *
-		 * 
-		 */	
-		this.setState(prevState => ({
-			deletedPatternIdx: [
-				...prevState.deletedPatternIdx,
-				newDeletedPatternIdx
-			]
-		}));
+		let new_bar_data = d3.range(Object.keys(bar_data).length).map((mode) => {
+					return bar_data[mode].filter((d, i) => deletedIdx.indexOf(i) < 0).map((each_d) => {
+						return Object.values(each_d).slice(0, -1);
+					});
+				});	
+		console.log(JSON.stringify({reference_matrix: new_bar_data}));			
+		fetch('/dataset/ntf/', {
+				method: 'post',
+				body: JSON.stringify({
+					reference_matrix: new_bar_data,
+					domain: this.state.domain,
+					base: new_bar_data[0].length
+				})
+			})
+			.then( (response) => {
+					return response.json();
+			})   
+			.then( (file) => {
+				const dataset = _.values(JSON.parse(file));
+				console.log('fetch: ', dataset);
+			});		
 	}	
 
 
@@ -525,14 +604,12 @@ class App extends Component {
 		 * @param {object} petals_path_items     a object of key-value pair that contains the transform and translates of related items and patterns.
 		 * 
 		 */
-		console.log("clicked:", idx);
 		const newSelectedPattern = idx,
 			factors = this.state.factors_data,
 			tensor_dims = this.state.modes.length,			
 			prev_selected_patterns = this.state.selectedPatterns,
 			selectedPatternCnt = prev_selected_patterns.length + 1;
 
-		console.log(this.state);
 		let mostSimilarPattern = [],
 			max_ids = [],
 			min_ids = [],			
@@ -883,7 +960,7 @@ class App extends Component {
 			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
 			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricAggregated,
 			itemEmbeddings, clickedPatternIdx, patternEmbeddings,
-			deletedPatternIdx
+			deletedPatternIdx, mergePatternIdx
 		} = this.state;
 
 
@@ -961,6 +1038,7 @@ class App extends Component {
 						item_links={item_links}
 						descriptors={descriptors}
 						deletedPatternIdx={deletedPatternIdx}
+						mergePatternIdx={mergePatternIdx}
 						mouseOveredDescriptorIdx={mouseOveredDescriptorIdx}
 						similarPatternToQueries={similarPatternToQueries}
 						onAddingPattern={this.handleAddingPattern}					

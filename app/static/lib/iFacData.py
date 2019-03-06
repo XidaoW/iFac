@@ -386,16 +386,16 @@ class iFacData():
 		
 		print("Start factorization...")
 		self.ntfInstance = ntf.NTF(self.cur_base, self.hist, parallelCalc=True, ones = ones, random_seed = random_seed)
-		self.ntfInstance.factorize(self.hist, showProgress=True, default = False)
+		self.ntfInstance.factorize(self.hist, showProgress=True, default = False, reference_matrix = self.reference_matrix)
 		self.ntfInstance.normalizeFactor()        
 
 		
 	def saveFactors(self):
-		fName = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'.npy'
+		fName = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_edit.npy'
 		np.save(fName, self.factors)
 
 	def loadFactors(self):
-		fName = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(self.column_cnt)+'_'+str(self.cur_base)+'.npy'
+		fName = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(self.column_cnt)+'_'+str(self.cur_base)+'_edit.npy'
 		self.factors = np.load(fName)
 
 
@@ -509,18 +509,15 @@ class iFacData():
 			output_each['id'] = i
 			output_each['factors'] = {}
 			output_each['dims'] = len(self.factors[i])
-			output_each['tsne_coord'] = {'x': self.X_embedded[i][0],'y':self.X_embedded[i][1]}
 			output_each['weight'] = self.ntfInstance.normalizedWeight[i]
-			output_each['max_tsne'] = np.max(self.X_embedded, axis = 0).tolist()
-			output_each['min_tsne'] = np.min(self.X_embedded, axis = 0).tolist()
 			for j in range(len(self.factors[i])):
 				a = self.factors[i][j]
 				output_each['factors'][j] = {}
 				output_each_factor = {}
 				output_each_factor['mode_id'] = j        
 				_dict = dict((self.labels[j][m], a[m]) for m in range(len(a)))
-				output_each_factor['max_item'] = max(_dict, key=_dict.get)
-				output_each_factor['min_item'] = min(_dict, key=_dict.get)
+				# output_each_factor['max_item'] = max(_dict, key=_dict.get)
+				# output_each_factor['min_item'] = min(_dict, key=_dict.get)
 				_dict['id'] = i
 				output_each_factor['values'] = _dict
 				output_each_factor['entropy'] = (self.entropies[j][i] - self.min_entropy[j]) / (self.max_entropy[j] - self.min_entropy[j])
@@ -540,8 +537,8 @@ class iFacData():
 						dict_[k] = (dict_[k] - min_item) / (max_item - min_item)
 				output_each_factor['similarity'] = dict_
 				output_each_factor['similarity']['average'] = sum(dict_.values())/len(dict_.values())  
-				output_each_factor['similarity']['max_idx'] = max(dict_, key=dict_.get)
-				output_each_factor['similarity']['min_idx'] = min(dict_, key=dict_.get)
+				# output_each_factor['similarity']['max_idx'] = max(dict_, key=dict_.get)
+				# output_each_factor['similarity']['min_idx'] = min(dict_, key=dict_.get)
 				output_each_factor['similarity'][i] = 1.0
 				output_each['factors'][j] = output_each_factor
 			output.append(output_each)
@@ -549,23 +546,17 @@ class iFacData():
 		self.data_output["data"] = output        
 			
 	def saveOutput(self):
-		if self.data_output:		
-			with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit.json', 'w') as fp:
+		if hasattr(self, "data_output"):		
+			with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit_edit.json', 'w') as fp:
 				json.dump(self.data_output, fp)
-		if self.metrics:
+		if hasattr(self, "metrics"):
 			with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit_metrics.json', 'w') as fp:
 				json.dump(self.metrics, fp)			
 
-	def saveAttributes(self, random_seed = 1):
+	def computePatterns(self, random_seed = 1):
 		_log.info("Factorize Tensor")   
 		self.factorizeTensor(ones = False, random_seed = random_seed)
 		_log.info("Get Factors")          
-		self.normalizeFactor()
-		self.getFactors()
-		_log.info("Compute Item Similarity")                    
-		# _log.info("Factorize Tensor")   
-		self.factorizeTensor(ones = False, random_seed = random_seed)
-		# _log.info("Get Factors")          
 		self.normalizeFactor()
 		self.getFactors()
 		_log.info("Compute Item Similarity")                    
@@ -573,17 +564,9 @@ class iFacData():
 		self.computeEntropy()
 		self.getMaxPatternForItem()
 		self.getMeanDistribution()
-		try:
-			self.getEmbedding()
-		except:
-			# _log.info("running embedding again...")
-			self.rd_state += 1
-			self.getEmbedding(rd_state = self.rd_state)
 		_log.info("Saving Output")                              
 		self.formatOutput()
 		self.saveOutput()
-
-
 
 	def readJSON(self, base_cnt=10, domain = ""):
 		self.base_cnt = base_cnt
@@ -601,14 +584,30 @@ class iFacData():
 			metrics = json.load(f)
 		return metrics			
 
-	def reEmbed(self, rd_state = 4):
-		self.getEmbedding(rd_state = rd_state)
+	def generateItemEmbedding(self):
+		self.saveItemMDS()
 
-		for i in range(component_cnt):			
-			self.data_output['data'][i]['tsne_coord'] = {'x': self.X_embedded[i][0],'y':self.X_embedded[i][1]}
-			self.data_output['data'][i]['max_tsne'] = np.max(self.X_embedded, axis = 0).tolist()
-			self.data_output['data'][i]['min_tsne'] = np.min(self.X_embedded, axis = 0).tolist()
+	def generatePatternEmbedding(self):
+		self.savePatternEmbedding()
 
-		self.cur_base = component_cnt
-		self.column = self.data_output['modes']
-		self.saveOutput()
+	def generateSingleOutput(self, domain = "", base = 10, reference_matrix = []):
+		self.domain = domain
+		self.cur_base = base
+		self.start_index = base		
+		self.readData(domain = self.domain)
+		self.column_cnt = len(self.column)	
+		self.reference_matrix = reference_matrix
+		if len(reference_matrix) > 0:
+			_log.info("using reference matrix: {}".format(reference_matrix))
+		self.computePatterns()
+		self.generateItemEmbedding()
+		self.generatePatternEmbedding()
+		import subprocess
+		data_directory = '/home/xidao/project/thesis/iFac/src/src/data/{}/*'.format(self.domain)
+		subprocess.call(["sed -i 's/NaN/0/g' {}".format(data_directory)], shell=True)
+		subprocess.call(["sed -i 's/\\\"over\\\"/over/g' {}".format(data_directory)], shell=True)
+		subprocess.call(["sed -i 's/\\\"under\\\"/under/g' {}".format(data_directory)], shell=True)
+
+
+
+

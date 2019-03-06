@@ -64,7 +64,7 @@ class CircularView extends Component {
 		this.handleResetItems = this.handleResetItems.bind(this);		
 		this.handleDeletePattern = this.handleDeletePattern.bind(this);						
 		this.handleMergePattern = this.handleMergePattern.bind(this);						
-		this.handleUpdatePatterns = this.handleUpdatePatterns.bind(this);								
+		this.handleUpdatePattern = this.handleUpdatePattern.bind(this);								
 
 	}
 
@@ -82,19 +82,16 @@ class CircularView extends Component {
 	}
 
 	handleDeletePattern(deletedPatternsIdx) {
-		console.log(deletedPatternsIdx);
 		this.props.onDeletePatterns(deletedPatternsIdx);
 	}
 
-	handleUpdatePatterns() {
+	handleUpdatePattern() {
 		// console.log(deletedPatternsIdx);
 		// this.props.onDeletePatterns(deletedPatternsIdx);
+		this.props.onUpdatePatterns();
 	}	
 
 	handleMergePattern() {
-		d3.selectAll('.query_bar').classed('queried', false)	
-		d3.selectAll('.query_bar').attr("stroke", "none");
-		d3.selectAll('.itemTags').remove()
 		this.props.onMergePatterns();
 	}	
 
@@ -108,7 +105,7 @@ class CircularView extends Component {
 				bar_data, max_pattern_item,modes,
 				queries, similarPatternToQueries, item_links, descriptors,
 				mouseOveredDescriptorIdx, item_similarity, components_cnt,
-				itemEmbeddings,patternEmbeddings,deletedPatternIdx } = this.props;  
+				itemEmbeddings,patternEmbeddings,deletedPatternIdx,mergePatternIdx } = this.props;  
 
 		const ButtonGroup = Button.Group;
 		const confirm = Modal.confirm;
@@ -170,6 +167,14 @@ class CircularView extends Component {
 				d.radius = parseInt(gs.innerCircleRadius);
 			}
 		);
+
+		// Update the position of merged patterns.
+		mergePatternIdx.map((d) => {
+			data[d.target].x =  (data[d.target].x + data[d.source].x) / 2;
+			data[d.target].y =  (data[d.target].y + data[d.source].y) / 2;
+			data[d.target].radius =  (data[d.target].radius + data[d.source].radius) / 2;
+
+		})
 		var simulation = d3.forceSimulation(data)
 			.force("x", d3.forceX(function(d) { return d.x; }).strength(0.05))
 			.force("y", d3.forceY(function(d) { return d.y; }).strength(0.05))
@@ -403,9 +408,13 @@ class CircularView extends Component {
 
 		//Hide the deleted patterns
 		deletedPatternIdx.map((idx) => {
-			d3.select('.pattern_circles#pattern_' + idx).style("display", "none");
-			d3.select('.flower#flower_' + idx).attr("display", "none");
-			d3.select('tr.pattern_row_' + idx).remove()
+			var t = d3.transition()
+				.duration(1000)
+				.delay(100)
+				.ease(d3.easeBounce)
+			d3.select('.pattern_circles#pattern_' + idx).transition(t).style("display", "none");
+			d3.select('.flower#flower_' + idx).transition(t).attr("display", "none");
+			d3.select('tr.pattern_row_' + idx).transition(t).remove()
 		});
 
 		draw_query_result(similarPatternToQueries, query_flag);
@@ -728,24 +737,39 @@ class CircularView extends Component {
 		}	
 
 		function showConfirmDelete() {
+			var title1 = '',
+				deleteFlag = selectedPatterns.length > 0;
+			if(deleteFlag){
+				title1 = 'Do you want to delete these patterns?';			
+			}else{
+				title1 = 'Please select at least one pattern to delete';
+			}			
 			confirm({
 				title: 'Do you want to delete these patterns?',
 				content: '',
 				onOk() {	
-
-					_self.handleDeletePattern(selectedPatterns);
+					if(deleteFlag){
+						_self.handleDeletePattern(selectedPatterns);
+					}	
 				},
 				onCancel() {},
 				});
 		}
 		function showConfirmMerge() {
+			var title1 = '',
+				mergeFlag = selectedPatterns.length == 2;
+			if(mergeFlag){
+				title1 = 'Do you want to merge these two patterns?';			
+			}else{
+				title1 = 'Please select two patterns to merge';
+			}
 			confirm({
-				title: 'Do you want to merge these items?',
-				content: 'When clicked the OK button, this dialog will be closed after 1 second',
-				onOk() {
-					return new Promise((resolve, reject) => {
-						setTimeout(Math.random() > 0.5 ? resolve : reject, 100);
-					}).catch(() => console.log('Oops errors!'));
+				title: title1,
+				content: '',
+				onOk() {					
+					if(mergeFlag){
+						_self.handleMergePattern();
+					}					
 				},
 				onCancel() {},
 				});
@@ -755,7 +779,7 @@ class CircularView extends Component {
 				title: 'Do you want to update the patterns?',
 				content: '',
 				onOk() {	
-					_self.handleUpdatePatterns();
+					_self.handleUpdatePattern();
 				},
 				onCancel() {},
 				});

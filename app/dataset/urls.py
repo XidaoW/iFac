@@ -6,5 +6,10 @@ urlpatterns = [
         regex=r'^file/$',
         view=views.LoadFile.as_view(),
         name='file'
-    )
+    ),
+    url(
+        regex=r'^ntf/$',
+        view=views.RunRegNTF.as_view(),
+        name='ntf'
+    )    
 ]

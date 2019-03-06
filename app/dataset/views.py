@@ -12,9 +12,10 @@ import csv
 import pandas as pd
 import numpy as np
 import json
-import logging
-logger = logging.getLogger(__name__)
 from ..static.lib.iFacData import iFacData
+import logging
+logging.basicConfig(level=logging.INFO)
+_log = logging.getLogger('iTnFac')
 
 class LoadFile(APIView):
 
@@ -22,11 +23,27 @@ class LoadFile(APIView):
 	def get(self, request, format=None):
 		whole_dataset_df = pd.DataFrame({'test': ['yes']})
 		iFac = iFacData()
-		base = 40	
+		base = 50	
 		domain = "purchase"
-		iFac.cur_base = base
-		iFac.readData(domain = domain)		
-		iFac.saveAttributes()		
-		logger.info("sdfsdfsfadsf")
-		print(whole_dataset_df)
+		# iFac.generateSingleOutput(domain = domain, base = base)
+		logger.info("done")
 		return Response(whole_dataset_df.to_json(orient='index'))
+
+class RunRegNTF(APIView):
+
+	# get method
+	def get(self, request, format=None):
+		pass
+
+	def post(self, request, format=None):
+		json_request = json.loads(request.body.decode(encoding='UTF-8'))	
+		_log.info(json_request['reference_matrix'])
+		whole_dataset_df = pd.DataFrame({'test': ['yes']})
+		iFac = iFacData()
+		base = json_request['base']
+		domain = json_request['domain']
+		reference_matrix = []
+		for x1 in json_request['reference_matrix']:
+			reference_matrix.append(np.asarray(x1).T)
+		iFac.generateSingleOutput(domain = domain, base = base, reference_matrix = reference_matrix)
+		return Response(whole_dataset_df.to_json(orient='index'))	
