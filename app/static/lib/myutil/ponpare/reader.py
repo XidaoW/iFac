@@ -75,13 +75,15 @@ def renameCouponList(couponList, valuePrefixed):
 
 
 def readPonpareData(readingIndices=None, valuePrefixed=False):
-    csvName = ["data/coupon_area_test.csv",     # 0
-               "data/coupon_area_train.csv",    # 1
-               "data/coupon_detail_train.csv",  # 2
-               "data/coupon_list_test.csv",     # 3
-               "data/coupon_list_train.csv",    # 4
-               "data/coupon_visit_train.csv",   # 5
-               "data/user_list.csv"]             # 6
+    import os
+    print(os.getcwd())
+    csvName = ["app/static/data/coupon_area_test.csv",     # 0
+               "app/static/data/coupon_area_train.csv",    # 1
+               "app/static/data/coupon_detail_train.csv",  # 2
+               "app/static/data/coupon_list_test.csv",     # 3
+               "app/static/data/coupon_list_train.csv",    # 4
+               "app/static/data/coupon_visit_train.csv",   # 5
+               "app/static/data/user_list.csv"]             # 6
     readingIndices = [0, 1, 2, 3, 4, 5, 6] \
         if None is readingIndices else readingIndices
     renameColumnFunc = [renameCouponArea,

@@ -25,8 +25,8 @@ from pyspark import SparkConf, SparkContext
 import itertools
 
 import logging
-# logging.basicConfig(level=logging.INFO)
-# _log = logging.getLogger('iTnFac')
+logging.basicConfig(level=logging.INFO)
+_log = logging.getLogger('iTnFac')
 
 
 def showLabel(label):
@@ -64,7 +64,7 @@ class iFacData():
 		"""
 		self.domain = domain
 		if self.domain == "nba":
-			shots = pd.read_csv("data/NBA_shots_201415.csv")
+			shots = pd.read_csv("app/static/data/NBA_shots_201415.csv")
 			shots = shots[['PLAYER_ID','PLAYER_NAME','TEAM_ID','TEAM_NAME','ZoneName','PERIOD','SHOT_ATTEMPTED_FLAG','SHOT_MADE_FLAG']]
 			shots.PERIOD[shots.PERIOD > 4] = 5
 			self.column = ['PERIOD','TEAM_NAME','ZoneName']
@@ -73,7 +73,8 @@ class iFacData():
 			
 		if self.domain == "nbaplayer":
 			top_cnt = 15
-			shots = pd.read_csv("data/NBA_shots_201415.csv")
+			shots = pd.read_csv("app/static/data/NBA_shots_201415.csv")
+			# shots = require("../data/NBA_shots_201415.csv")
 			shots = shots[['PLAYER_ID','PLAYER_NAME','TEAM_ID','TEAM_NAME','ZoneName','PERIOD','SHOT_ATTEMPTED_FLAG','SHOT_MADE_FLAG']]
 			shots.PERIOD[shots.PERIOD > 4] = 5
 			self.column = ['PERIOD','PLAYER_NAME','ZoneName']
@@ -87,7 +88,7 @@ class iFacData():
 
 		if self.domain == "nbaplayer1":
 			top_cnt = 15
-			shots = pd.read_csv("data/NBA_shots_201415.csv")
+			shots = pd.read_csv("app/static/data/NBA_shots_201415.csv")
 			shots = shots[['PLAYER_ID','PLAYER_NAME','TEAM_ID','TEAM_NAME','ZoneName','PERIOD','SHOT_ATTEMPTED_FLAG','SHOT_MADE_FLAG']]
 			shots.PERIOD[shots.PERIOD > 4] = 5
 			self.column = ['PERIOD','PLAYER_NAME','ZoneName']
@@ -101,7 +102,7 @@ class iFacData():
 
 
 		elif self.domain == "policy":
-			policy = pd.read_csv("data/policy_adoption.csv")
+			policy = pd.read_csv("app/static/data/policy_adoption.csv")
 			policy['adoption'] = 1
 			policy = policy[policy.adopted_year >= 1970]
 			policy = policy[policy.subject_name != "Unknown"]            
@@ -110,7 +111,7 @@ class iFacData():
 			self.hist, self.labels = self.createDataHistogram(policy_group, self.column)
 
 		elif self.domain == "policyKeyword":
-			policy = pd.read_csv("data/policy_keyword.csv")
+			policy = pd.read_csv("app/static/data/policy_keyword.csv")
 			policy = policy[policy.subject_name != "Unknown"]            
 			self.column = ['subject_name', 'adopted_year', 'state_id', 'key']
 			policy_group = policy.groupby(self.column)['val'].sum()
@@ -127,7 +128,7 @@ class iFacData():
 			self.hist, self.labels = self.createDataHistogram(harvard_group, self.column[:3])
 
 		elif self.domain == "picso":
-			policy = pd.read_csv("data/picso.csv", header=None)
+			policy = pd.read_csv("app/static/data/picso.csv", header=None)
 			columns = ['member', 'year', 'keyword', 'value']
 			policy.columns = columns
 			self.column = columns[:3]
@@ -546,7 +547,7 @@ class iFacData():
 				output_each['factors'][j] = output_each_factor
 			output.append(output_each)
 
-		self.data_output["data"] = output        
+		self.data_output["app/static/data"] = output        
 			
 	def saveOutput(self):
 		if self.data_output:		
@@ -557,12 +558,12 @@ class iFacData():
 				json.dump(self.metrics, fp)			
 
 	def saveAttributes(self, random_seed = 1):
-		# _log.info("Factorize Tensor")   
+		_log.info("Factorize Tensor")   
 		self.factorizeTensor(ones = False, random_seed = random_seed)
-		# _log.info("Get Factors")          
+		_log.info("Get Factors")          
 		self.normalizeFactor()
 		self.getFactors()
-		# _log.info("Compute Item Similarity")                    
+		_log.info("Compute Item Similarity")                    
 		self.computeItemSimilarity()
 		self.computeEntropy()
 		self.getMaxPatternForItem()
@@ -573,7 +574,7 @@ class iFacData():
 			# _log.info("running embedding again...")
 			self.rd_state += 1
 			self.getEmbedding(rd_state = self.rd_state)
-		# _log.info("Saving Output")                              
+		_log.info("Saving Output")                              
 		self.formatOutput()
 		self.saveOutput()
 

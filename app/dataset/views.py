@@ -12,20 +12,20 @@ import csv
 import pandas as pd
 import numpy as np
 import json
-# from ..static.lib.iFacData import iFacData
+from ..static.lib.iFacData import iFacData
+import logging
+logger = logging.getLogger(__name__)
 
 class LoadFile(APIView):
 
 	# get method
 	def get(self, request, format=None):
 		whole_dataset_df = pd.DataFrame({'test': ['yes']})
-		# iFac = iFacData()
-		# base = 21	
-		# domain = "nbaplayer1"	
-		# iFac.cur_base = base
-		# iFac.domain = domain
-		# iFac.saveAttributes()
-
-		# return Response(file_path)
-		print(whole_dataset_df)
+		iFac = iFacData()
+		base = 40	
+		domain = "purchase"
+		iFac.cur_base = base
+		iFac.readData(domain = domain)		
+		iFac.saveAttributes()		
+		logger.info("sdfsdfsfadsf")
 		return Response(whole_dataset_df.to_json(orient='index'))

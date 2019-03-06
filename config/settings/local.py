@@ -67,7 +67,7 @@ INSTALLED_APPS += ['django_extensions']  # noqa F405
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
@@ -104,12 +104,12 @@ LOGGING = {
         },
         '': {
             'handlers': ['console'],
-            'level': 'NOTSET',
+            'level': 'INFO',
         },        
         'django.request': {
             'handlers': ['console'],
             'propagate': False,
-            'level': 'ERROR'
+            'level': 'INFO'
         }        
     }
 }
