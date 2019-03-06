@@ -498,8 +498,6 @@ class iFacData():
 		self.data_output = {"descriptors": dict(zip(self.column, self.labels)),
 							"average":self.data_mean_descriptor, 
 							"itemSimilarity":self.itemSimilarity,
-							# "metrics":self.metrics,
-							# "item_max_pattern": self.item_max_pattern,
 							"item_max_pattern": '',
 							"start_index":str(self.start_index),
 							"modes": self.column}                
@@ -537,8 +535,6 @@ class iFacData():
 						dict_[k] = (dict_[k] - min_item) / (max_item - min_item)
 				output_each_factor['similarity'] = dict_
 				output_each_factor['similarity']['average'] = sum(dict_.values())/len(dict_.values())  
-				# output_each_factor['similarity']['max_idx'] = max(dict_, key=dict_.get)
-				# output_each_factor['similarity']['min_idx'] = min(dict_, key=dict_.get)
 				output_each_factor['similarity'][i] = 1.0
 				output_each['factors'][j] = output_each_factor
 			output.append(output_each)
@@ -562,7 +558,7 @@ class iFacData():
 		_log.info("Compute Item Similarity")                    
 		self.computeItemSimilarity()
 		self.computeEntropy()
-		self.getMaxPatternForItem()
+		# self.getMaxPatternForItem()
 		self.getMeanDistribution()
 		_log.info("Saving Output")                              
 		self.formatOutput()
