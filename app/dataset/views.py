@@ -12,9 +12,9 @@ import csv
 import pandas as pd
 import numpy as np
 import json
-from ..static.lib.iFacData import iFacData
 import logging
 logger = logging.getLogger(__name__)
+from ..static.lib.iFacData import iFacData
 
 class LoadFile(APIView):
 
@@ -28,4 +28,5 @@ class LoadFile(APIView):
 		iFac.readData(domain = domain)		
 		iFac.saveAttributes()		
 		logger.info("sdfsdfsfadsf")
+		print(whole_dataset_df)
 		return Response(whole_dataset_df.to_json(orient='index'))

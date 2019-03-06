@@ -74,7 +74,6 @@ class iFacData():
 		if self.domain == "nbaplayer":
 			top_cnt = 15
 			shots = pd.read_csv("app/static/data/NBA_shots_201415.csv")
-			# shots = require("../data/NBA_shots_201415.csv")
 			shots = shots[['PLAYER_ID','PLAYER_NAME','TEAM_ID','TEAM_NAME','ZoneName','PERIOD','SHOT_ATTEMPTED_FLAG','SHOT_MADE_FLAG']]
 			shots.PERIOD[shots.PERIOD > 4] = 5
 			self.column = ['PERIOD','PLAYER_NAME','ZoneName']
@@ -547,7 +546,7 @@ class iFacData():
 				output_each['factors'][j] = output_each_factor
 			output.append(output_each)
 
-		self.data_output["app/static/data"] = output        
+		self.data_output["data"] = output        
 			
 	def saveOutput(self):
 		if self.data_output:		
@@ -561,6 +560,12 @@ class iFacData():
 		_log.info("Factorize Tensor")   
 		self.factorizeTensor(ones = False, random_seed = random_seed)
 		_log.info("Get Factors")          
+		self.normalizeFactor()
+		self.getFactors()
+		_log.info("Compute Item Similarity")                    
+		# _log.info("Factorize Tensor")   
+		self.factorizeTensor(ones = False, random_seed = random_seed)
+		# _log.info("Get Factors")          
 		self.normalizeFactor()
 		self.getFactors()
 		_log.info("Compute Item Similarity")                    

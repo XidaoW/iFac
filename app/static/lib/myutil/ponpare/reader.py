@@ -76,7 +76,6 @@ def renameCouponList(couponList, valuePrefixed):
 
 def readPonpareData(readingIndices=None, valuePrefixed=False):
     import os
-    print(os.getcwd())
     csvName = ["app/static/data/coupon_area_test.csv",     # 0
                "app/static/data/coupon_area_train.csv",    # 1
                "app/static/data/coupon_detail_train.csv",  # 2
