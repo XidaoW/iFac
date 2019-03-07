@@ -353,19 +353,13 @@ class App extends Component {
 		 * 
 		 */	
 		newDeletedPatternIdxs.map((idx) => {
-				var sPs = [...this.state.selectedPatterns];
-				var index_ = sPs.indexOf(idx);
-				if(index_ !== -1){
-					sPs.splice(index_, 1);
-				}
-				// prevState.selectedPatterns.filter((d) => d !== idx),			
 				this.setState(prevState => ({
 					deletedPatternIdx: [
 						...prevState.deletedPatternIdx,
 						idx
-				],
-				selectedPatterns: sPs,
-				currentSelectedPatternIdx: ''
+					],
+					selectedPatterns: [],
+					currentSelectedPatternIdx: ''
 				})
 			)
 
@@ -474,12 +468,6 @@ class App extends Component {
 						return Object.values(each_d).slice(0, -1);
 					});
 				});	
-
-		this.setState({
-			deletedPatternIdx: [],
-			mergePatternIdx: [],
-			selectedPatterns: []
-		});	
 
 		fetch('/dataset/ntf/', {
 				method: 'post',

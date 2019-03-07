@@ -6,7 +6,7 @@ from . import ntf
 from .myutil.histogram import createHistogram, translateLabel
 # from .myutil.plotter import showFactorValue, showHistDistribution
 from .myutil.ponpare.reader import readPonpareData
-from .myutil.ponpare.converter import     digitizeHistoryFeatureValue, transformForHistogram
+from .myutil.ponpare.converter import digitizeHistoryFeatureValue, transformForHistogram
 from .multiview import mvmds, cpcmv, mvtsne, mvsc
 
 from sklearn.utils.testing import assert_raises
@@ -18,23 +18,23 @@ import pandas as pd
 from scipy import stats
 # from scipy.special import entr
 from scipy import spatial
+import math
 
 import sys
 import json
 from pyspark import SparkConf, SparkContext
 import itertools
-
+import subprocess
 import logging
 logging.basicConfig(level=logging.INFO)
-_log = logging.getLogger('iTnFac')
+_log = logging.getLogger(__name__)
 
 
-def showLabel(label):
-	for i1, lbl1 in enumerate(label):
-		print("label:[%d] ->" % i1)
-		for lbl2 in lbl1:
-			print(lbl2 + ",")
-		print("")
+def cleanOutputFile(output_file):
+
+	subprocess.call(["sed -i 's/NaN/0/g' {}".format(output_file)], shell=True)
+	subprocess.call(["sed -i 's/\\\"over\\\"/over/g' {}".format(output_file)], shell=True)
+	subprocess.call(["sed -i 's/\\\"under\\\"/under/g' {}".format(output_file)], shell=True)
 
 
 class iFacData():
@@ -158,7 +158,7 @@ class iFacData():
 			re_string = "(" +  re_string + ")"			
 			p = re.compile(re_string)
 
-			self.labels = [[translateLabel(p.sub('', each_label).strip()).replace('prefecture', '').replace('Prefecture', '').strip().replace(' ', '') for each_label in each_d] for each_d in label]
+			self.labels = [[translateLabel(p.sub('', each_label).strip()).replace('prefecture', '').replace('Prefecture', '').strip().replace(' ', '').replace('\\\"over\\\"','over').replace('\\\"under\\\"','over') for each_label in each_d] for each_d in label]
 
 	def computeReconstructionError(self, ntfInstance, hist):    
 		"""
@@ -184,12 +184,12 @@ class iFacData():
 		return 1 - ss_res*1. / ss_total
 
 
-	def saveItemMDS(self):
+	def saveItemMDS(self, save_flag = True):
 
-		from sklearn.manifold import MDS
+		from sklearn.manifold import MDS, spectral_embedding
 		self.loadFactors()
-		MDS_embeddings = MDS(n_components=1)
-		SC_embeddings = MDS(n_components=1)
+		MDS_embeddings = MDS(n_components=1, random_state = 1)
+		SC_embeddings = MDS(n_components=1, random_state = 1)
 		
 		self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(self.column_cnt)]
 		self.item_mds = {}
@@ -198,10 +198,13 @@ class iFacData():
 		for item_index in range(len(self.data)):
 			self.item_mds['mds'][item_index] = MDS_embeddings.fit_transform(self.data[item_index].T).tolist()
 			self.item_mds['sc'][item_index] = SC_embeddings.fit_transform(self.data[item_index].T).tolist()
-		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(self.column_cnt)+'_'+str(self.cur_base)+'_sample_item_embedding.json', 'w') as fp:
-			json.dump(self.item_mds, fp)
+		if save_flag:
+			data_output_file = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(self.column_cnt)+'_'+str(self.cur_base)+'_sample_item_embedding_edit.json'
+			with open(data_output_file, 'w') as fp:
+				json.dump(self.item_mds, fp)
+			# cleanOutputFile(data_output_file)
 
-	def savePatternEmbedding(self):
+	def savePatternEmbedding(self, save_flag = True):
 		self.loadFactors()
 
 		self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(self.column_cnt)]
@@ -215,7 +218,7 @@ class iFacData():
 		is_distance = [False] * len(self.data)
 		mvtsne_est = mvtsne.MvtSNE(k=2, perplexity = 10,random_state = self.rd_state, epoch = 3000)
 		mvtsne_est.fit(self.data, is_distance)
-		self.factor_embeddings['tsne'] = np.asarray(mvtsne_est.embedding_).tolist()		
+		self.factor_embeddings['tsne'] = np.nan_to_num(np.asarray(mvtsne_est.embedding_)).tolist()		
 
 		mvsc_est = mvsc.MVSC(k=2)
 		mvsc_est.fit(self.data, is_distance)
@@ -223,10 +226,11 @@ class iFacData():
 
 		# cpc_est = cpcmv.MVCPC(k=2)
 		# self.factor_embeddings['sc'] = cpc_est.fit(self.data)[1].tolist()
-
-
-		with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(self.column_cnt)+'_'+str(self.cur_base)+'_sample_pattern_embedding.json', 'w') as fp:
-			json.dump(self.factor_embeddings, fp)
+		if save_flag:
+			data_output_file = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(self.column_cnt)+'_'+str(self.cur_base)+'_sample_pattern_embedding_edit.json'
+			with open(data_output_file, 'w') as fp:
+				json.dump(self.factor_embeddings, fp)
+			# cleanOutputFile(data_output_file)			
 
 
 	def getFitForRanks(self, bases, trials = 5):
@@ -384,9 +388,14 @@ class iFacData():
 		type random_seed: int: the random seed if not using ones
 		"""
 		
-		print("Start factorization...")
+		_log.info("Start factorization: ")
+		_log.info("Random Seed: {}; Bases: {}; reference_matrix: {}; S_matrix: {}; lambda_0: {}; lambda_1: {}; ".format(
+				random_seed, self.cur_base, self.reference_matrix, self.S_matrix, self.lambda_0, self.lambda_1
+			) )
 		self.ntfInstance = ntf.NTF(self.cur_base, self.hist, parallelCalc=True, ones = ones, random_seed = random_seed)
-		self.ntfInstance.factorize(self.hist, showProgress=True, default = False, reference_matrix = self.reference_matrix)
+		self.ntfInstance.factorize(self.hist, showProgress=True, default = False, 
+			reference_matrix = self.reference_matrix, S_matrix = self.S_matrix,
+			lambda_0 = self.lambda_0, lambda_1 = self.lambda_1)
 		self.ntfInstance.normalizeFactor()        
 
 		
@@ -420,7 +429,7 @@ class iFacData():
 		"""
 		compute the pairwise item similarity
 		"""
-		import math
+		
 		self.itemSimilarity = {}
 		for k in range(len(self.data)):
 			self.itemSimilarity[k] = {}
@@ -533,6 +542,7 @@ class iFacData():
 				if max_item != min_item:
 					for k in dict_:
 						dict_[k] = (dict_[k] - min_item) / (max_item - min_item)
+						dict_[k] = dict_[k] if not math.isnan(dict_[k]) else 0
 				output_each_factor['similarity'] = dict_
 				output_each_factor['similarity']['average'] = sum(dict_.values())/len(dict_.values())  
 				output_each_factor['similarity'][i] = 1.0
@@ -543,13 +553,18 @@ class iFacData():
 			
 	def saveOutput(self):
 		if hasattr(self, "data_output"):		
-			with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit_edit.json', 'w') as fp:
+			data_output_file = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit_edit.json'
+			with open(data_output_file, 'w') as fp:
 				json.dump(self.data_output, fp)
-		if hasattr(self, "metrics"):
-			with open('/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit_metrics.json', 'w') as fp:
-				json.dump(self.metrics, fp)			
+			# cleanOutputFile(data_output_file)
 
-	def computePatterns(self, random_seed = 1):
+		if hasattr(self, "metrics"):
+			data_output_file = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit_metrics.json'
+			with open(data_output_file, 'w') as fp:
+				json.dump(self.metrics, fp)			
+			# cleanOutputFile(data_output_file)				
+
+	def computePatterns(self, random_seed = 1, save_flag = True):
 		_log.info("Factorize Tensor")   
 		self.factorizeTensor(ones = False, random_seed = random_seed)
 		_log.info("Get Factors")          
@@ -562,7 +577,8 @@ class iFacData():
 		self.getMeanDistribution()
 		_log.info("Saving Output")                              
 		self.formatOutput()
-		self.saveOutput()
+		if save_flag:
+			self.saveOutput()
 
 	def readJSON(self, base_cnt=10, domain = ""):
 		self.base_cnt = base_cnt
@@ -580,30 +596,32 @@ class iFacData():
 			metrics = json.load(f)
 		return metrics			
 
-	def generateItemEmbedding(self):
-		self.saveItemMDS()
+	def generateItemEmbedding(self,save_flag = False):
+		self.saveItemMDS(save_flag = save_flag)
 
-	def generatePatternEmbedding(self):
-		self.savePatternEmbedding()
+	def generatePatternEmbedding(self,save_flag = False):
+		self.savePatternEmbedding(save_flag = save_flag)
 
-	def generateSingleOutput(self, domain = "", base = 10, reference_matrix = []):
+	def generateSingleOutput(self, domain = "", base = 10, 
+		reference_matrix = [], S_matrix = [],
+		lambda_0 = 0.0, lambda_1 = 0.0, random_seed = 0):
 		self.domain = domain
 		self.cur_base = base
 		self.start_index = base		
 		self.readData(domain = self.domain)
 		self.column_cnt = len(self.column)	
 		self.reference_matrix = reference_matrix
+		self.S_matrix = S_matrix
+		self.lambda_0 = lambda_0
+		self.lambda_1 = lambda_1
+		self.random_seed = random_seed
+		self.save_flag = False
+
 		if len(reference_matrix) > 0:
-			_log.info("using reference matrix: {}".format(reference_matrix))
-		self.computePatterns()
-		self.generateItemEmbedding()
-		self.generatePatternEmbedding()
-		import subprocess
-		data_directory = '/home/xidao/project/thesis/iFac/src/src/data/{}/*'.format(self.domain)
-		subprocess.call(["sed -i 's/NaN/0/g' {}".format(data_directory)], shell=True)
-		subprocess.call(["sed -i 's/\\\"over\\\"/over/g' {}".format(data_directory)], shell=True)
-		subprocess.call(["sed -i 's/\\\"under\\\"/under/g' {}".format(data_directory)], shell=True)
-
-
-
-
+			print("using reference matrix: {}".format(reference_matrix))
+		self.computePatterns(random_seed = self.random_seed, save_flag = False)
+		self.generateItemEmbedding(save_flag = False)
+		self.generatePatternEmbedding(save_flag = False)
+		return {"factors": self.data_output, 
+				"item_embeddings": self.item_mds,
+				"pattern_embeddings": self.factor_embeddings}

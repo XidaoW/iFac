@@ -15,7 +15,6 @@ ALLOWED_HOSTS = [
     # "picso.org"
     '*'
 ]
-
 # CACHES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#caches
@@ -86,7 +85,7 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler'
         },
         'console': {
-            'level': 'NOTSET',
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
@@ -104,12 +103,12 @@ LOGGING = {
         },
         '': {
             'handlers': ['console'],
-            'level': 'INFO',
+            'level': 'DEBUG',
         },        
         'django.request': {
             'handlers': ['console'],
             'propagate': False,
-            'level': 'INFO'
+            'level': 'DEBUG'
         }        
     }
 }

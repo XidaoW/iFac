@@ -82,6 +82,17 @@ class CircularView extends Component {
 	}
 
 	handleDeletePattern(deletedPatternsIdx) {
+		var t = d3.transition()
+			.duration(1000)
+			.delay(100)
+			.ease(d3.easeBounce);
+
+		deletedPatternsIdx.map((idx) => {
+			d3.select('.pattern_circles#pattern_' + idx).transition(t).style("display", "none");
+			d3.select('.flower#flower_' + idx).transition(t).style("display", "none");
+			d3.select('tr.pattern_row_' + idx).transition(t).style("display", "none");
+		});
+
 		this.props.onDeletePatterns(deletedPatternsIdx);
 	}
 
@@ -406,22 +417,31 @@ class CircularView extends Component {
 
 		}
 
-		console.log(deletedPatternIdx);
+		d3.range(components_cnt).map((idx) => {
+			d3.select('.pattern_circles#pattern_' + idx).style("display", "inline");
+			d3.select('.flower#flower_' + idx).style("display", "inline");
+			d3.select('tr.pattern_row_' + idx).style("display", "inline");				
+		})
+		// d3.select('.pattern_circles#pattern_' + idx).style("display", "inline");
+		// d3.select('.flower#flower_' + idx).style("display", "inline");
+		// d3.select('tr.pattern_row_' + idx).style("display", "inline");
+
 
 		//Hide the deleted patterns
-		if(deletedPatternIdx.length > 0){
-			deletedPatternIdx.map((idx) => {
-				console.log(idx);
-				var t = d3.transition()
-					.duration(1000)
-					.delay(100)
-					.ease(d3.easeBounce);
-				d3.select('.pattern_circles#pattern_' + idx).transition(t).style("display", "none");
-				d3.select('.flower#flower_' + idx).transition(t).style("display", "none");
-				d3.select('tr.pattern_row_' + idx).transition(t).remove()
-			});
-
-		}
+		// if(deletedPatternIdx.length > 0){
+		// 	deletedPatternIdx.map((idx) => {
+		// 		console.log(idx);
+		// 		d3.select('.pattern_circles#pattern_' + idx).transition(t).style("display", "none");
+		// 		d3.select('.flower#flower_' + idx).transition(t).style("display", "none");
+		// 		d3.select('tr.pattern_row_' + idx).transition(t).style("display", "none");
+		// 	});
+		// }else{
+		// 	d3.range(components_cnt).map((idx) => {
+		// 		d3.select('.pattern_circles#pattern_' + idx).transition(t).style("display", "inline");
+		// 		d3.select('.flower#flower_' + idx).transition(t).style("display", "inline");
+		// 		d3.select('tr.pattern_row_' + idx).transition(t).style("display", "inline");				
+		// 	})
+		// }
 
 		draw_query_result(similarPatternToQueries, query_flag);
 

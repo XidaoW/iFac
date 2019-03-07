@@ -15,7 +15,7 @@ import json
 from ..static.lib.iFacData import iFacData
 import logging
 logging.basicConfig(level=logging.INFO)
-_log = logging.getLogger('iTnFac')
+_log = logging.getLogger(__name__)
 
 class LoadFile(APIView):
 
@@ -31,7 +31,6 @@ class LoadFile(APIView):
 
 class RunRegNTF(APIView):
 
-	# get method
 	def get(self, request, format=None):
 		pass
 
@@ -42,8 +41,14 @@ class RunRegNTF(APIView):
 		iFac = iFacData()
 		base = json_request['base']
 		domain = json_request['domain']
+		randomIdx = json_request['randomIdx']
+		lambda_0 = json_request['lambda_0']
+		lambda_1 = json_request['lambda_1']
 		reference_matrix = []
 		for x1 in json_request['reference_matrix']:
 			reference_matrix.append(np.asarray(x1).T)
-		iFac.generateSingleOutput(domain = domain, base = base, reference_matrix = reference_matrix)
-		return Response(whole_dataset_df.to_json(orient='index'))	
+		result = iFac.generateSingleOutput(domain = domain, base = base, 
+			random_seed = randomIdx,
+			reference_matrix = reference_matrix,
+			lambda_0 = lambda_0, lambda_1 = lambda_1)
+		return Response(result)

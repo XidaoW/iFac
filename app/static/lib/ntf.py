@@ -33,7 +33,6 @@ class MulHelper(object):
 		return getattr(self.cls, self.mtd_name)(*args, **kwargs)
 
 
-
 def column_norm(X, by_norm='2'):
 	""" Compute the norms of each column of a given matrix
 
@@ -221,7 +220,8 @@ class NTF():
 		for i1 in factor:
 			self.updateFactorEachBasis(x, i1)
 
-	def factorize(self, x, iterations=100, showProgress=False, default=True, reference_matrix=[]):
+	def factorize(self, x, iterations=100, showProgress=False, default=True, 
+		reference_matrix=[], S_matrix = [], lambda_0 = 0.0, lambda_1 = 0.0):
 		if not default:
 			x = dtensor(x)
 			num_ways = len(self.factor[0])
@@ -242,7 +242,11 @@ class NTF():
 				self.updateAllFactors(x, self.factor)
 			else:				
 				# pdb.set_trace()
-				X_itr = self.updateAllFactorsGradient(x, X_itr, num_ways, R, reference_matrix = reference_matrix)
+				X_itr = self.updateAllFactorsGradient(x, X_itr, num_ways, R, 
+					reference_matrix = reference_matrix, 
+					S_matrix = S_matrix,
+					lambda_0 = lambda_0, 
+					lambda_1 = lambda_1)
 				ktensor_X = ktensor(X_itr)
 				import math
 				error_X = math.sqrt(getError(x,ktensor_X,x.norm()))/x.norm()
@@ -256,7 +260,8 @@ class NTF():
 				result_factor.append(each_factor)
 			self.factor = result_factor		
 		
-	def updateAllFactorsGradient(self, x, X_itr, num_ways, R, S = [], reference_matrix=[], lambda_0 = 0.00000, lambda_1 = 1):
+	def updateAllFactorsGradient(self, x, X_itr, num_ways, R, 
+		reference_matrix=[], S_matrix = [], lambda_0 = 0.0, lambda_1 = 0.0):
 		X_FF_iter = []
 		XtW_iter = []				
 		for way_index in range(num_ways):
@@ -267,10 +272,10 @@ class NTF():
 				X_FF = X_FF * X_itr[w].T.dot(X_itr[w])
 			X_FF_iter.append(X_FF)
 			XtW_iter.append(x.uttkrp(X_itr, way_index))
-		S = [np.zeros((x.shape[way_index], x.shape[way_index])) for way_index in range(num_ways)]
+		S_matrix = [np.zeros((x.shape[way_index], x.shape[way_index])) for way_index in range(num_ways)]
 		for l in range(R):
 			for way_index in range(num_ways):
-				similarity_reg = -np.atleast_2d(X_itr[way_index][:,l]).dot(S[way_index]) + np.atleast_2d(X_itr[way_index][:,l]).dot(np.atleast_2d(X_itr[way_index][:,l]).T).dot(np.atleast_2d(X_itr[way_index][:,l]))
+				similarity_reg = -np.atleast_2d(X_itr[way_index][:,l]).dot(S_matrix[way_index]) + np.atleast_2d(X_itr[way_index][:,l]).dot(np.atleast_2d(X_itr[way_index][:,l]).T).dot(np.atleast_2d(X_itr[way_index][:,l]))
 				reference_reg = (X_itr[way_index][:,l] - reference_matrix[way_index][:,l])
 				# similarity_reg = 0
 				reference_reg = 0
