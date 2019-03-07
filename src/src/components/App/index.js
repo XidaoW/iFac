@@ -32,6 +32,7 @@ class App extends Component {
 		super(props);
 		const domain = "nbaplayer1";
 		const [factors_data, metrics, itemEmbeddings, patternEmbeddings] = this.loadDefaultDataset(domain);
+		console.log(metrics);
 		this.state = {
 			factors_data: factors_data.data,
 			descriptors: factors_data.descriptors,
@@ -61,10 +62,12 @@ class App extends Component {
 			domain: domain,
 			weights: [0,1,0,0,0,0],
 			metricAggregated: [],
+			start_index: 0,
 			itemEmbeddings: itemEmbeddings,
 			patternEmbeddings: patternEmbeddings,
 			deletedPatternIdx: [],		
 			mergePatternIdx: [],
+			minErrorIdx: metrics.min_error_index,
 			clickedPatternIdx: [] /* listview */
 		};
 
@@ -86,6 +89,9 @@ class App extends Component {
 		this.handleAddingPattern = this.handleAddingPattern.bind(this);	
 		this.loadDefaultDataset = this.loadDefaultDataset.bind(this);
 		this.loadDatasetOnClickPoint = this.loadDatasetOnClickPoint.bind(this);
+		this.loadDatasetOnUpdateModel = this.loadDatasetOnUpdateModel.bind(this);
+		this.updateStateOnDataChange = this.updateStateOnDataChange.bind(this);
+		
 	}
 
 
@@ -94,6 +100,7 @@ class App extends Component {
 			metricsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_fit_metrics.json"),
 			itemEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_item_embedding.json"),
 			patternEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_pattern_embedding.json");
+		console.log(metricsLoad);
 		return [factorsLoad, metricsLoad, itemEmbeddingsLoad, patternEmbeddingsLoad]
 	}
 	loadDatasetOnClickPoint(selectedDomain, rank){
@@ -102,6 +109,14 @@ class App extends Component {
 			patternEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_pattern_embedding.json");
 		return [factorsLoad, itemEmbeddingsLoad, patternEmbeddingsLoad]
 	}	
+
+	loadDatasetOnUpdateModel(selectedDomain, rank){
+		const factorsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_fit_edit.json"),
+			itemEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_item_embedding_edit.json"),
+			patternEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_pattern_embedding_edit.json");
+		return [factorsLoad, itemEmbeddingsLoad, patternEmbeddingsLoad]
+	}	
+
 	componentWillUpdate(nextProps, nextState) {
 		if (this.state.domain !== nextState.domain)  {
 			console.log('domain changed: ', nextState.domain);
@@ -219,7 +234,8 @@ class App extends Component {
 		this.setState({
 			factors_data: factors,
 			descriptors_text: descriptors_text,
-			bar_data: bar_data,      
+			bar_data: bar_data,     
+			screeData: screeData,
 			max_pattern_item: max_pattern_item,
 			queries: queries,
 			error_data: error_data,
@@ -231,7 +247,9 @@ class App extends Component {
 			theil_data: theil_data,			
 			pctnonzeros_data: pctnonzeros_data,
 			metricAggregated: metricAggregated,
+			minErrorIdx: screeData.min_error_index,	
 			itemEmbeddings: itemEmbeddings,
+			start_index: start_index,
 			patternEmbeddings: patternEmbeddings
 		});    
 	}
@@ -241,19 +259,8 @@ class App extends Component {
 		const selectedDataset = require("../../data/" + domain + "/factors_"+domainSetting[domain]["modes"]+"_"+domainSetting[domain]["cnt"]+ "_sample_fit");
 		// const selectedDataset = require("../../data/" + domain + "/factors_3_18" + "_sample_fit");
 
-		// console.log('here');
-
-		// fetch('/dataset/file')
-		// 	.then( (response) => {
-		// 			return response.json();
-		// 	})   
-		// 	.then( (file) => {
-		// 		const dataset = _.values(JSON.parse(file));
-		// 		console.log('fetch: ', dataset);
-		// 	});
-
 		this.setState({
-			screeData: selectedDataset.scree,
+			// screeData: selectedDataset,
 			factors_data: selectedDataset.data,
 			descriptors: selectedDataset.descriptors,
 			descriptors_mean: selectedDataset.average,
@@ -345,17 +352,25 @@ class App extends Component {
 		 *
 		 * 
 		 */	
-		newDeletedPatternIdxs.map((idx) => 
-			this.setState(prevState => ({
-				deletedPatternIdx: [
-					...prevState.deletedPatternIdx,
-					idx
+		newDeletedPatternIdxs.map((idx) => {
+				var sPs = [...this.state.selectedPatterns];
+				var index_ = sPs.indexOf(idx);
+				if(index_ !== -1){
+					sPs.splice(index_, 1);
+				}
+				// prevState.selectedPatterns.filter((d) => d !== idx),			
+				this.setState(prevState => ({
+					deletedPatternIdx: [
+						...prevState.deletedPatternIdx,
+						idx
 				],
-				selectedPatterns: prevState.selectedPatterns.filter((d) => d !== idx),			
+				selectedPatterns: sPs,
 				currentSelectedPatternIdx: ''
 				})
 			)
-		);
+
+		});
+		console.log(this.state.selectedPatterns);
 	}
 
 	handleMergePatterns(){
@@ -446,30 +461,44 @@ class App extends Component {
 		 */	
 		const bar_data = this.state.bar_data,
 			deletedIdx = this.state.deletedPatternIdx,			
-			components_cnt = bar_data[0].length - 1;			
+			components_cnt = bar_data[0].length - 1,
+			screeData = this.state.screeData,
+			start_index = this.state.start_index,
+			randomIdx = this.state.minErrorIdx[components_cnt-start_index];
 
-		
+		const lambda_0 = 0,
+			lambda_1 = 0;
 
 		let new_bar_data = d3.range(Object.keys(bar_data).length).map((mode) => {
-					return bar_data[mode].filter((d, i) => deletedIdx.indexOf(i) < 0).map((each_d) => {
+					return bar_data[mode].filter((d, i) => deletedIdx.concat(components_cnt).indexOf(i) < 0).map((each_d) => {
 						return Object.values(each_d).slice(0, -1);
 					});
 				});	
-		console.log(JSON.stringify({reference_matrix: new_bar_data}));			
+
+		this.setState({
+			deletedPatternIdx: [],
+			mergePatternIdx: [],
+			selectedPatterns: []
+		});	
+
 		fetch('/dataset/ntf/', {
 				method: 'post',
 				body: JSON.stringify({
 					reference_matrix: new_bar_data,
 					domain: this.state.domain,
+					randomIdx: randomIdx,
+					lambda_0: lambda_0,
+					lambda_1: lambda_1,
 					base: new_bar_data[0].length
 				})
 			})
 			.then( (response) => {
 					return response.json();
 			})   
-			.then( (file) => {
-				const dataset = _.values(JSON.parse(file));
-				console.log('fetch: ', dataset);
+			.then( (dataset) => {
+				this.updateStateOnDataChange(dataset['factors'], 
+					dataset['item_embeddings'], 
+					dataset['pattern_embeddings']);
 			});		
 	}	
 
@@ -509,27 +538,9 @@ class App extends Component {
 		});
 	}
 
-	handleClickPoint(rank) { 
-		/**
-		 * Handles the click events over the points in the control panel.
-		 *
-		 * Prepares data When users select one point. 
-		 * 1) When user click on one point: 
-		 * 	a) load the corresponding data file
-		 * 2) Update the state.		 
-		 *
-		 * @since      0.0.0
-		 *
-		 * @fires   click
-		 *
-		 * @param {var}   idx           the rank.
-		 * 
-		 */
-		var domain = this.state.domain;
-		var [new_data, itemEmbeddings, patternEmbeddings] = this.loadDatasetOnClickPoint(domain, rank);		
-	
+	updateStateOnDataChange(new_data, itemEmbeddings, patternEmbeddings){
 		let bar_data = {},
-			max_pattern_item = {},
+			// max_pattern_item = {},
 			descriptors_text = [],
 			queries = d3.range(new_data.data[0].dims).reduce((obj, item) => {
 				obj[item] = [];
@@ -551,11 +562,9 @@ class App extends Component {
 
 		for(let i = 0; i < new_data.data[0].dims; i++){
 			bar_data[i] = [];
-			max_pattern_item[i] = [];
 			let pattern_cnt = new_data.data.length;
 			for(let j = 0; j < pattern_cnt; j++) {
 				bar_data[i].push(new_data.data[j].factors[i].values); 
-				max_pattern_item[i].push(new_data.data[j].factors[i].max_item);         
 			}      
 			bar_data[i].push(new_data.average[i]); 
 		}
@@ -573,13 +582,37 @@ class App extends Component {
 			item_max_pattern: new_data.item_max_pattern,
 			item_similarity: new_data.itemSimilarity,
 			bar_data: bar_data,      
-			max_pattern_item: max_pattern_item,
 			modes: new_data.modes,
 			queries: queries,
+			components_cnt: new_data.data.length,
 			itemEmbeddings: itemEmbeddings,
-			patternEmbeddings: patternEmbeddings			
-		}));		
-		
+			patternEmbeddings: patternEmbeddings,
+			deletedPatternIdx: [],
+			mergePatternIdx: [],
+			selectedPatterns: []
+		}));
+
+	}
+
+	handleClickPoint(rank) { 
+		/**
+		 * Handles the click events over the points in the control panel.
+		 *
+		 * Prepares data When users select one point. 
+		 * 1) When user click on one point: 
+		 * 	a) load the corresponding data file
+		 * 2) Update the state.		 
+		 *
+		 * @since      0.0.0
+		 *
+		 * @fires   click
+		 *
+		 * @param {var}   idx           the rank.
+		 * 
+		 */
+		var domain = this.state.domain;
+		var [new_data, itemEmbeddings, patternEmbeddings] = this.loadDatasetOnClickPoint(domain, rank);
+		this.updateStateOnDataChange(new_data, itemEmbeddings, patternEmbeddings);		
 	}
 
 	handleClickPattern(idx, petals_path_items) { 
@@ -707,9 +740,6 @@ class App extends Component {
 			relevance_score,
 			coordinates;
 
-		// similarPatternToQueries.sort(function(first, second) {
-		// 	return second[1] - first[1];
-		// }).slice(0, top_k);
 		similarPatternToQueries = d3.range(similarPatternToQueries.length).map(function(i){
 			return {
 					"rank": i,

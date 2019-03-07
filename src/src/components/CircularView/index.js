@@ -97,7 +97,6 @@ class CircularView extends Component {
 
 	render() {
 		console.log('circularView rendered');
-		// console.log('this.props.data: ', this.props.data);
 		const { data, selectedPatterns,
 				mostSimilarPatternToSelectedPatternIdx,
 				leastSimilarPatternToSelectedPatternIdx, 
@@ -127,7 +126,6 @@ class CircularView extends Component {
 		var max_tsne = [d3.max(patternEmbedding_original, (d) => d[0]), d3.max(patternEmbedding_original, (d) => d[1])];
 		var petal_Radius = this.outerCircleRadius * Math.sin(360 / (descriptor_size*2) * (Math.PI / 180)) + 0.5;
 		var size_petal_radius = d3.scaleLinear().domain([0, 1]).range([1, petal_Radius]);
-		// var size_petal_radius = d3.scaleLinear().domain([0, 1]).range([1, this.outerCircleRadius]);
 		var size_petal_arc = d3.scaleLinear().domain([0, 1]).range([0, 2 * Math.PI * this.outerCircleRadius/ descriptor_size]);
 
 
@@ -229,7 +227,7 @@ class CircularView extends Component {
 		// 	.call(legendLinear);		  
 
 
-
+		console.log(data);
 		// Add the outer circles to the backdrop.
 		const circles = gFlowers.selectAll('.pattern_circles')
 						.data(data)
@@ -296,7 +294,8 @@ class CircularView extends Component {
 						.attr('class', 'flower')
 						.attr('id', (d) => 'flower_' + d.id)
 						.attr('transform', (d, i) => 'translate(' +d.x + ',' 
-									+ d.y + ')');
+									+ d.y + ')')
+						.style("display", "inline");
 
 		
 		// bubbles
@@ -377,6 +376,7 @@ class CircularView extends Component {
 						.attr('rx', (d) => size_petal_radius(1))
 						.attr('ry', (d) => size_petal_radius(d.data.length))						
 						.style('stroke', (d, i) => 'gray')
+						.style("display", "inline")
 						.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
 						.style('fill-opacity', (d) => color_threshold(d.data.width));
 		}
@@ -406,16 +406,22 @@ class CircularView extends Component {
 
 		}
 
+		console.log(deletedPatternIdx);
+
 		//Hide the deleted patterns
-		deletedPatternIdx.map((idx) => {
-			var t = d3.transition()
-				.duration(1000)
-				.delay(100)
-				.ease(d3.easeBounce)
-			d3.select('.pattern_circles#pattern_' + idx).transition(t).style("display", "none");
-			d3.select('.flower#flower_' + idx).transition(t).attr("display", "none");
-			d3.select('tr.pattern_row_' + idx).transition(t).remove()
-		});
+		if(deletedPatternIdx.length > 0){
+			deletedPatternIdx.map((idx) => {
+				console.log(idx);
+				var t = d3.transition()
+					.duration(1000)
+					.delay(100)
+					.ease(d3.easeBounce);
+				d3.select('.pattern_circles#pattern_' + idx).transition(t).style("display", "none");
+				d3.select('.flower#flower_' + idx).transition(t).style("display", "none");
+				d3.select('tr.pattern_row_' + idx).transition(t).remove()
+			});
+
+		}
 
 		draw_query_result(similarPatternToQueries, query_flag);
 
