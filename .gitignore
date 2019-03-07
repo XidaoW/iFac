@@ -1,7 +1,6 @@
-<<<<<<< HEAD
 app/static/data/*
-=======
->>>>>>> 9a1c7b1c2806b4c33e23ccee954af15030dc2416
+app/static/lib/multiview/
+src/src/engine/multiview/
 src/src/engine/metastore_db/
 *.npy
 **/src/src/engine/multiview/*
