@@ -45,6 +45,7 @@ class CircularView extends Component {
 		this.circle_color;
 		this.circle_width;
 		this.compare_N = 2;
+		this.color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];
 		this.outerCircleRadius = parseInt(gs.outerCircleRadius);
 		this.innerCircleRadius = parseInt(gs.innerCircleRadius);
 		this.innerCircleStrokeWidth = parseInt(gs.innerCircleStrokeWidth);
@@ -66,7 +67,9 @@ class CircularView extends Component {
 		this.handleMergePattern = this.handleMergePattern.bind(this);						
 		this.handleUpdatePattern = this.handleUpdatePattern.bind(this);		
 		this.handleChangeProjection = this.handleChangeProjection.bind(this);		
+		this.handleMoveItemPosition = this.handleMoveItemPosition.bind(this);		
 		this.renderRadioButton = this.renderRadioButton.bind(this);		
+
 	}
 
 	handleResetPatterns() {
@@ -97,9 +100,11 @@ class CircularView extends Component {
 		this.props.onDeletePatterns(deletedPatternsIdx);
 	}
 
+	handleMoveItemPosition(item_index, descriptor_index, positios) {
+		this.props.onUpdateItemPositions(item_index, descriptor_index, positios);
+	}	
+
 	handleUpdatePattern() {
-		// console.log(deletedPatternsIdx);
-		// this.props.onDeletePatterns(deletedPatternsIdx);
 		this.props.onUpdatePatterns();
 	}	
 
@@ -113,15 +118,13 @@ class CircularView extends Component {
 
 
 	renderRadioButton(){
-		const RadioButton = Radio.Button;
-		const {descriptors} = this.props;
-		return Object.keys(descriptors).map((d, i) => {
-			return (
-				<RadioButton value={i}>
+		var color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];		
+		return Object.keys(this.props.descriptors).map((d, i) => 
+			 (<Radio.Button style={{color: color_list_petal[i]}} value={i}>
 					{d}
-				</RadioButton>
-			)
-		})
+				</Radio.Button>)
+		)
+		// render the radio button group
 	}
 
 	render() {
@@ -133,7 +136,7 @@ class CircularView extends Component {
 				bar_data, max_pattern_item,modes,
 				queries, similarPatternToQueries, item_links, descriptors,
 				mouseOveredDescriptorIdx, item_similarity, components_cnt,display_projection,
-				itemEmbeddings,patternEmbeddings,deletedPatternIdx,mergePatternIdx } = this.props;  
+				itemEmbeddings_1d,itemEmbeddings_2d,patternEmbeddings,deletedPatternIdx,mergePatternIdx } = this.props;  
 
 
 		const ButtonGroup = Button.Group;
@@ -186,7 +189,6 @@ class CircularView extends Component {
 		this.circle_position_x = d3.scaleLinear().domain([min_tsne[0],max_tsne[0]]).range([- 0 + this.innerCircleRadius*2, + innerRadius - this.innerCircleRadius*2]);
 		this.circle_position_y = d3.scaleLinear().domain([min_tsne[1],max_tsne[1]]).range([- 0 + this.innerCircleRadius*2, + innerRadius - this.innerCircleRadius*2]);
 
-		// Update the list of available colors to pick for clicking patterns
 		for(var i = 0; i < selectedPatterns.length; i++){
 			used_color = d3.select('#pattern_' + selectedPatterns[i]).attr('stroke');   
 			color_list.splice( color_list.indexOf(used_color), 1 );
@@ -424,11 +426,7 @@ class CircularView extends Component {
 		
 		function drawItems(descriptor_index){
 
-			const itemEmbeddingAll = require("../../data/" + "nbaplayer" + "/factors_"+"3"+"_"+ "20" + "_sample_item_embedding_2.json");
-			// console.log(itemEmbeddingAll);
-			// var itemEmbeddingAll_original = itemEmbeddingAll['mds'][1];
-
-			var itemEmbeddingAll_original = itemEmbeddingAll['mds'][descriptor_index];		
+			var itemEmbeddingAll_original = itemEmbeddings_2d[descriptor_index];		
 			var all_items = [].concat(...Object.keys(descriptors).map((d) => descriptors[d]))
 
 			var min_coords = [d3.min(itemEmbeddingAll_original, (d) => d[0]), d3.min(itemEmbeddingAll_original, (d) => d[1])];
@@ -441,7 +439,7 @@ class CircularView extends Component {
 			var itemData = d3.range(itemEmbeddingAll_original.length).map(function(d) {
 				return {
 					x: circle_position_x_item(itemEmbeddingAll_original[d][0]),
-					y: circle_position_x_item(itemEmbeddingAll_original[d][1]),
+					y: circle_position_y_item(itemEmbeddingAll_original[d][1]),
 					label: descriptors[Object.keys(descriptors)[descriptor_index]][d],
 					weight: 1,
 					radius: 20
@@ -481,28 +479,14 @@ class CircularView extends Component {
 									.on("drag", dragged)
 									.on("end", dragended));			            			
 			function dragstarted(d, i) {
-				console.log(d);				
-				// console.log(d3.select(this).raise());
+				console.log(itemEmbeddingAll_original[i]);
 				d3.select("circle#item_circle_" + i).classed("drag_active", true);
 				d3.select("text#item_text_" + i).classed("drag_active", true);				
-				// d3.select("circle#item_circle_" + i).attr("class","drag_active");
-				// console.log(d3.select(this).raise());
-				// console.log(d3.select(this).selectAll(".drag_active"));
-				// d3.select(this).raise().classed("drag_active", true);
 			}
 
 			function dragged(d, i) {
-				console.log(d3.event);
-				// console.log(d.x);
-				// console.log(d.y);
-				// console.log(((width)/2-(innerRadius)/2));
-				// console.log(((height)/2-( innerRadius)/2));
 				var cur_x = d3.event.sourceEvent.offsetX - ((width)/2-(innerRadius)/2) - 100;
-				var cur_y = d3.event.sourceEvent.offsetY - ((height)/2-( innerRadius)/2) - 100;
-				 
-				// var cur_x = ((width)/2-(innerRadius)/2) - d3.event.sourceEvent.offsetX;
-				// var cur_y = ((height)/2-( innerRadius)/2) - d3.event.sourceEvent.offsetY;
-
+				var cur_y = d3.event.sourceEvent.offsetY - ((height)/2-( innerRadius)/2) - 100;				 
 				d3.select("text#item_text_" + i)
 						.attr("x", cur_x)
 						.attr("y", cur_y);
@@ -514,9 +498,10 @@ class CircularView extends Component {
 			function dragended(d, i) {
 				d3.select("circle#item_circle_" + i).classed("drag_active", false);
 				d3.select("text#item_text_" + i).classed("drag_active", false);
-
+				_self.handleMoveItemPosition(i, descriptor_index,
+					[circle_position_x_item.invert(d3.select("circle#item_circle_" + i).attr("cx")), 
+					circle_position_y_item.invert(d3.select("circle#item_circle_" + i).attr("cy"))]);
 			}
-
 		}
 
 
@@ -632,7 +617,7 @@ class CircularView extends Component {
 
 			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();
 			
-			items = items.map((d, idx) => [d, itemEmbeddings['sc'][descriptor_index][idx][0]])
+			items = items.map((d, idx) => [d, itemEmbeddings_1d[descriptor_index][idx][0]])
 						.sort((first, second) => second[1] - first[1])
 						.map((d) => d[0]);
 			if(patterns.length == 2){
@@ -739,7 +724,7 @@ class CircularView extends Component {
 			
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
 			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();			
-			items = items.map((d, idx) => [d, itemEmbeddings['sc'][descriptor_index][idx][0]])
+			items = items.map((d, idx) => [d, itemEmbeddings_1d[descriptor_index][idx][0]])
 						.sort((first, second) => second[1] - first[1])
 						.map((d) => d[0]);
 
@@ -913,7 +898,7 @@ class CircularView extends Component {
 
 
 		function axisStroke(i, descriptor_size) {
-			var color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
+			var color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];
 			return color_list_petal[i];
 			// return d3.hcl(i / descriptor_size * 360, 60, 70);
 		};
@@ -978,33 +963,32 @@ class CircularView extends Component {
   					</Tooltip>					
 				</div>
 			    <div>
-				 <ButtonGroup size="small">
-					<Button onClick={this.handleResetPatterns}>
-						Reset Pattern Selection
-					</Button>
-					<Button onClick={this.handleResetItems}>
-						Reset Item Selection
-					</Button>
-					</ButtonGroup>
 					<ButtonGroup size="small">
-					<Button onClick={showConfirmDelete}>
-						Delete Pattern
-					</Button>				
-					<Button onClick={showConfirmMerge}>
-						Merge Pattern
-					</Button>	
-					<Button onClick={showConfirmUpdate}>
-						Update
-					</Button>						
+						<Button onClick={this.handleResetPatterns}>
+							Reset Pattern Selection
+						</Button>
+						<Button onClick={this.handleResetItems}>
+							Reset Item Selection
+						</Button>
+						</ButtonGroup>
+						<ButtonGroup size="small">
+						<Button onClick={showConfirmDelete}>
+							Delete Pattern
+						</Button>				
+						<Button onClick={showConfirmMerge}>
+							Merge Pattern
+						</Button>	
+						<Button onClick={showConfirmUpdate}>
+							Update
+						</Button>						
 					</ButtonGroup>
+					<RadioGroup onChange={this.handleChangeProjection} defaultValue="p" size="small">
+						<RadioButton value={-1}>Pattern</RadioButton>	
+						{this.renderRadioButton()}				
+					</RadioGroup>																		
 				</div>
 				<div id="svg-color-quant" className={styles.legend}></div>
-				{svg.toReact()}	
-				<RadioGroup onChange={this.handleChangeProjection} defaultValue="p" size="small">
-					<RadioButton value={-1}>Pattern</RadioButton>	
-					{this.renderRadioButton()}				
-				</RadioGroup>				
-
+				{svg.toReact()}				
 			</div>
 		);
   }

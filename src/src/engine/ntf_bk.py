@@ -1,3 +1,11 @@
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+'''
+Created on 2015/06/14
+
+@author: drumichiro
+'''
+
 import numpy as np
 from multiprocessing import Pool
 from sktensor import ktensor
@@ -25,77 +33,79 @@ class MulHelper(object):
 		return getattr(self.cls, self.mtd_name)(*args, **kwargs)
 
 
+
 def column_norm(X, by_norm='2'):
-	""" Compute the norms of each column of a given matrix
+    """ Compute the norms of each column of a given matrix
 
-	Parameters
-	----------
-	X : numpy.array or scipy.sparse matrix
+    Parameters
+    ----------
+    X : numpy.array or scipy.sparse matrix
 
-	Optional Parameters
-	-------------------
-	by_norm : '2' for l2-norm, '1' for l1-norm.
-			  Default is '2'.
+    Optional Parameters
+    -------------------
+    by_norm : '2' for l2-norm, '1' for l1-norm.
+              Default is '2'.
 
-	Returns
-	-------
-	numpy.array
-	"""
-	if sps.issparse(X):
-		if by_norm == '2':
-			norm_vec = np.sqrt(X.multiply(X).sum(axis=0))
-		elif by_norm == '1':
-			norm_vec = X.sum(axis=0)
-		return np.asarray(norm_vec)[0]
-	else:
-		if by_norm == '2':
-			norm_vec = np.sqrt(np.sum(X * X, axis=0))
-		elif by_norm == '1':
-			norm_vec = np.sum(X, axis=0)
-		return norm_vec
+    Returns
+    -------
+    numpy.array
+    """
+    if sps.issparse(X):
+        if by_norm == '2':
+            norm_vec = np.sqrt(X.multiply(X).sum(axis=0))
+        elif by_norm == '1':
+            norm_vec = X.sum(axis=0)
+        return np.asarray(norm_vec)[0]
+    else:
+        if by_norm == '2':
+            norm_vec = np.sqrt(np.sum(X * X, axis=0))
+        elif by_norm == '1':
+            norm_vec = np.sum(X, axis=0)
+        return norm_vec
 
 def getError(X, F_kten, norm_X):
-	
-	return norm_X ** 2 + F_kten.norm() ** 2 - 2 * F_kten.innerprod(X)
+    
+    return norm_X ** 2 + F_kten.norm() ** 2 - 2 * F_kten.innerprod(X)
 
 
 def normalize_column(X, by_norm='2'):
-	""" Column normalization
+    """ Column normalization
 
-	Scale the columns of X so that they have unit l2-norms.
-	The normalizing coefficients are also returned.
+    Scale the columns of X so that they have unit l2-norms.
+    The normalizing coefficients are also returned.
 
-	Side Effect
-	-----------
-	X given as input are changed and returned
+    Side Effect
+    -----------
+    X given as input are changed and returned
 
-	Parameters
-	----------
-	X : numpy.array or scipy.sparse matrix
+    Parameters
+    ----------
+    X : numpy.array or scipy.sparse matrix
 
-	Returns
-	-------
-	( X, weights )
-	X : normalized matrix
-	weights : numpy.array, shape k 
-	"""
-	if sps.issparse(X):
-		weights = column_norm(X, by_norm)
-		# construct a diagonal matrix
-		dia = [1.0 / w if w > 0 else 1.0 for w in weights]
-		N = X.shape[1]
-		r = np.arange(N)
-		c = np.arange(N)
-		mat = sps.coo_matrix((dia, (r, c)), shape=(N, N))
-		Y = X.dot(mat)
-		return (Y, weights)
-	else:
-		norms = column_norm(X, by_norm)
-		toNormalize = norms > 0
-		X[:, toNormalize] = X[:, toNormalize] / norms[toNormalize]
-		weights = np.ones(norms.shape)
-		weights[toNormalize] = norms[toNormalize]
-		return (X, weights)
+    Returns
+    -------
+    ( X, weights )
+    X : normalized matrix
+    weights : numpy.array, shape k 
+    """
+    if sps.issparse(X):
+        weights = column_norm(X, by_norm)
+        # construct a diagonal matrix
+        dia = [1.0 / w if w > 0 else 1.0 for w in weights]
+        N = X.shape[1]
+        r = np.arange(N)
+        c = np.arange(N)
+        mat = sps.coo_matrix((dia, (r, c)), shape=(N, N))
+        Y = X.dot(mat)
+        return (Y, weights)
+    else:
+        norms = column_norm(X, by_norm)
+        toNormalize = norms > 0
+        X[:, toNormalize] = X[:, toNormalize] / norms[toNormalize]
+        weights = np.ones(norms.shape)
+        weights[toNormalize] = norms[toNormalize]
+        # pdb.set_trace()
+        return (X, weights)
 
 class NTF():
 	def __init__(self, bases, x, costFuncType='gkld', parallelCalc=False, ones = True, random_seed = 1):
@@ -212,8 +222,7 @@ class NTF():
 		for i1 in factor:
 			self.updateFactorEachBasis(x, i1)
 
-	def factorize(self, x, iterations=100, showProgress=False, default=True, 
-		reference_matrix=[], S_matrix = [], lambda_0 = 0.0, lambda_1 = 0.0):
+	def factorize(self, x, iterations=100, showProgress=False, default=True):
 		if not default:
 			x = dtensor(x)
 			num_ways = len(self.factor[0])
@@ -226,19 +235,15 @@ class NTF():
 				X_itr.append(np.array(X_cur).T)
 
 		for i1 in np.arange(1, iterations + 1):
-			if showProgress and (i1 % 20) == 0:
-				# progress = "*" if 0 < (i1 % 20) \
-				# 	else "[%d/%d]\n" % (i1, iterations)
-				print("[%d/%d]\n" % (i1, iterations))
+			if showProgress:
+				progress = "*" if 0 < (i1 % 20) \
+					else "[%d/%d]\n" % (i1, iterations)
+				print(progress)
 			if default:
 				self.updateAllFactors(x, self.factor)
 			else:				
 				# pdb.set_trace()
-				X_itr = self.updateAllFactorsGradient(x, X_itr, num_ways, R, 
-					reference_matrix = reference_matrix, 
-					S_matrix = S_matrix,
-					lambda_0 = lambda_0, 
-					lambda_1 = lambda_1)
+				X_itr = self.updateAllFactorsGradient(x, X_itr, num_ways, R)
 				ktensor_X = ktensor(X_itr)
 				import math
 				error_X = math.sqrt(getError(x,ktensor_X,x.norm()))/x.norm()
@@ -251,9 +256,10 @@ class NTF():
 					each_factor.append(X_itr[way_index].T[r])
 				result_factor.append(each_factor)
 			self.factor = result_factor		
+
 		
-	def updateAllFactorsGradient(self, x, X_itr, num_ways, R, 
-		reference_matrix=[], S_matrix = [], lambda_0 = 0.0, lambda_1 = 0.0):
+
+	def updateAllFactorsGradient(self, x, X_itr, num_ways, R, lambda_0 = 0.00000, lambda_1 = 1):
 		X_FF_iter = []
 		XtW_iter = []				
 		for way_index in range(num_ways):
@@ -264,11 +270,11 @@ class NTF():
 				X_FF = X_FF * X_itr[w].T.dot(X_itr[w])
 			X_FF_iter.append(X_FF)
 			XtW_iter.append(x.uttkrp(X_itr, way_index))
-		S_matrix = [np.zeros((x.shape[way_index], x.shape[way_index])) for way_index in range(num_ways)]
+		S = [np.zeros((x.shape[way_index], x.shape[way_index])) for way_index in range(num_ways)]
 		for l in range(R):
 			for way_index in range(num_ways):
-				similarity_reg = -np.atleast_2d(X_itr[way_index][:,l]).dot(S_matrix[way_index]) + np.atleast_2d(X_itr[way_index][:,l]).dot(np.atleast_2d(X_itr[way_index][:,l]).T).dot(np.atleast_2d(X_itr[way_index][:,l]))
-				reference_reg = (X_itr[way_index][:,l] - reference_matrix[way_index][:,l])
+				similarity_reg = -np.atleast_2d(X_itr[way_index][:,l]).dot(S[way_index]) + np.atleast_2d(X_itr[way_index][:,l]).dot(np.atleast_2d(X_itr[way_index][:,l]).T).dot(np.atleast_2d(X_itr[way_index][:,l]))
+				# reference_reg = (X_itr[way_index][:,l] - Reference_factors[way_index][:,l])
 				# similarity_reg = 0
 				reference_reg = 0
 				factor_gradient = -XtW_iter[way_index][:,l] + X_itr[way_index].dot(X_FF_iter[way_index])[:,l]

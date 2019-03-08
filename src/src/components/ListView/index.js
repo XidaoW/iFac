@@ -63,7 +63,7 @@ class ListView extends Component {
 
 	render() {
 		console.log('listView rendered');
-		const { data, bar_data, similarPatternToQueries, components_cnt, itemEmbeddings, clickedPatternIdx, display_projection } = this.props;
+		const { data, bar_data, similarPatternToQueries, components_cnt, itemEmbeddings_1d, itemEmbeddings_2d, clickedPatternIdx, display_projection } = this.props;
 		const _self = this,
 					width = +this.layout.svg.width,
 					height = +this.layout.svg.height;
@@ -103,7 +103,7 @@ class ListView extends Component {
 					<PatternBar 
 						idx={Snapshot} 
 						components_cnt={components_cnt}
-						itemEmbeddings={itemEmbeddings}
+						itemEmbeddings_1d={itemEmbeddings_1d}
 						bar_data={bar_data}
 					/>				
 			    </span>

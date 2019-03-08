@@ -33,7 +33,7 @@ class PatternBar extends Component {
 
   render() {
 
-		const { idx, bar_data, components_cnt, itemEmbeddings } = this.props;
+		const { idx, bar_data, components_cnt, itemEmbeddings_1d } = this.props;
 		const _self = this,
 			barFillOpacityConst = 0.5;
 
@@ -81,7 +81,7 @@ class PatternBar extends Component {
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
 			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();
 			
-			items = items.map((d, idx) => [d, itemEmbeddings['sc'][descriptor_index][idx][0]])
+			items = items.map((d, idx) => [d, itemEmbeddings_1d[descriptor_index][idx][0]])
 						.sort((first, second) => second[1] - first[1])
 						.map((d) => d[0]);
 			// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle

@@ -19,19 +19,21 @@ import 'antd/dist/antd.css';
 
 const domainSetting = {
 						"picso": {"modes": "3", "cnt": "19"},
+						"picso1": {"modes": "3", "cnt": "30"},
 						"nbaplayer": {"modes": "3", "cnt": "20"},
-						"nbaplayer1": {"modes": "3", "cnt": "30"},
+						"nbaplayer1": {"modes": "3", "cnt": "40"},
 						"policy": {"modes": "3", "cnt": "36"},
 						"policyKeyword": {"modes": "4", "cnt": "20"},
 						"purchase": {"modes": "5", "cnt": "30"}
 					};
 
+const item_projection_method = "mds";
 
 class App extends Component {
 	constructor(props) {
 		super(props);
 		const domain = "nbaplayer1";
-		const [factors_data, metrics, itemEmbeddings, patternEmbeddings] = this.loadDefaultDataset(domain);
+		const [factors_data, metrics, itemEmbeddings_1d, itemEmbeddings_2d, patternEmbeddings] = this.loadDefaultDataset(domain);
 		console.log(metrics);
 		this.state = {
 			factors_data: factors_data.data,
@@ -63,7 +65,8 @@ class App extends Component {
 			weights: [0,1,0,0,0,0],
 			metricAggregated: [],
 			start_index: 0,
-			itemEmbeddings: itemEmbeddings,
+			itemEmbeddings_1d: itemEmbeddings_1d,
+			itemEmbeddings_2d: itemEmbeddings_2d,
 			patternEmbeddings: patternEmbeddings,
 			deletedPatternIdx: [],		
 			mergePatternIdx: [],
@@ -93,8 +96,7 @@ class App extends Component {
 		this.loadDatasetOnClickPoint = this.loadDatasetOnClickPoint.bind(this);
 		this.loadDatasetOnUpdateModel = this.loadDatasetOnUpdateModel.bind(this);
 		this.updateStateOnDataChange = this.updateStateOnDataChange.bind(this);
-
-		
+		this.handleUpdateItemPositions = this.handleUpdateItemPositions.bind(this);
 		
 	}
 
@@ -102,23 +104,26 @@ class App extends Component {
 	loadDefaultDataset(selectedDomain){
 		const factorsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_fit.json"),
 			metricsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_fit_metrics.json"),
-			itemEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_item_embedding.json"),
+			itemEmbeddingsLoad_1d = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_item_embedding_1d.json"),
+			itemEmbeddingsLoad_2d = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_item_embedding_2d.json"),			// itemEmbeddingsLoad2D = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_item_embedding_2d.json"),
 			patternEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_pattern_embedding.json");
 		console.log(metricsLoad);
-		return [factorsLoad, metricsLoad, itemEmbeddingsLoad, patternEmbeddingsLoad]
+		return [factorsLoad, metricsLoad, itemEmbeddingsLoad_1d[item_projection_method],itemEmbeddingsLoad_2d[item_projection_method], patternEmbeddingsLoad]
 	}
 	loadDatasetOnClickPoint(selectedDomain, rank){
 		const factorsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_fit.json"),
-			itemEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_item_embedding.json"),
+			itemEmbeddingsLoad_1d = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_item_embedding_1d.json"),
+			itemEmbeddingsLoad_2d = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_item_embedding_2d.json"),
 			patternEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_pattern_embedding.json");
-		return [factorsLoad, itemEmbeddingsLoad, patternEmbeddingsLoad]
+		return [factorsLoad, itemEmbeddingsLoad_1d[item_projection_method], itemEmbeddingsLoad_2d[item_projection_method], patternEmbeddingsLoad]
 	}	
 
 	loadDatasetOnUpdateModel(selectedDomain, rank){
 		const factorsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_fit_edit.json"),
-			itemEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_item_embedding_edit.json"),
+			itemEmbeddingsLoad_1d = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_item_embedding_edit_1d.json"),
+			itemEmbeddingsLoad_2d = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_item_embedding_edit_2d.json"),
 			patternEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_pattern_embedding_edit.json");
-		return [factorsLoad, itemEmbeddingsLoad, patternEmbeddingsLoad]
+		return [factorsLoad, itemEmbeddingsLoad_1d[item_projection_method], itemEmbeddingsLoad_2d[item_projection_method], patternEmbeddingsLoad]
 	}	
 
 
@@ -145,10 +150,10 @@ class App extends Component {
 		const _self = this,
 					factors = this.state.factors_data,
 					screeData = this.state.screeData,
+					itemEmbeddings_1d = this.state.itemEmbeddings_1d,
+					itemEmbeddings_2d = this.state.itemEmbeddings_2d,
 					start_index = 2,
 					weights = this.state.weights,
-					itemEmbeddings = this.state.itemEmbeddings,
-					patternEmbeddings = this.state.patternEmbeddings,
 					queries = d3.range(factors[0].dims).reduce((obj, item) => {
 						obj[item] = [];
 						return obj;
@@ -243,6 +248,8 @@ class App extends Component {
 			bar_data: bar_data,     
 			screeData: screeData,
 			max_pattern_item: max_pattern_item,
+			itemEmbeddings_1d: itemEmbeddings_1d,
+			itemEmbeddings_2d: itemEmbeddings_2d,
 			queries: queries,
 			error_data: error_data,
 			stability_data: stability_data,
@@ -254,9 +261,7 @@ class App extends Component {
 			pctnonzeros_data: pctnonzeros_data,
 			metricAggregated: metricAggregated,
 			minErrorIdx: screeData.min_error_index,	
-			itemEmbeddings: itemEmbeddings,
-			start_index: start_index,
-			patternEmbeddings: patternEmbeddings
+			start_index: start_index
 		});    
 	}
 
@@ -297,6 +302,21 @@ class App extends Component {
 		this.setState(prevState => ({
 			display_projection: projectionID
 		}));
+	}
+
+
+	handleUpdateItemPositions(item_index, descriptor_index, positions){
+		console.log(item_index);
+		console.log(descriptor_index);
+		console.log(positions);
+
+		var item_embeddings_tmp = this.state.itemEmbeddings_2d;
+		console.log(item_embeddings_tmp);
+		item_embeddings_tmp[descriptor_index][item_index] = positions;
+		console.log(item_embeddings_tmp);
+		this.setState({
+
+		})		
 	}
 
 
@@ -496,8 +516,10 @@ class App extends Component {
 					return response.json();
 			})   
 			.then( (dataset) => {
+				console.log(dataset);
 				this.updateStateOnDataChange(dataset['factors'], 
-					dataset['item_embeddings'], 
+					dataset['item_embeddings1d'][item_projection_method], 
+					dataset['item_embeddings2d'][item_projection_method], 
 					dataset['pattern_embeddings']);
 			});		
 	}	
@@ -538,7 +560,7 @@ class App extends Component {
 		});
 	}
 
-	updateStateOnDataChange(new_data, itemEmbeddings, patternEmbeddings){
+	updateStateOnDataChange(new_data, itemEmbeddings_1d, itemEmbeddings_2d, patternEmbeddings){
 		let bar_data = {},
 			// max_pattern_item = {},
 			descriptors_text = [],
@@ -585,7 +607,8 @@ class App extends Component {
 			modes: new_data.modes,
 			queries: queries,
 			components_cnt: new_data.data.length,
-			itemEmbeddings: itemEmbeddings,
+			itemEmbeddings_1d: itemEmbeddings_1d,
+			itemEmbeddings_2d: itemEmbeddings_2d,
 			patternEmbeddings: patternEmbeddings,
 			deletedPatternIdx: [],
 			mergePatternIdx: [],
@@ -611,8 +634,8 @@ class App extends Component {
 		 * 
 		 */
 		var domain = this.state.domain;
-		var [new_data, itemEmbeddings, patternEmbeddings] = this.loadDatasetOnClickPoint(domain, rank);
-		this.updateStateOnDataChange(new_data, itemEmbeddings, patternEmbeddings);		
+		var [new_data, itemEmbeddings_1d, itemEmbeddings_2d, patternEmbeddings] = this.loadDatasetOnClickPoint(domain, rank);
+		this.updateStateOnDataChange(new_data, itemEmbeddings_1d, itemEmbeddings_2d, patternEmbeddings);		
 	}
 
 	handleClickPattern(idx, petals_path_items) { 
@@ -845,7 +868,7 @@ class App extends Component {
 
 	handleChangeDataset(selectedDomain) {
 		console.log('handleChangeDataset: ', selectedDomain);
-		const [selectedDataset, metrics, itemEmbeddings, patternEmbeddings] = this.loadDefaultDataset(selectedDomain);
+		const [selectedDataset, metrics, itemEmbeddings_1d, itemEmbeddings_2d, patternEmbeddings] = this.loadDefaultDataset(selectedDomain);
 		console.log('handleChangeDataset: ', selectedDataset);
 
 		const _self = this,
@@ -972,7 +995,8 @@ class App extends Component {
 			pctnonzeros_data: pctnonzeros_data,
 			weights: weights,
 			components_cnt: factors.length,
-			itemEmbeddings:itemEmbeddings,
+			itemEmbeddings_1d: itemEmbeddings_1d,
+			itemEmbeddings_2d: itemEmbeddings_2d,
 			patternEmbeddings: patternEmbeddings,
 			metricAggregated: metricAggregated
 		});
@@ -989,13 +1013,14 @@ class App extends Component {
 			item_max_pattern,queries,similarPatternToQueries, item_links, mouseOveredDescriptorIdx, 
 			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
 			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricAggregated,
-			itemEmbeddings, clickedPatternIdx, patternEmbeddings,
+			itemEmbeddings_1d, itemEmbeddings_2d, clickedPatternIdx, patternEmbeddings,
 			deletedPatternIdx, mergePatternIdx, display_projection
 		} = this.state;
 
 
 	const components_cnt = factors_data.length;
-
+	console.log(itemEmbeddings_1d);
+	console.log(itemEmbeddings_2d);
 	console.log('domain: ', this.state.domain);
 
 	return (
@@ -1030,7 +1055,8 @@ class App extends Component {
 					data={factors_data}
 					bar_data={bar_data}
 					components_cnt={components_cnt}
-					itemEmbeddings={itemEmbeddings}
+					itemEmbeddings_1d={itemEmbeddings_1d}
+					itemEmbeddings_2d={itemEmbeddings_2d}
 					clickedPatternIdx={clickedPatternIdx}
 					selectedPatterns={selectedPatterns}
 					deletedPatternIdx={deletedPatternIdx}
@@ -1054,6 +1080,7 @@ class App extends Component {
 						onMergePatterns={this.handleMergePatterns}
 						onUpdatePatterns={this.handleUpdatePatterns}
 						onChangeProjection={this.handleChangeProjection}
+						onUpdateItemPositions={this.handleUpdateItemPositions}
 						leastSimilarPatternToSelectedPatternIdx={leastSimilarPatternToSelectedPatternIdx}              
 						mostSimilarPatternToSelectedPatternIdx={mostSimilarPatternToSelectedPatternIdx}          
 						bar_data={bar_data}     
@@ -1063,7 +1090,8 @@ class App extends Component {
 						arc_positions_bar_petal={arc_positions_bar_petal}
 						item_max_pattern={item_max_pattern}
 						item_similarity={item_similarity}
-						itemEmbeddings={itemEmbeddings}
+						itemEmbeddings_1d={itemEmbeddings_1d}
+						itemEmbeddings_2d={itemEmbeddings_2d}
 						patternEmbeddings={patternEmbeddings}
 						modes={modes}
 						queries={queries}

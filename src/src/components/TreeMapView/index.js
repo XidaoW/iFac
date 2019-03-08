@@ -57,7 +57,7 @@ class TreeMapView extends Component {
 
 	render() {
 		const { data, bar_data, selectedPatterns, components_cnt, descriptors, modes, queries } = this.props;
-		// var cur_data = Object.keys(bar_data).map((d) => {}bar_data[d][0])
+
 		var selectedPatterns_cur;
 		if(selectedPatterns.length == 0){
 			selectedPatterns_cur = [components_cnt]
@@ -70,7 +70,7 @@ class TreeMapView extends Component {
 				Object.keys(bar_data).map((d, i) => {
 				return {descriptor: i, children: 
 					Object.keys(bar_data[d][idx]).filter((d) => d !== "id").map((f) => {
-						return {item: i + "_" + f, value: bar_data[d][idx][f] * Object.keys(bar_data[d][idx]).length}
+						return {item: i + "_" + f, value: bar_data[d][idx][f] * (Object.keys(bar_data[d][idx]).length-1)}
 					})
 				}
 			})

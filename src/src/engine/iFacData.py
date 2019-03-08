@@ -1,13 +1,9 @@
-import os.path
-import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-
-from . import ntf
-from .myutil.histogram import createHistogram, translateLabel
-# from .myutil.plotter import showFactorValue, showHistDistribution
-from .myutil.ponpare.reader import readPonpareData
-from .myutil.ponpare.converter import digitizeHistoryFeatureValue, transformForHistogram
-from .multiview import mvmds, cpcmv, mvtsne, mvsc
+import ntf
+from myutil.histogram import createHistogram, translateLabel
+from myutil.plotter import showFactorValue, showHistDistribution
+from myutil.ponpare.reader import readPonpareData
+from myutil.ponpare.converter import     digitizeHistoryFeatureValue, transformForHistogram
+from multiview import mvmds, cpcmv, mvtsne, mvsc
 
 from sklearn.utils.testing import assert_raises
 
@@ -18,15 +14,16 @@ import pandas as pd
 from scipy import stats
 # from scipy.special import entr
 from scipy import spatial
-import math
-
+import pdb
 import sys
 import json
 from pyspark import SparkConf, SparkContext
 import itertools
 import subprocess
+import math
+
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 _log = logging.getLogger(__name__)
 
 
@@ -64,7 +61,7 @@ class iFacData():
 		"""
 		self.domain = domain
 		if self.domain == "nba":
-			shots = pd.read_csv("app/static/data/NBA_shots_201415.csv")
+			shots = pd.read_csv("data/NBA_shots_201415.csv")
 			shots = shots[['PLAYER_ID','PLAYER_NAME','TEAM_ID','TEAM_NAME','ZoneName','PERIOD','SHOT_ATTEMPTED_FLAG','SHOT_MADE_FLAG']]
 			shots.PERIOD[shots.PERIOD > 4] = 5
 			self.column = ['PERIOD','TEAM_NAME','ZoneName']
@@ -73,7 +70,7 @@ class iFacData():
 			
 		if self.domain in ["nbaplayer","nbaplayer1"]:
 			top_cnt = 15
-			shots = pd.read_csv("app/static/data/NBA_shots_201415.csv")
+			shots = pd.read_csv("data/NBA_shots_201415.csv")
 			shots = shots[['PLAYER_ID','PLAYER_NAME','TEAM_ID','TEAM_NAME','ZoneName','PERIOD','SHOT_ATTEMPTED_FLAG','SHOT_MADE_FLAG']]
 			shots.PERIOD[shots.PERIOD > 4] = 5
 			self.column = ['PERIOD','PLAYER_NAME','ZoneName']
@@ -86,7 +83,7 @@ class iFacData():
 			self.hist, self.labels = self.createDataHistogram(shots_group_data_attempted, self.column)
 
 		elif self.domain in ["policy","policy1"]:
-			policy = pd.read_csv("app/static/data/policy_adoption.csv")
+			policy = pd.read_csv("data/policy_adoption.csv")
 			policy['adoption'] = 1
 			policy = policy[policy.adopted_year >= 1970]
 			policy = policy[policy.subject_name != "Unknown"]            
@@ -95,7 +92,7 @@ class iFacData():
 			self.hist, self.labels = self.createDataHistogram(policy_group, self.column)
 
 		elif self.domain in ["policyKeyword","policyKeyword1"]:
-			policy = pd.read_csv("app/static/data/policy_keyword.csv")
+			policy = pd.read_csv("data/policy_keyword.csv")
 			policy = policy[policy.subject_name != "Unknown"]            
 			self.column = ['subject_name', 'adopted_year', 'state_id', 'key']
 			policy_group = policy.groupby(self.column)['val'].sum()
@@ -112,7 +109,7 @@ class iFacData():
 			self.hist, self.labels = self.createDataHistogram(harvard_group, self.column[:3])
 
 		elif self.domain in ["picso","picso1"]:
-			policy = pd.read_csv("app/static/data/picso.csv", header=None)
+			policy = pd.read_csv("data/picso.csv", header=None)
 			columns = ['member', 'year', 'keyword', 'value']
 			policy.columns = columns
 			self.column = columns[:3]
@@ -144,7 +141,6 @@ class iFacData():
 			p = re.compile(re_string)
 
 			self.labels = [[translateLabel(p.sub('', each_label).strip()).replace('prefecture', '').replace('Prefecture', '').strip().replace(' ', '').replace('\\\"over\\\"','over').replace('\\\"under\\\"','over') for each_label in each_d] for each_d in label]
-
 
 	def computeReconstructionError(self, ntfInstance, hist):    
 		"""
@@ -201,11 +197,11 @@ class iFacData():
 		mvmds_est.fit(self.data, is_distance)
 		self.factor_embeddings['mds'] = mvmds_est.components_.tolist()
 
-		self.rd_state = 5
-		is_distance = [False] * len(self.data)
-		mvtsne_est = mvtsne.MvtSNE(k=2, perplexity = 10,random_state = self.rd_state, epoch = 3000)
-		mvtsne_est.fit(self.data, is_distance)
-		self.factor_embeddings['tsne'] = np.nan_to_num(np.asarray(mvtsne_est.embedding_)).tolist()		
+		# self.rd_state = 5
+		# is_distance = [False] * len(self.data)
+		# mvtsne_est = mvtsne.MvtSNE(k=2, perplexity = 10,random_state = self.rd_state, epoch = 3000)
+		# mvtsne_est.fit(self.data, is_distance)
+		# self.factor_embeddings['tsne'] = np.nan_to_num(np.asarray(mvtsne_est.embedding_)).tolist()		
 
 		mvsc_est = mvsc.MVSC(k=2)
 		mvsc_est.fit(self.data, is_distance)
@@ -532,10 +528,10 @@ class iFacData():
 				output_each['factors'][j] = output_each_factor
 			output.append(output_each)
 
-		self.data_output["app/static/data"] = output        
+		self.data_output["data"] = output        
 			
 	def saveOutput(self):
-		# if hasattr(self, "app/static/data_output"):		
+		# if hasattr(self, "data_output"):		
 		_log.info("Saving data")
 		data_output_file = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain+'/factors_'+str(len(self.column))+'_'+str(self.cur_base)+'_sample_fit.json'
 		with open(data_output_file, 'w') as fp:
@@ -624,22 +620,45 @@ def generateData():
 	base = int(sys.argv[1])
 	iFac.start_index = int(sys.argv[2])
 	domain = str(sys.argv[3])
+
 	iFac.domain = domain
 	iFac.save_flag = True
+	iFac.reference_matrix = []
+	iFac.S_matrix = []
+	iFac.lambda_0 = 0
+	iFac.lambda_1 = 0
+
 	iFac.readData(domain = iFac.domain)
-	_log.info("Fitting Different Ranks up to {}".format(base))
+	iFac.column_cnt = len(iFac.labels)
 	iFac.getFitForRanks(base, trials = nb_trials)
 
 	for cur_base in range(iFac.start_index, base+1):
+		_log.info("Getting Embedding for Rank at {}".format(cur_base))		
 		iFac.cur_base = cur_base
-		iFac.generateItemEmbedding(n_component = 1, save_flag = True)
-		iFac.generateItemEmbedding(n_component = 2, save_flag = True)
-		iFac.generatePatternEmbedding(save_flag = True)
+		iFac.generateItemEmbedding(n_component = 1)
+		iFac.generateItemEmbedding(n_component = 2)
+		iFac.generatePatternEmbedding()
+
+def aggregateAll():
+	iFac = iFacData()	
+	iFac.end_index = int(sys.argv[1])
+	iFac.start_index = int(sys.argv[2])
+	domain = str(sys.argv[3])
+	iFac.domain = domain
+	iFac.readData(domain = iFac.domain)
+	iFac.column_cnt = len(iFac.labels)
+
+	measures = ["error", "fit", "stability", "entropy", "normalized_entropy", "pctnonzeros", "gini", "theil", "min_error_index"]        
+	start_metrics = iFac.readMetricJSON(base_cnt=iFac.start_index, domain = domain, ndims = iFac.column_cnt)
+	for i in range(iFac.start_index+1, iFac.end_index+1):
+		cur_metrics = iFac.readMetricJSON(base_cnt=i, domain = domain, ndims = iFac.column_cnt)
+		for m in measures:
+			cur_metrics[m] = [x for x in start_metrics[m] if x is not None] + [x for x in cur_metrics[m] if x is not None]        
+		with open('/home/xidao/project/thesis/iFac/src/src/data/'+domain+'/factors_'+str(iFac.column_cnt)+'_'+str(i)+'_sample_fit_metrics.json', 'w') as fp:
+			json.dump(cur_metrics, fp)   
+
 
 if __name__ == '__main__':
 	
-	# generateSingleOutput() # generate output from a single tensor factorization
-	generateData() # generate factor matrices with metrics
-	# aggregateAll() # aggreate metrics
-	# generateItemEmbedding() # generate item embeddings
-	# generatePatternEmbedding() # generate pattern embeddings
+	# generateData() # generate factor matrices with metrics
+	aggregateAll() # aggreate metrics
