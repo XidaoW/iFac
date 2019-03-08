@@ -141,3 +141,9 @@ display: none;
 
 .hover-active rect { opacity: .75; }
 .hover-active rect.hover { opacity: 1; }
+
+
+.drag_active {
+  stroke: #000;
+  stroke-width: 2px;
+}
