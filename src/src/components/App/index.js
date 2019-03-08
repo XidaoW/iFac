@@ -67,6 +67,7 @@ class App extends Component {
 			patternEmbeddings: patternEmbeddings,
 			deletedPatternIdx: [],		
 			mergePatternIdx: [],
+			display_projection: -1,
 			minErrorIdx: metrics.min_error_index,
 			clickedPatternIdx: [] /* listview */
 		};
@@ -87,10 +88,13 @@ class App extends Component {
 		this.handleMergePatterns = this.handleMergePatterns.bind(this);
 		this.handleUpdatePatterns = this.handleUpdatePatterns.bind(this);	
 		this.handleAddingPattern = this.handleAddingPattern.bind(this);	
+		this.handleChangeProjection = this.handleChangeProjection.bind(this);	
 		this.loadDefaultDataset = this.loadDefaultDataset.bind(this);
 		this.loadDatasetOnClickPoint = this.loadDatasetOnClickPoint.bind(this);
 		this.loadDatasetOnUpdateModel = this.loadDatasetOnUpdateModel.bind(this);
 		this.updateStateOnDataChange = this.updateStateOnDataChange.bind(this);
+
+		
 		
 	}
 
@@ -116,6 +120,8 @@ class App extends Component {
 			patternEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ rank.toString() + "_sample_pattern_embedding_edit.json");
 		return [factorsLoad, itemEmbeddingsLoad, patternEmbeddingsLoad]
 	}	
+
+
 
 	componentWillUpdate(nextProps, nextState) {
 		if (this.state.domain !== nextState.domain)  {
@@ -284,6 +290,12 @@ class App extends Component {
 	handleMouseOutPattern(id){
 		this.setState(prevState => ({
 			mouseOveredPatternIdx: ''
+		}));
+	}
+
+	handleChangeProjection(projectionID){
+		this.setState(prevState => ({
+			display_projection: projectionID
 		}));
 	}
 
@@ -978,7 +990,7 @@ class App extends Component {
 			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
 			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricAggregated,
 			itemEmbeddings, clickedPatternIdx, patternEmbeddings,
-			deletedPatternIdx, mergePatternIdx
+			deletedPatternIdx, mergePatternIdx, display_projection
 		} = this.state;
 
 
@@ -1023,6 +1035,7 @@ class App extends Component {
 					selectedPatterns={selectedPatterns}
 					deletedPatternIdx={deletedPatternIdx}
 					similarPatternToQueries={similarPatternToQueries}
+					display_projection={display_projection}
 					onClickPattern={this.handleClickPattern}
 				/>
 			  	<CircularView 
@@ -1040,6 +1053,7 @@ class App extends Component {
 						onDeletePatterns={this.handleDeletePatterns}
 						onMergePatterns={this.handleMergePatterns}
 						onUpdatePatterns={this.handleUpdatePatterns}
+						onChangeProjection={this.handleChangeProjection}
 						leastSimilarPatternToSelectedPatternIdx={leastSimilarPatternToSelectedPatternIdx}              
 						mostSimilarPatternToSelectedPatternIdx={mostSimilarPatternToSelectedPatternIdx}          
 						bar_data={bar_data}     
@@ -1059,6 +1073,7 @@ class App extends Component {
 						mergePatternIdx={mergePatternIdx}
 						mouseOveredDescriptorIdx={mouseOveredDescriptorIdx}
 						similarPatternToQueries={similarPatternToQueries}
+						display_projection={display_projection}
 						onAddingPattern={this.handleAddingPattern}					
 			  />  
 				<TreeMapView

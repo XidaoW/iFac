@@ -49,13 +49,13 @@ class ListView extends Component {
 	}	
 
 	handleOnMouseEnter(rowIndex){
-		if (!d3.select('#pattern_' + rowIndex).classed('selected')){
+		if (!d3.select('#pattern_' + rowIndex).empty() && !d3.select('#pattern_' + rowIndex).classed('selected')){
 			d3.select('#pattern_' + rowIndex).attr('stroke-opacity', 1); 
 			d3.select('#pattern_mini_' + rowIndex).attr('stroke-opacity', 1); 
 		}					
 	}
 	handleOnMouseLeave(rowIndex){
-		if (!d3.select('#pattern_' + rowIndex).classed('selected')){
+		if (!d3.select('#pattern_' + rowIndex).empty() && !d3.select('#pattern_' + rowIndex).classed('selected')){
 			d3.select('#pattern_' + rowIndex).attr('stroke-opacity', 0.3); 
 			d3.select('#pattern_mini_' + rowIndex).attr('stroke-opacity', 0.3); 
 		}
@@ -63,7 +63,7 @@ class ListView extends Component {
 
 	render() {
 		console.log('listView rendered');
-		const { data, bar_data, similarPatternToQueries, components_cnt, itemEmbeddings, clickedPatternIdx } = this.props;
+		const { data, bar_data, similarPatternToQueries, components_cnt, itemEmbeddings, clickedPatternIdx, display_projection } = this.props;
 		const _self = this,
 					width = +this.layout.svg.width,
 					height = +this.layout.svg.height;

@@ -13,7 +13,7 @@ import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 import Circos, { SCATTER } from 'react-circos';
-import { Modal, Tag, Input, Tooltip, Icon, Button } from 'antd';
+import { Modal, Tag, Input, Tooltip, Icon, Button, Radio } from 'antd';
 import QueryPanel from 'components/QueryPanel';
 import scrollIntoView from 'scroll-into-view';
 
@@ -64,8 +64,9 @@ class CircularView extends Component {
 		this.handleResetItems = this.handleResetItems.bind(this);		
 		this.handleDeletePattern = this.handleDeletePattern.bind(this);						
 		this.handleMergePattern = this.handleMergePattern.bind(this);						
-		this.handleUpdatePattern = this.handleUpdatePattern.bind(this);								
-
+		this.handleUpdatePattern = this.handleUpdatePattern.bind(this);		
+		this.handleChangeProjection = this.handleChangeProjection.bind(this);		
+		this.renderRadioButton = this.renderRadioButton.bind(this);		
 	}
 
 	handleResetPatterns() {
@@ -106,6 +107,23 @@ class CircularView extends Component {
 		this.props.onMergePatterns();
 	}	
 
+	handleChangeProjection(e) {
+		this.props.onChangeProjection(e.target.value);
+	}	
+
+
+	renderRadioButton(){
+		const RadioButton = Radio.Button;
+		const {descriptors} = this.props;
+		return Object.keys(descriptors).map((d, i) => {
+			return (
+				<RadioButton value={i}>
+					{d}
+				</RadioButton>
+			)
+		})
+	}
+
 	render() {
 		console.log('circularView rendered');
 		const { data, selectedPatterns,
@@ -114,11 +132,15 @@ class CircularView extends Component {
 				arc_positions_bar_petal,item_max_pattern,
 				bar_data, max_pattern_item,modes,
 				queries, similarPatternToQueries, item_links, descriptors,
-				mouseOveredDescriptorIdx, item_similarity, components_cnt,
+				mouseOveredDescriptorIdx, item_similarity, components_cnt,display_projection,
 				itemEmbeddings,patternEmbeddings,deletedPatternIdx,mergePatternIdx } = this.props;  
+
 
 		const ButtonGroup = Button.Group;
 		const confirm = Modal.confirm;
+		const RadioButton = Radio.Button;
+		const RadioGroup = Radio.Group;
+
 
 		let	descriptor_size = Object.keys(bar_data).length,
 			descriptor_size_list = Object.keys(bar_data).map((d) => Object.keys(bar_data[d][0]).length),
@@ -238,142 +260,123 @@ class CircularView extends Component {
 		// 	.call(legendLinear);		  
 
 
-		console.log(data);
-		// Add the outer circles to the backdrop.
-		const circles = gFlowers.selectAll('.pattern_circles')
-						.data(data)
-						.enter()
-						.append('circle')
-						.attr('class', 'pattern_circles')
-						.attr('r', (d) => d.radius)
-						.attr('fill', '#fc8d12')
-						.attr('stroke', 'grey')
-						.attr('stroke-width', gs.innerCircleStrokeWidth)                
-						.attr('fill-opacity', (d) => d.weight) 
-						.attr('stroke-opacity', 0.3)						
-						.attr('id', (d) => 'pattern_' + d.id)                
-						.attr('transform', (d, i) => 'translate(' + d.x + ',' 
-									+ d.y + ')')
-						.on("mouseover", function(d){
-							tooltip.html('<div>pattern#' + d.id + '</div>'+ 
-								'<div>dominance: ' + d3.format(".0%")(d.weight) + '</div>');
-							tooltip.show();						
-							if (!d3.select('#pattern_' + d.id).classed('selected')){
-								d3.select('#pattern_' + d.id).attr('stroke-opacity', 1); 
-								d3.select('#pattern_mini_' + d.id).attr('stroke-opacity', 1); 
-							}							
-							
-							// console.log(d3.select("tr[data-row-key='"+d.id+"']").position())
-
-						})
-						.on("mouseout", function(d){
-							tooltip.hide();
-							if (!d3.select('#pattern_' + d.id).classed('selected')){
-								d3.select('#pattern_' + d.id).attr('stroke-opacity', 0.3);
-								d3.select('#pattern_mini_' + d.id).attr('stroke-opacity', 0.3);
-							}						
-						})									
-						.on('click', (d) => {
-						
-							if (d3.select('#pattern_' + d.id).classed('selected')) {
-								_self.props.onUnClickPattern(d.id);
-								let cancel_color = d3.select('#pattern_' + d.id).attr('stroke');
-								d3.select('#pattern_' + d.id).classed('selected', false); 
-								d3.select('#pattern_' + d.id).attr('stroke', 'grey');                                      
-								d3.select('#pattern_' + d.id).attr('stroke-opacity', 0.3);
-								d3.select('#pattern_mini_' + d.id).attr('stroke', 'grey');
-								d3.select('#pattern_mini_' + d.id).attr('stroke-opacity', 0.3);
-								
-							} else {
-								if (selectedPatterns.length < this.compare_N) {
-
-									let petals_path_items = [];
-									_self.props.onClickPattern(d.id, petals_path_items);
-									d3.select('#pattern_' + d.id).classed('selected', true);							
-									d3.select('#pattern_' + d.id).attr('stroke', color_list[0]);  
-									d3.select('#pattern_mini_' + d.id).attr("stroke", color_list[0]); 
-									color_list.splice(0, 1);
-								}
-							}
-							
-						});
-		// plot the flowers
-		const flowers = gFlowers.selectAll('.flower')
-						.data(data)
-						.enter()
-						.append('g')
-						.attr('class', 'flower')
-						.attr('id', (d) => 'flower_' + d.id)
-						.attr('transform', (d, i) => 'translate(' +d.x + ',' 
-									+ d.y + ')')
-						.style("display", "inline");
-
-		
-		// bubbles
-		var use_bubbles = false,
-			use_petal = false;
-		if(use_bubbles){
-			const petals = flowers.selectAll('.petal')
-						.data((d) => this.pie(d.petals))
-						.enter()
-						.append('circle')
-						.attr('class', 'petal')
-						.attr('id', (d) => 'petal_'+d.data.id+'_' + d.index)
-						.on("mouseover", function(d, i){
-							tooltip.html('<div>descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
-								'<div>informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
-								'<div>similarity: ' + d3.format(".0%")(d.data.width) + '</div>');
-							tooltip.show();
-						})
-						.on("mouseout", function(d){
-							tooltip.hide();
-						})
-						.attr('transform', (d) => {var coords = petal.polarToCartesian(d.endAngle, this.outerCircleRadius); return 'translate(' +coords.x + ',' 
-										+ coords.y + ')';})
-						.attr('r', (d) => size_petal_radius(d.data.length))
-						.style('stroke', (d, i) => 'gray')
-						.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
-						.style('fill-opacity', (d) => d.data.width);				
-		}else if(use_petal){
-			const petals = flowers.selectAll('.petal')
-					.data((d) => this.pie(d.petals))
-					.enter()
-					.append('path')
-					.attr('class', 'petal')
-					.attr('id', (d) => 'petal_'+d.data.id+'_' + d.index)
-					.attr('transform', (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
-					.attr('d', (d) => petal.petalPath(d, this.outerCircleRadius))
-					.style('stroke', (d, i) => 'gray')
-					.attr('stroke-width', function(d) {   
-					})
-					.attr('stroke', function(d) {   
-					})
-					.on("mouseover", function(d, i){
-						tooltip.html('<div>descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
-							'<div>informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
-							'<div>similarity: ' + d3.format(".0%")(d.data.width) + '</div>');
-						tooltip.show();
-					})
-					.on("mouseout", function(d){
-						tooltip.hide();
-					})
-					.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
-					.style('fill-opacity', (d) => d.data.width);						
+		// console.log(data);
+		if(display_projection == -1){
+			drawPatterns();	
 		}else{
-			// var min_width = d3.min(data, (d) => {console.log(d); return d.data.width});
-			// var max_width = d3.max(data, (d) => d.data.width);
+			drawItems(display_projection);
+		}
+		
+		function drawPatterns(){
+			// Add the outer circles to the backdrop.
+			const circles = gFlowers.selectAll('.pattern_circles')
+							.data(data)
+							.enter()
+							.append('circle')
+							.attr('class', 'pattern_circles')
+							.attr('r', (d) => d.radius)
+							.attr('fill', '#fc8d12')
+							.attr('stroke', 'grey')
+							.attr('stroke-width', gs.innerCircleStrokeWidth)                
+							.attr('fill-opacity', (d) => d.weight) 
+							.attr('stroke-opacity', 0.3)						
+							.attr('id', (d) => 'pattern_' + d.id)                
+							.attr('transform', (d, i) => 'translate(' + d.x + ',' 
+										+ d.y + ')')
+							.on("mouseover", function(d){
+								tooltip.html('<div>pattern#' + d.id + '</div>'+ 
+									'<div>dominance: ' + d3.format(".0%")(d.weight) + '</div>');
+								tooltip.show();						
+								if (!d3.select('#pattern_' + d.id).classed('selected')){
+									d3.select('#pattern_' + d.id).attr('stroke-opacity', 1); 
+									d3.select('#pattern_mini_' + d.id).attr('stroke-opacity', 1); 
+								}							
+								
+								// console.log(d3.select("tr[data-row-key='"+d.id+"']").position())
 
-			var color_threshold = d3.scaleQuantize()
-				.domain([0, 1]).range([0, 1]);
+							})
+							.on("mouseout", function(d){
+								tooltip.hide();
+								if (!d3.select('#pattern_' + d.id).classed('selected')){
+									d3.select('#pattern_' + d.id).attr('stroke-opacity', 0.3);
+									d3.select('#pattern_mini_' + d.id).attr('stroke-opacity', 0.3);
+								}						
+							})									
+							.on('click', (d) => {
+							
+								if (d3.select('#pattern_' + d.id).classed('selected')) {
+									_self.props.onUnClickPattern(d.id);
+									let cancel_color = d3.select('#pattern_' + d.id).attr('stroke');
+									d3.select('#pattern_' + d.id).classed('selected', false); 
+									d3.select('#pattern_' + d.id).attr('stroke', 'grey');                                      
+									d3.select('#pattern_' + d.id).attr('stroke-opacity', 0.3);
+									d3.select('#pattern_mini_' + d.id).attr('stroke', 'grey');
+									d3.select('#pattern_mini_' + d.id).attr('stroke-opacity', 0.3);
+									
+								} else {
+									if (selectedPatterns.length < _self.compare_N) {
 
-			// width => similarity
-			// height => informativeness
-			const petals = flowers.selectAll('.petal')
-						.data((d) => this.pie(d.petals))
+										let petals_path_items = [];
+										_self.props.onClickPattern(d.id, petals_path_items);
+										d3.select('#pattern_' + d.id).classed('selected', true);							
+										d3.select('#pattern_' + d.id).attr('stroke', color_list[0]);  
+										d3.select('#pattern_mini_' + d.id).attr("stroke", color_list[0]); 
+										color_list.splice(0, 1);
+									}
+								}
+								
+							});
+			// plot the flowers
+			const flowers = gFlowers.selectAll('.flower')
+							.data(data)
+							.enter()
+							.append('g')
+							.attr('class', 'flower')
+							.attr('id', (d) => 'flower_' + d.id)
+							.attr('transform', (d, i) => 'translate(' +d.x + ',' 
+										+ d.y + ')')
+							.style("display", "inline");
+
+			
+			// bubbles
+			var use_bubbles = false,
+				use_petal = false;
+			if(use_bubbles){
+				const petals = flowers.selectAll('.petal')
+							.data((d) => _self.pie(d.petals))
+							.enter()
+							.append('circle')
+							.attr('class', 'petal')
+							.attr('id', (d) => 'petal_'+d.data.id+'_' + d.index)
+							.on("mouseover", function(d, i){
+								tooltip.html('<div>descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
+									'<div>informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
+									'<div>similarity: ' + d3.format(".0%")(d.data.width) + '</div>');
+								tooltip.show();
+							})
+							.on("mouseout", function(d){
+								tooltip.hide();
+							})
+							.attr('transform', (d) => {var coords = petal.polarToCartesian(d.endAngle, _self.outerCircleRadius); return 'translate(' +coords.x + ',' 
+											+ coords.y + ')';})
+							.attr('r', (d) => size_petal_radius(d.data.length))
+							.style('stroke', (d, i) => 'gray')
+							.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
+							.style('fill-opacity', (d) => d.data.width);				
+			}else if(use_petal){
+				const petals = flowers.selectAll('.petal')
+						.data((d) => _self.pie(d.petals))
 						.enter()
-						.append('ellipse')
+						.append('path')
 						.attr('class', 'petal')
 						.attr('id', (d) => 'petal_'+d.data.id+'_' + d.index)
+						.attr('transform', (d) => petal.rotateAngle((d.startAngle + d.endAngle) / 2))
+						.attr('d', (d) => petal.petalPath(d, _self.outerCircleRadius))
+						.style('stroke', (d, i) => 'gray')
+						.attr('stroke-width', function(d) {   
+						})
+						.attr('stroke', function(d) {   
+						})
 						.on("mouseover", function(d, i){
 							tooltip.html('<div>descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
 								'<div>informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
@@ -382,14 +385,116 @@ class CircularView extends Component {
 						})
 						.on("mouseout", function(d){
 							tooltip.hide();
-						})						
-						.attr('transform', (d) => petal.rotateTransform((d.startAngle + d.endAngle) / 2 , this.outerCircleRadius))						
-						.attr('rx', (d) => size_petal_radius(1))
-						.attr('ry', (d) => size_petal_radius(d.data.length))						
-						.style('stroke', (d, i) => 'gray')
-						.style("display", "inline")
+						})
 						.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
-						.style('fill-opacity', (d) => color_threshold(d.data.width));
+						.style('fill-opacity', (d) => d.data.width);						
+			}else{
+				// var min_width = d3.min(data, (d) => {console.log(d); return d.data.width});
+				// var max_width = d3.max(data, (d) => d.data.width);
+
+				var color_threshold = d3.scaleQuantize()
+					.domain([0, 1]).range([0, 1]);
+
+				// width => similarity
+				// height => informativeness
+				const petals = flowers.selectAll('.petal')
+							.data((d) => _self.pie(d.petals))
+							.enter()
+							.append('ellipse')
+							.attr('class', 'petal')
+							.attr('id', (d) => 'petal_'+d.data.id+'_' + d.index)
+							.on("mouseover", function(d, i){
+								tooltip.html('<div>descriptor#' + d.data.id +"(" + i + ")" + '</div>'+ 
+									'<div>informativeness: ' + d3.format(".0%")(d.data.length) + '</div>' +
+									'<div>similarity: ' + d3.format(".0%")(d.data.width) + '</div>');
+								tooltip.show();
+							})
+							.on("mouseout", function(d){
+								tooltip.hide();
+							})						
+							.attr('transform', (d) => petal.rotateTransform((d.startAngle + d.endAngle) / 2 , _self.outerCircleRadius))						
+							.attr('rx', (d) => size_petal_radius(1))
+							.attr('ry', (d) => size_petal_radius(d.data.length))						
+							.style('stroke', (d, i) => 'gray')
+							.style("display", "inline")
+							.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
+							.style('fill-opacity', (d) => color_threshold(d.data.width));
+			}
+		}
+		
+		function drawItems(descriptor_index){
+
+			const itemEmbeddingAll = require("../../data/" + "nbaplayer" + "/factors_"+"3"+"_"+ "20" + "_sample_item_embedding_2.json");
+			// console.log(itemEmbeddingAll);
+			// var itemEmbeddingAll_original = itemEmbeddingAll['mds'][1];
+
+			var itemEmbeddingAll_original = itemEmbeddingAll['mds'][descriptor_index];		
+			var all_items = [].concat(...Object.keys(descriptors).map((d) => descriptors[d]))
+
+			var min_coords = [d3.min(itemEmbeddingAll_original, (d) => d[0]), d3.min(itemEmbeddingAll_original, (d) => d[1])];
+			var max_coords = [d3.max(itemEmbeddingAll_original, (d) => d[0]), d3.max(itemEmbeddingAll_original, (d) => d[1])];
+			var circle_position_x_item = d3.scaleLinear().domain([min_coords[0],max_coords[0]]).range([- 0 - _self.innerCircleRadius*2, + innerRadius - _self.innerCircleRadius*2]);
+			var circle_position_y_item = d3.scaleLinear().domain([min_coords[1],max_coords[1]]).range([- 0 - _self.innerCircleRadius*2, + innerRadius - _self.innerCircleRadius*2]);
+
+			// Cast my values as numbers and determine ranges.
+			var minmax = {p1: {min:0, max:0}, p2: {min:0, max:0}}
+			var itemData = d3.range(itemEmbeddingAll_original.length).map(function(d) {
+				return {
+					x: circle_position_x_item(itemEmbeddingAll_original[d][0]),
+					y: circle_position_x_item(itemEmbeddingAll_original[d][1]),
+					label: descriptors[Object.keys(descriptors)[descriptor_index]][d],
+					weight: 1,
+					radius: 20
+				}
+			});
+			console.log(itemData);
+
+			var item_group = gFlowers.selectAll('g')
+									.data(itemData)
+									.enter().append("g")
+									.attr("transform", 
+									"translate(" + 0 + "," + 0 + ")")									
+		
+
+			item_group.append("circle")
+							.attr("class", "dot")
+							.attr("r", 20)
+							.attr("cx", function(d) { return d.x; })
+							.attr("cy", function(d) { return d.y; })
+							.attr('fill', axisStroke(descriptor_index))
+							.attr('stroke', 'grey')
+							.attr('stroke-width', gs.innerCircleStrokeWidth)                
+							.attr('fill-opacity', 0.7) 
+							.attr('stroke-opacity', 0.3);
+			  
+			item_group.append("text")
+							.attr('class', 'labeltext')											
+							.attr("x", function(d) { return d.x; })
+							.attr("y", function(d) { return d.y; })							
+							.text((d) => {return d.label})	
+
+				item_group
+							.call(d3.drag()
+									.on("start", dragstarted)
+									.on("drag", dragged)
+									.on("end", dragended));
+			function dragstarted(d) {				
+				d3.select(this).raise().classed("active", true);
+			}
+
+			function dragged(d) {
+				d3.select(this).select(".labeltext")
+						.attr("x", d3.event.sourceEvent.screenX)
+						.attr("y", d3.event.sourceEvent.screenY);
+				d3.select(this).select(".dot")
+						.attr("cx", d3.event.sourceEvent.screenX)
+						.attr("cy", d3.event.sourceEvent.screenY);
+			}
+
+			function dragended(d) {
+				d3.select(this).classed("active", false);
+			}
+
 		}
 
 
@@ -411,12 +516,9 @@ class CircularView extends Component {
 			// when two patterns are selected for comparison, the query bar also needs to or-ordered. 
 			reorder_item = (selected_pattern_cnt == 2)? true : false;
 			draw_query_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height, reorder_item = reorder_item);
-
-			// draw_embedding_circular(itemEmbeddings, descriptor_index, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height)
-			
-
 		}
 
+		// deleted patterns reappear
 		d3.range(components_cnt).map((idx) => {
 			d3.select('.pattern_circles#pattern_' + idx).style("display", "inline");
 			d3.select('.flower#flower_' + idx).style("display", "inline");
@@ -485,30 +587,6 @@ class CircularView extends Component {
 
 		}
 
-
-		function draw_line_pointer(descriptor_index, arc_positions_bar_petal){
-			/**
-			 * Draws the line between flower and the bar to identify the dominating items.
-			 *
-			 * @since      0.0.0
-			 *
-			 * @param {var}   descriptor_index       the descriptor index.
-			 * @param {object}  arc_positions_bar_petal     the coordiates of the start and end.
-			 * 
-			 */			
-			let line = d3.line()
-						.x((d) => d.x)
-						.y((d) => d.y);
-
-			let pattern_item_line = gFlowers.append('path')
-					.attr('class', 'line_pointer')
-					.attr('stroke', 'grey')
-					.attr('stroke-width', 2)
-					.attr('stroke-dasharray', '1,5')
-					.attr('fill', 'none')		
-					.attr('id', 'link_'+descriptor_index)					
-					.attr('d', line(arc_positions_bar_petal[descriptor_index].coordinates));	
-		}
 
 		function draw_bars_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, descriptor_size_list, margin, width, height){
 			/**
@@ -809,7 +887,8 @@ class CircularView extends Component {
 				},
 				onCancel() {},
 				});
-		}		
+		}
+
 
 		function axisStroke(i, descriptor_size) {
 			var color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
@@ -869,7 +948,6 @@ class CircularView extends Component {
 			return (d.id >= components_cnt)? barFillOpacityConst : 1;
 		};
 
-
 		return (
 			<div className={styles.CircularOverview}>					
 				<div className={index.title}>Circular View
@@ -877,7 +955,8 @@ class CircularView extends Component {
     					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
   					</Tooltip>					
 				</div>
-				 <ButtonGroup>
+			    <div>
+				 <ButtonGroup size="small">
 					<Button onClick={this.handleResetPatterns}>
 						Reset Pattern Selection
 					</Button>
@@ -885,7 +964,7 @@ class CircularView extends Component {
 						Reset Item Selection
 					</Button>
 					</ButtonGroup>
-					<ButtonGroup>
+					<ButtonGroup size="small">
 					<Button onClick={showConfirmDelete}>
 						Delete Pattern
 					</Button>				
@@ -896,8 +975,14 @@ class CircularView extends Component {
 						Update
 					</Button>						
 					</ButtonGroup>
+				</div>
 				<div id="svg-color-quant" className={styles.legend}></div>
-				{svg.toReact()}				
+				{svg.toReact()}	
+				<RadioGroup onChange={this.handleChangeProjection} defaultValue="p" size="small">
+					<RadioButton value={-1}>Pattern</RadioButton>	
+					{this.renderRadioButton()}				
+				</RadioGroup>				
+
 			</div>
 		);
   }
