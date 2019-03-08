@@ -447,11 +447,11 @@ class CircularView extends Component {
 					radius: 20
 				}
 			});
-			console.log(itemData);
 
 			var item_group = gFlowers.selectAll('g')
 									.data(itemData)
 									.enter().append("g")
+									.attr("class", "item_group")
 									.attr("transform", 
 									"translate(" + 0 + "," + 0 + ")")									
 		
@@ -459,16 +459,18 @@ class CircularView extends Component {
 			item_group.append("circle")
 							.attr("class", "dot")
 							.attr("r", 20)
+							.attr("id", (d, i) => "item_circle_" + i)
 							.attr("cx", function(d) { return d.x; })
 							.attr("cy", function(d) { return d.y; })
 							.attr('fill', axisStroke(descriptor_index))
 							.attr('stroke', 'grey')
 							.attr('stroke-width', gs.innerCircleStrokeWidth)                
-							.attr('fill-opacity', 0.7) 
+							.attr('fill-opacity', 0.7)						
 							.attr('stroke-opacity', 0.3);
 			  
 			item_group.append("text")
-							.attr('class', 'labeltext')											
+							.attr('class', 'labeltext')		
+							.attr("id", (d, i) => "item_text_" + i)																
 							.attr("x", function(d) { return d.x; })
 							.attr("y", function(d) { return d.y; })							
 							.text((d) => {return d.label})	
@@ -477,22 +479,42 @@ class CircularView extends Component {
 							.call(d3.drag()
 									.on("start", dragstarted)
 									.on("drag", dragged)
-									.on("end", dragended));
-			function dragstarted(d) {				
-				d3.select(this).raise().classed("active", true);
+									.on("end", dragended));			            			
+			function dragstarted(d, i) {
+				console.log(d);				
+				// console.log(d3.select(this).raise());
+				d3.select("circle#item_circle_" + i).classed("drag_active", true);
+				d3.select("text#item_text_" + i).classed("drag_active", true);				
+				// d3.select("circle#item_circle_" + i).attr("class","drag_active");
+				// console.log(d3.select(this).raise());
+				// console.log(d3.select(this).selectAll(".drag_active"));
+				// d3.select(this).raise().classed("drag_active", true);
 			}
 
-			function dragged(d) {
-				d3.select(this).select(".labeltext")
-						.attr("x", d3.event.sourceEvent.screenX)
-						.attr("y", d3.event.sourceEvent.screenY);
-				d3.select(this).select(".dot")
-						.attr("cx", d3.event.sourceEvent.screenX)
-						.attr("cy", d3.event.sourceEvent.screenY);
+			function dragged(d, i) {
+				console.log(d3.event);
+				// console.log(d.x);
+				// console.log(d.y);
+				// console.log(((width)/2-(innerRadius)/2));
+				// console.log(((height)/2-( innerRadius)/2));
+				var cur_x = d3.event.sourceEvent.offsetX - ((width)/2-(innerRadius)/2) - 100;
+				var cur_y = d3.event.sourceEvent.offsetY - ((height)/2-( innerRadius)/2) - 100;
+				 
+				// var cur_x = ((width)/2-(innerRadius)/2) - d3.event.sourceEvent.offsetX;
+				// var cur_y = ((height)/2-( innerRadius)/2) - d3.event.sourceEvent.offsetY;
+
+				d3.select("text#item_text_" + i)
+						.attr("x", cur_x)
+						.attr("y", cur_y);
+				d3.select("circle#item_circle_" + i)
+						.attr("cx", cur_x)
+						.attr("cy", cur_y);
 			}
 
-			function dragended(d) {
-				d3.select(this).classed("active", false);
+			function dragended(d, i) {
+				d3.select("circle#item_circle_" + i).classed("drag_active", false);
+				d3.select("text#item_text_" + i).classed("drag_active", false);
+
 			}
 
 		}
