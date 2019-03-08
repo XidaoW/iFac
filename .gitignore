@@ -1,5 +1,5 @@
 app/static/data/*
-app/static/lib/multiview/
+#app/static/lib/multiview/
 src/src/engine/multiview/
 src/src/engine/metastore_db/
 *.npy
