@@ -18,13 +18,12 @@ import 'antd/dist/antd.css';
 
 
 const domainSetting = {
-						"picso": {"modes": "3", "cnt": "19"},
+						// "picso": {"modes": "3", "cnt": "19"},
 						"picso1": {"modes": "3", "cnt": "30"},
-						"nbaplayer": {"modes": "3", "cnt": "20"},
+						// "nbaplayer": {"modes": "3", "cnt": "20"},
 						"nbaplayer1": {"modes": "3", "cnt": "40"},
-						"policy": {"modes": "3", "cnt": "36"},
-						"policyKeyword": {"modes": "4", "cnt": "20"},
-						"purchase": {"modes": "5", "cnt": "30"}
+						"policyKeyword1": {"modes": "4", "cnt": "30"},
+						"purchase1": {"modes": "5", "cnt": "30"}
 					};
 
 const item_projection_method = "mds";
@@ -306,17 +305,12 @@ class App extends Component {
 
 
 	handleUpdateItemPositions(item_index, descriptor_index, positions){
-		console.log(item_index);
-		console.log(descriptor_index);
-		console.log(positions);
 
 		var item_embeddings_tmp = this.state.itemEmbeddings_2d;
-		console.log(item_embeddings_tmp);
 		item_embeddings_tmp[descriptor_index][item_index] = positions;
-		console.log(item_embeddings_tmp);
 		this.setState({
-
-		})		
+			item_embeddings2d: item_embeddings_tmp
+		});
 	}
 
 
@@ -490,8 +484,10 @@ class App extends Component {
 			components_cnt = bar_data[0].length - 1,
 			screeData = this.state.screeData,
 			start_index = this.state.start_index,
+			item_embeddings2d = this.state.item_embeddings2d,
 			randomIdx = this.state.minErrorIdx[components_cnt-start_index];
 
+		console.log(item_embeddings2d);
 		const lambda_0 = 0,
 			lambda_1 = 0;
 
@@ -509,7 +505,8 @@ class App extends Component {
 					randomIdx: randomIdx,
 					lambda_0: lambda_0,
 					lambda_1: lambda_1,
-					base: new_bar_data[0].length
+					base: new_bar_data[0].length,
+					item_embeddings2d: item_embeddings2d
 				})
 			})
 			.then( (response) => {
@@ -529,9 +526,6 @@ class App extends Component {
 		/**
 		* set the weight of the metric
 		**/
-
-		console.log('weight in App.js: ', weight);
-		console.log('weight index in App.js: ', idx);
 		var weights = this.state.weights,
 			error_data = this.state.error_data,
 			fit_data = this.state.fit_data,
@@ -562,13 +556,12 @@ class App extends Component {
 
 	updateStateOnDataChange(new_data, itemEmbeddings_1d, itemEmbeddings_2d, patternEmbeddings){
 		let bar_data = {},
-			// max_pattern_item = {},
 			descriptors_text = [],
 			queries = d3.range(new_data.data[0].dims).reduce((obj, item) => {
 				obj[item] = [];
 				return obj;
 			}, {});			
-
+		console.log(new_data);
 		new_data.data.forEach(function(d, id) {
 			d.petals = d3.range(d.dims).map(function(i) { 
 				return {

@@ -229,7 +229,7 @@ class NTF():
 			if showProgress and (i1 % 20) == 0:
 				# progress = "*" if 0 < (i1 % 20) \
 				# 	else "[%d/%d]\n" % (i1, iterations)
-				print("[%d/%d]\n" % (i1, iterations))
+				print("[%d/%d]" % (i1, iterations))
 			if default:
 				self.updateAllFactors(x, self.factor)
 			else:				

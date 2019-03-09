@@ -254,6 +254,12 @@ class NTF():
 		
 	def updateAllFactorsGradient(self, x, X_itr, num_ways, R, 
 		reference_matrix=[], S_matrix = [], lambda_0 = 0.0, lambda_1 = 0.0):
+
+		"""
+		Regularizer updates from:
+		Jiang, Meng, Peng Cui, Rui Liu, Qiang Yang, Fei Wang, Wenwu Zhu, and Shiqiang Yang. "Social contextual recommendation." In Proceedings of the 21st ACM international conference on Information and knowledge management, pp. 45-54. ACM, 2012.
+		http://curtis.ml.cmu.edu/w/courses/images/4/4b/Jiang_et_al-Social_Contextual_Recommendation.pdf
+		"""
 		X_FF_iter = []
 		XtW_iter = []				
 		for way_index in range(num_ways):
