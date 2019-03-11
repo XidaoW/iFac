@@ -632,12 +632,12 @@ def generateData():
 	iFac.column_cnt = len(iFac.labels)
 	iFac.getFitForRanks(base, trials = nb_trials)
 
-	for cur_base in range(iFac.start_index, base+1):
-		_log.info("Getting Embedding for Rank at {}".format(cur_base))		
-		iFac.cur_base = cur_base
-		iFac.generateItemEmbedding(n_component = 1)
-		iFac.generateItemEmbedding(n_component = 2)
-		iFac.generatePatternEmbedding()
+	# for cur_base in range(iFac.start_index, base+1):
+	# 	_log.info("Getting Embedding for Rank at {}".format(cur_base))		
+	# 	iFac.cur_base = cur_base
+	# 	iFac.generateItemEmbedding(n_component = 1)
+	# 	iFac.generateItemEmbedding(n_component = 2)
+	# 	iFac.generatePatternEmbedding()
 
 def aggregateAll():
 	iFac = iFacData()	
@@ -658,7 +658,26 @@ def aggregateAll():
 			json.dump(cur_metrics, fp)   
 
 
+def helper():
+	iFac = iFacData()	
+	iFac.end_index = int(sys.argv[1])
+	iFac.start_index = int(sys.argv[2])
+	domain = str(sys.argv[3])
+	iFac.domain = domain
+	iFac.readData(domain = iFac.domain)
+	iFac.column_cnt = len(iFac.labels)
+
+	measures = ["error", "fit", "stability", "entropy", "normalized_entropy", "pctnonzeros", "gini", "theil", "min_error_index"]        
+	start_metrics = iFac.readMetricJSON(base_cnt=iFac.start_index, domain = domain, ndims = iFac.column_cnt)
+	for i in range(2, 40):
+		cur_metrics = iFac.readMetricJSON(base_cnt=i, domain = domain, ndims = iFac.column_cnt)
+		for m in measures:
+			cur_metrics[m] = [x for x in start_metrics[m] if x is not None] + [x for x in cur_metrics[m] if x is not None]        
+		with open('/home/xidao/project/thesis/iFac/src/src/data/'+domain+'/factors_'+str(iFac.column_cnt)+'_'+str(i)+'_sample_fit_metrics.json', 'w') as fp:
+			json.dump(cur_metrics, fp)   
+
+
 if __name__ == '__main__':
 	
-	# generateData() # generate factor matrices with metrics
-	aggregateAll() # aggreate metrics
+	generateData() # generate factor matrices with metrics
+	# aggregateAll() # aggreate metrics

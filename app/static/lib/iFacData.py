@@ -280,7 +280,7 @@ class iFacData():
 					# _log.info("Current Trial: {}".format(random_seed))
 					ntfInstance = ntf.NTF(self.base_cnt, self.hist, parallelCalc=True, ones = False, random_seed = random_seed)
 					ntfInstance.factorize(self.hist, showProgress=True, default = False, 
-										reference_matrix = self.reference_matrix, S_matrix = self.S_matrix,
+										reference_matrix = self.reference_matrix, L_matrix = self.L_matrix,
 										lambda_0 = self.lambda_0, lambda_1 = self.lambda_1)
 					each_rank_trials.append(ntfInstance)
 
@@ -372,12 +372,12 @@ class iFacData():
 		"""
 		
 		_log.info("Start factorization: ")
-		_log.info("Random Seed: {}; Bases: {}; reference_matrix: {}; S_matrix: {}; lambda_0: {}; lambda_1: {}; ".format(
-				random_seed, self.cur_base, self.reference_matrix, self.S_matrix, self.lambda_0, self.lambda_1
+		_log.info("Random Seed: {}; Bases: {}; reference_matrix: {}; L_matrix: {}; lambda_0: {}; lambda_1: {}; ".format(
+				random_seed, self.cur_base, self.reference_matrix, self.L_matrix, self.lambda_0, self.lambda_1
 			) )
 		self.ntfInstance = ntf.NTF(self.cur_base, self.hist, parallelCalc=True, ones = ones, random_seed = random_seed)
 		self.ntfInstance.factorize(self.hist, showProgress=True, default = False, 
-			reference_matrix = self.reference_matrix, S_matrix = self.S_matrix,
+			reference_matrix = self.reference_matrix, L_matrix = self.L_matrix,
 			lambda_0 = self.lambda_0, lambda_1 = self.lambda_1)
 		self.ntfInstance.normalizeFactor()        
 
@@ -404,7 +404,6 @@ class iFacData():
 		
 		self.factors = self.ntfInstance.factor
 		self.saveFactors()
-#         self.column = ['ZONE','PERIOD', 'TEAM']
 		self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(len(self.column))]
 		
 
@@ -532,7 +531,7 @@ class iFacData():
 				output_each['factors'][j] = output_each_factor
 			output.append(output_each)
 
-		self.data_output["app/static/data"] = output        
+		self.data_output["data"] = output        
 			
 	def saveOutput(self):
 		# if hasattr(self, "app/static/data_output"):		
@@ -588,7 +587,7 @@ class iFacData():
 		self.savePatternEmbedding()
 
 	def generateSingleOutput(self, domain = "", base = 10, 
-		reference_matrix = [], S_matrix = [],
+		reference_matrix = [], L_matrix = [],
 		lambda_0 = 0.0, lambda_1 = 0.0, random_seed = 0):
 		self.domain = domain
 		self.cur_base = base
@@ -596,7 +595,8 @@ class iFacData():
 		self.readData(domain = self.domain)
 		self.column_cnt = len(self.column)	
 		self.reference_matrix = reference_matrix
-		self.S_matrix = S_matrix
+		self.L_matrix = L_matrix
+		
 		self.lambda_0 = lambda_0
 		self.lambda_1 = lambda_1
 		self.random_seed = random_seed
@@ -604,6 +604,7 @@ class iFacData():
 
 		if len(reference_matrix) > 0:
 			print("using reference matrix: {}".format(reference_matrix))
+			print("using L matrix: {}".format(self.L_matrix))
 		self.computePatterns(random_seed = self.random_seed)
 		self.item_mds1 = self.generateItemEmbedding(n_component = 1)
 		self.item_mds2 = self.generateItemEmbedding(n_component = 2)

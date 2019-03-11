@@ -442,7 +442,7 @@ class CircularView extends Component {
 					y: circle_position_y_item(itemEmbeddingAll_original[d][1]),
 					label: descriptors[Object.keys(descriptors)[descriptor_index]][d],
 					weight: 1,
-					radius: 20
+					radius: 10
 				}
 			});
 
@@ -456,7 +456,7 @@ class CircularView extends Component {
 
 			item_group.append("circle")
 							.attr("class", "dot")
-							.attr("r", 20)
+							.attr("r", (d) => d.radius)
 							.attr("id", (d, i) => "item_circle_" + i)
 							.attr("cx", function(d) { return d.x; })
 							.attr("cy", function(d) { return d.y; })

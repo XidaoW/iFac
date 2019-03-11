@@ -38,6 +38,7 @@ numpy = "*"
 scikit-tensor = {editable = true,path = "./app/static/lib/scikit-tensor"}
 sklearn = "*"
 py4j = "*"
+scipy = "*"
 
 [requires]
 python_version = "3.6.8"

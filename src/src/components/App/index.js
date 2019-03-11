@@ -11,7 +11,7 @@ import ListView from 'components/ListView';
 import ControlView from 'components/ControlView';
 import { extractItemCoordinates, extractPetalBarCoordinates } from '../../lib/extract_coordinates.js'
 import { computeMeanStd } from '../../lib/draw_linechart.js'
-import { Row, Col } from 'antd';
+import { Row, Col, Spin } from 'antd';
 import styles from './styles.scss';
 import index from '../../index.css';
 import 'antd/dist/antd.css';
@@ -484,11 +484,10 @@ class App extends Component {
 			components_cnt = bar_data[0].length - 1,
 			screeData = this.state.screeData,
 			start_index = this.state.start_index,
-			item_embeddings2d = this.state.item_embeddings2d,
+			itemEmbeddings_2d = this.state.itemEmbeddings_2d,
 			randomIdx = this.state.minErrorIdx[components_cnt-start_index];
 
-		console.log(item_embeddings2d);
-		const lambda_0 = 0,
+		const lambda_0 = 0.1,
 			lambda_1 = 0;
 
 		let new_bar_data = d3.range(Object.keys(bar_data).length).map((mode) => {
@@ -506,7 +505,7 @@ class App extends Component {
 					lambda_0: lambda_0,
 					lambda_1: lambda_1,
 					base: new_bar_data[0].length,
-					item_embeddings2d: item_embeddings2d
+					itemEmbeddings_2d: itemEmbeddings_2d
 				})
 			})
 			.then( (response) => {
@@ -605,7 +604,8 @@ class App extends Component {
 			patternEmbeddings: patternEmbeddings,
 			deletedPatternIdx: [],
 			mergePatternIdx: [],
-			selectedPatterns: []
+			selectedPatterns: [],
+			display_projection: -1
 		}));
 
 	}
