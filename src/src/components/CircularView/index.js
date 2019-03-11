@@ -69,6 +69,7 @@ class CircularView extends Component {
 		this.handleChangeProjection = this.handleChangeProjection.bind(this);		
 		this.handleMoveItemPosition = this.handleMoveItemPosition.bind(this);		
 		this.renderRadioButton = this.renderRadioButton.bind(this);		
+		this.renderUpdateButton = this.renderUpdateButton.bind(this);				
 
 	}
 
@@ -127,13 +128,22 @@ class CircularView extends Component {
 		// render the radio button group
 	}
 
+	renderUpdateButton(){
+		const {selectedPatterns} = this.props;
+		// if(selectedPatterns.length > 1){
+		// 	return (
+
+		// 		)
+		// }
+	}	
+
 	render() {
 		console.log('circularView rendered');
 		const { data, selectedPatterns,
 				mostSimilarPatternToSelectedPatternIdx,
 				leastSimilarPatternToSelectedPatternIdx, 
 				arc_positions_bar_petal,item_max_pattern,
-				bar_data, max_pattern_item,modes,
+				bar_data, max_pattern_item,modes,updateItemPostionsFlag,
 				queries, similarPatternToQueries, item_links, descriptors,
 				mouseOveredDescriptorIdx, item_similarity, components_cnt,display_projection,
 				itemEmbeddings_1d,itemEmbeddings_2d,patternEmbeddings,deletedPatternIdx,mergePatternIdx } = this.props;  
@@ -262,14 +272,51 @@ class CircularView extends Component {
 		// 	.call(legendLinear);		  
 
 
-		// console.log(data);
+
+
+		// DRAW THE RADIAL BAR CHART
+		for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
+			let selected_pattern_cnt = selectedPatterns.length;
+			
+			// when selected more than one pattern, show the distribution of selected patterns.
+			if(selected_pattern_cnt > 0) {
+				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height);
+				// only show the line pointer (dominating items) when one pattern is selected.
+				// if (selected_pattern_cnt == 1) {
+				// 	draw_line_pointer(descriptor_index, arc_positions_bar_petal);
+				// }
+			}else{
+				// draw the bar for the default values that show the average of the patterns.
+				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height);
+			}
+			// when two patterns are selected for comparison, the query bar also needs to or-ordered. 
+			reorder_item = (selected_pattern_cnt == 2)? true : false;
+			draw_query_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height, reorder_item = reorder_item);
+		}
+
 		if(display_projection == -1){
 			drawPatterns();	
+			// d3.select('.detailView').attr("display", "inline");
+			// d3.select('.queryView').attr("display", "inline");					
+
 		}else{
 			drawItems(display_projection);
-		}
+		}		
+
+
+
+		// deleted patterns reappear
+		d3.range(components_cnt).map((idx) => {
+			d3.select('.pattern_circles#pattern_' + idx).style("display", "inline");
+			d3.select('.flower#flower_' + idx).style("display", "inline");
+			d3.select('tr.pattern_row_' + idx).style("display", "inline");				
+		})
+
+		draw_query_result(similarPatternToQueries, query_flag);
+
 		
 		function drawPatterns(){
+
 			// Add the outer circles to the backdrop.
 			const circles = gFlowers.selectAll('.pattern_circles')
 							.data(data)
@@ -451,9 +498,16 @@ class CircularView extends Component {
 									.enter().append("g")
 									.attr("class", "item_group")
 									.attr("transform", 
-									"translate(" + 0 + "," + 0 + ")")									
-		
-
+									"translate(" + 0 + "," + 0 + ")")												
+			// for(let descriptor_idx = 0; descriptor_idx < descriptor_size; descriptor_idx++){														
+			// 	if(descriptor_idx == descriptor_index){
+			// 		d3.select('.detailView#descriptor_'+descriptor_idx+'_barchart').attr("display", "inline");
+			// 		d3.select('.queryView#query_'+descriptor_idx+'_barchart').attr("display", "inline");					
+			// 	}else{
+			// 		d3.select('.detailView#descriptor_'+descriptor_idx+'_barchart').attr("display", "none");
+			// 		d3.select('.queryView#query_'+descriptor_idx+'_barchart').attr("display", "none");					
+			// 	}
+			// }
 			item_group.append("circle")
 							.attr("class", "dot")
 							.attr("r", (d) => d.radius)
@@ -463,21 +517,30 @@ class CircularView extends Component {
 							.attr('fill', axisStroke(descriptor_index))
 							.attr('stroke', 'grey')
 							.attr('stroke-width', gs.innerCircleStrokeWidth)                
-							.attr('fill-opacity', 0.7)						
-							.attr('stroke-opacity', 0.3);
+							.attr('fill-opacity', barFillOpacityConst)						
+							.attr('stroke-opacity', 0.4)
+							.on('mouseover', function (d) {								
+								d3.selectAll('path#bar_' + descriptor_index+ '_'+ d.label).attr("stroke-width", "2px");
+
+							})
+							.on('mouseout', function (d) {                
+								d3.selectAll('path#bar_' + descriptor_index+ '_'+ d.label).attr("stroke-width", "0px");
+							});
+
 			  
 			item_group.append("text")
 							.attr('class', 'labeltext')		
 							.attr("id", (d, i) => "item_text_" + i)																
 							.attr("x", function(d) { return d.x; })
 							.attr("y", function(d) { return d.y; })							
+							.attr("font-size", "8px")							
 							.text((d) => {return d.label})	
+							// .text((d) => "")	
 
-				item_group
-							.call(d3.drag()
-									.on("start", dragstarted)
-									.on("drag", dragged)
-									.on("end", dragended));			            			
+			item_group.call(d3.drag()
+							.on("start", dragstarted)
+							.on("drag", dragged)
+							.on("end", dragended));			            			
 			function dragstarted(d, i) {
 				console.log(itemEmbeddingAll_original[i]);
 				d3.select("circle#item_circle_" + i).classed("drag_active", true);
@@ -504,55 +567,6 @@ class CircularView extends Component {
 			}
 		}
 
-
-		// DRAW THE RADIAL BAR CHART
-		for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
-			let selected_pattern_cnt = selectedPatterns.length;
-			
-			// when selected more than one pattern, show the distribution of selected patterns.
-			if(selected_pattern_cnt > 0) {
-				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, selectedPatterns, descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height);
-				// only show the line pointer (dominating items) when one pattern is selected.
-				// if (selected_pattern_cnt == 1) {
-				// 	draw_line_pointer(descriptor_index, arc_positions_bar_petal);
-				// }
-			}else{
-				// draw the bar for the default values that show the average of the patterns.
-				draw_bars_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height);
-			}
-			// when two patterns are selected for comparison, the query bar also needs to or-ordered. 
-			reorder_item = (selected_pattern_cnt == 2)? true : false;
-			draw_query_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height, reorder_item = reorder_item);
-		}
-
-		// deleted patterns reappear
-		d3.range(components_cnt).map((idx) => {
-			d3.select('.pattern_circles#pattern_' + idx).style("display", "inline");
-			d3.select('.flower#flower_' + idx).style("display", "inline");
-			d3.select('tr.pattern_row_' + idx).style("display", "inline");				
-		})
-		// d3.select('.pattern_circles#pattern_' + idx).style("display", "inline");
-		// d3.select('.flower#flower_' + idx).style("display", "inline");
-		// d3.select('tr.pattern_row_' + idx).style("display", "inline");
-
-
-		//Hide the deleted patterns
-		// if(deletedPatternIdx.length > 0){
-		// 	deletedPatternIdx.map((idx) => {
-		// 		console.log(idx);
-		// 		d3.select('.pattern_circles#pattern_' + idx).transition(t).style("display", "none");
-		// 		d3.select('.flower#flower_' + idx).transition(t).style("display", "none");
-		// 		d3.select('tr.pattern_row_' + idx).transition(t).style("display", "none");
-		// 	});
-		// }else{
-		// 	d3.range(components_cnt).map((idx) => {
-		// 		d3.select('.pattern_circles#pattern_' + idx).transition(t).style("display", "inline");
-		// 		d3.select('.flower#flower_' + idx).transition(t).style("display", "inline");
-		// 		d3.select('tr.pattern_row_' + idx).transition(t).style("display", "inline");				
-		// 	})
-		// }
-
-		draw_query_result(similarPatternToQueries, query_flag);
 
 		function draw_query_result(similarPatternToQueries, query_flag){
 			/**
@@ -836,13 +850,16 @@ class CircularView extends Component {
 						});
 						_self.props.onMouseOutItem();
 					});			
+			var draw_correlation_link = false; 
+			if(draw_correlation_link){
+				var link_opacity = d3.scaleLinear()
+								.range([barFillOpacityConst, 1]).domain([d3.min(item_links, (d) => d.similarity), d3.max(item_links, (d) => d.similarity)]);
+				for(let link_id = 0; link_id < item_links.length; link_id++){								
+					if(item_links[link_id].similarity > 0){
+						quadPath.drawQuadratic(gFlowers, item_links[link_id], axisStroke(mouseOveredDescriptorIdx, descriptor_size), link_opacity);
+					}								
+				}
 
-			var link_opacity = d3.scaleLinear()
-							.range([barFillOpacityConst, 1]).domain([d3.min(item_links, (d) => d.similarity), d3.max(item_links, (d) => d.similarity)]);
-			for(let link_id = 0; link_id < item_links.length; link_id++){								
-				if(item_links[link_id].similarity > 0){
-					quadPath.drawQuadratic(gFlowers, item_links[link_id], axisStroke(mouseOveredDescriptorIdx, descriptor_size), link_opacity);
-				}								
 			}
 
 		}	
@@ -963,29 +980,39 @@ class CircularView extends Component {
   					</Tooltip>					
 				</div>
 			    <div>
-					<ButtonGroup size="small">
-						<Button onClick={this.handleResetPatterns}>
-							Reset Pattern Selection
-						</Button>
-						<Button onClick={this.handleResetItems}>
-							Reset Item Selection
-						</Button>
-						</ButtonGroup>
-						<ButtonGroup size="small">
-						<Button onClick={showConfirmDelete}>
-							Delete Pattern
-						</Button>				
-						<Button onClick={showConfirmMerge}>
-							Merge Pattern
-						</Button>	
-						<Button onClick={showConfirmUpdate}>
-							Update
-						</Button>						
-					</ButtonGroup>
 					<RadioGroup onChange={this.handleChangeProjection} defaultValue="p" size="small">
 						<RadioButton value={-1}>Pattern</RadioButton>	
 						{this.renderRadioButton()}				
-					</RadioGroup>																		
+					</RadioGroup>																								
+					<ButtonGroup size="small">
+						{(this.props.selectedPatterns.length > 0) ? (
+							<Button onClick={this.handleResetPatterns}>
+								Reset Pattern Selection
+							</Button>
+						) : <div></div>}
+						{query_flag ? (
+							<Button onClick={this.handleResetItems}>
+								Reset Item Selection
+							</Button>
+						) : <div></div>}							
+					</ButtonGroup>					
+					<ButtonGroup size="small">
+						{(this.props.selectedPatterns.length > 0) ? (
+							<Button onClick={showConfirmDelete}>
+								Delete Pattern
+							</Button>							
+						) : <div></div>}
+						{(this.props.selectedPatterns.length > 1) ? (
+							<Button onClick={showConfirmMerge}>
+								Merge Pattern
+							</Button>	
+						) : <div></div>}	
+						{(this.props.deletedPatternIdx.length > 0 || this.props.updateItemPostionsFlag ) ? (
+							<Button onClick={showConfirmUpdate}>
+								Update
+							</Button>						
+						) : <div></div>}												
+					</ButtonGroup>
 				</div>
 				<div id="svg-color-quant" className={styles.legend}></div>
 				{svg.toReact()}				

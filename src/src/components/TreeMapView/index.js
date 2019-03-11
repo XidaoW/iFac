@@ -255,7 +255,7 @@ class TreeMapView extends Component {
 					.attr('y',  (e) => e.y0 )
 					.attr('height',  (d) => d.y1 - d.y0 )
 					.style('fill',  (d) => color(d.parent.data.descriptor) )
-					.style('fill-opacity',  0.6 )
+					.style('fill-opacity',  0.5 )
 					.style("stroke", "grey")
 					.style("stroke-opacity", 0.4);
 

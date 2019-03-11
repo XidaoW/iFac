@@ -70,7 +70,8 @@ class App extends Component {
 			deletedPatternIdx: [],		
 			mergePatternIdx: [],
 			display_projection: -1,
-			minErrorIdx: metrics.min_error_index,
+			updateItemPostionsFlag: false,
+			minErrorIdx: metrics.min_error_index,			
 			clickedPatternIdx: [] /* listview */
 		};
 
@@ -260,6 +261,7 @@ class App extends Component {
 			pctnonzeros_data: pctnonzeros_data,
 			metricAggregated: metricAggregated,
 			minErrorIdx: screeData.min_error_index,	
+			updateItemPostionsFlag: false,
 			start_index: start_index
 		});    
 	}
@@ -309,7 +311,8 @@ class App extends Component {
 		var item_embeddings_tmp = this.state.itemEmbeddings_2d;
 		item_embeddings_tmp[descriptor_index][item_index] = positions;
 		this.setState({
-			item_embeddings2d: item_embeddings_tmp
+			item_embeddings2d: item_embeddings_tmp,
+			updateItemPostionsFlag: true
 		});
 	}
 
@@ -1007,7 +1010,7 @@ class App extends Component {
 			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
 			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricAggregated,
 			itemEmbeddings_1d, itemEmbeddings_2d, clickedPatternIdx, patternEmbeddings,
-			deletedPatternIdx, mergePatternIdx, display_projection
+			deletedPatternIdx, mergePatternIdx, display_projection, updateItemPostionsFlag
 		} = this.state;
 
 
@@ -1086,6 +1089,7 @@ class App extends Component {
 						itemEmbeddings_1d={itemEmbeddings_1d}
 						itemEmbeddings_2d={itemEmbeddings_2d}
 						patternEmbeddings={patternEmbeddings}
+						updateItemPostionsFlag={updateItemPostionsFlag}
 						modes={modes}
 						queries={queries}
 						item_links={item_links}
