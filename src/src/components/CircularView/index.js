@@ -13,11 +13,12 @@ import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 import Circos, { SCATTER } from 'react-circos';
-import { Modal, Tag, Input, Tooltip, Icon, Button, Radio } from 'antd';
+import { message, Modal, Tag, Input, Tooltip, Icon, Button, Radio } from 'antd';
 import QueryPanel from 'components/QueryPanel';
 import scrollIntoView from 'scroll-into-view';
 
 const tooltip = d3tooltip(d3);
+
 
 class CircularView extends Component {
   
@@ -114,6 +115,8 @@ class CircularView extends Component {
 		d3.select('.pattern_mini_circles').attr('stroke', 'grey');
 		d3.select('.pattern_mini_circles').attr('stroke-opacity', 0.3);		
 		this.props.onUpdatePatterns();
+		message.loading('Model Update in Progress..', 20)
+		.then(() => message.success('Loading finished', 2.5))
 	}
 
 	handleMergePattern(mergePatternIdx) {
@@ -840,43 +843,43 @@ class CircularView extends Component {
 						}						
 					})
 					.on('mouseover', (d) => {
-						d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("opacity",1);
-						Object.keys(item_similarity[descriptor_index][d.key]).map(function(key){										
-							d3.select('#query_bar_' + descriptor_index+ '_'+ key).attr("opacity", item_similarity[descriptor_index][d.key][key]);
-						});
-						var cur_key_idx = Object.keys(item_similarity[descriptor_index]).indexOf(d.key);
-						const top_k_item = 5;
-						// Create items array
-						var top_items = Object.keys(item_similarity[descriptor_index][d.key]).map((key) => {
-							return [key, item_similarity[descriptor_index][d.key][key]];
-						});
-						// Sort the array based on the second element
-						top_items.sort(function(first, second) {
-							return second[1] - first[1];
-						});	
-						top_items = top_items.slice(0, top_k_item);
-						let bars_item = top_items.map((key) => {
-							return {
-								'transform_bar': backdrop.select('g#query_'+descriptor_index+'_barchart').attr('transform'),
-								'q_bar_end': backdrop.select('path#query_bar_'+descriptor_index+'_'+key[0]).attr('d'),
-								'transform_g_flower': backdrop.select('g.g_flowers').attr('transform'),
-								'key': key[0],
-								'idx': cur_key_idx,
-								'item_cnt': Object.keys(item_similarity[descriptor_index][d.key]).length+1,
-								'similarity': item_similarity[descriptor_index][d.key][key[0]]
-							}
-						}),q_bar_start = backdrop.select('path#query_bar_'+descriptor_index+'_'+d.key).attr('d');
+						// d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("opacity",1);
+						// Object.keys(item_similarity[descriptor_index][d.key]).map(function(key){										
+						// 	d3.select('#query_bar_' + descriptor_index+ '_'+ key).attr("opacity", item_similarity[descriptor_index][d.key][key]);
+						// });
+						// var cur_key_idx = Object.keys(item_similarity[descriptor_index]).indexOf(d.key);
+						// const top_k_item = 5;
+						// // Create items array
+						// var top_items = Object.keys(item_similarity[descriptor_index][d.key]).map((key) => {
+						// 	return [key, item_similarity[descriptor_index][d.key][key]];
+						// });
+						// // Sort the array based on the second element
+						// top_items.sort(function(first, second) {
+						// 	return second[1] - first[1];
+						// });	
+						// top_items = top_items.slice(0, top_k_item);
+						// let bars_item = top_items.map((key) => {
+						// 	return {
+						// 		'transform_bar': backdrop.select('g#query_'+descriptor_index+'_barchart').attr('transform'),
+						// 		'q_bar_end': backdrop.select('path#query_bar_'+descriptor_index+'_'+key[0]).attr('d'),
+						// 		'transform_g_flower': backdrop.select('g.g_flowers').attr('transform'),
+						// 		'key': key[0],
+						// 		'idx': cur_key_idx,
+						// 		'item_cnt': Object.keys(item_similarity[descriptor_index][d.key]).length+1,
+						// 		'similarity': item_similarity[descriptor_index][d.key][key[0]]
+						// 	}
+						// }),q_bar_start = backdrop.select('path#query_bar_'+descriptor_index+'_'+d.key).attr('d');
 
-						_self.props.onMouseOverItem(descriptor_index, d.key, q_bar_start, bars_item);
+						// _self.props.onMouseOverItem(descriptor_index, d.key, q_bar_start, bars_item);
 
 					})
 					.on('mouseout', (d) => {
-						d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("opacity",barFillOpacityConst);
-						// d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke","none");
-						Object.keys(item_similarity[descriptor_index][d.key]).map(function(key){										
-							d3.select('#query_bar_' + descriptor_index+ '_'+ key).attr("opacity", barFillOpacityConst);
-						});
-						_self.props.onMouseOutItem();
+						// d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("opacity",barFillOpacityConst);
+						// // d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke","none");
+						// Object.keys(item_similarity[descriptor_index][d.key]).map(function(key){										
+						// 	d3.select('#query_bar_' + descriptor_index+ '_'+ key).attr("opacity", barFillOpacityConst);
+						// });
+						// _self.props.onMouseOutItem();
 					});			
 			var draw_correlation_link = false; 
 			if(draw_correlation_link){
@@ -1008,10 +1011,12 @@ class CircularView extends Component {
   					</Tooltip>					
 				</div>
 				<div>
-					<RadioGroup onChange={this.handleChangeProjection} defaultValue="p" size="small">
-						<RadioButton value={-1}>Pattern</RadioButton>	
-						{this.renderRadioButton()}				
-					</RadioGroup>																								
+					<div>
+						<RadioGroup onChange={this.handleChangeProjection} defaultValue={-1} size="small">
+							<RadioButton value={-1}>Pattern</RadioButton>	
+							{this.renderRadioButton()}				
+						</RadioGroup>																								
+					</div>
 					<ButtonGroup size="small">
 						{(this.props.selectedPatterns.length > 0) ? (
 							<Button onClick={this.handleResetPatterns}>
