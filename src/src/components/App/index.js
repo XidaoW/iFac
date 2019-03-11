@@ -71,6 +71,7 @@ class App extends Component {
 			mergePatternIdx: [],
 			display_projection: -1,
 			updateItemPostionsFlag: false,
+			updateModelFlag: false,
 			minErrorIdx: metrics.min_error_index,			
 			clickedPatternIdx: [] /* listview */
 		};
@@ -97,6 +98,7 @@ class App extends Component {
 		this.loadDatasetOnUpdateModel = this.loadDatasetOnUpdateModel.bind(this);
 		this.updateStateOnDataChange = this.updateStateOnDataChange.bind(this);
 		this.handleUpdateItemPositions = this.handleUpdateItemPositions.bind(this);
+		this.closeUpdateModelAlert = this.closeUpdateModelAlert.bind(this);
 		
 	}
 
@@ -280,6 +282,12 @@ class App extends Component {
 			item_similarity: selectedDataset.itemSimilarity,
 			modes: selectedDataset.modes
 		});
+	}
+
+	closeUpdateModelAlert(){
+		this.setState(prevState => ({
+			updateModelFlag: false
+		}));		
 	}
 
 	// depricated
@@ -517,11 +525,13 @@ class App extends Component {
 					return response.json();
 			})   
 			.then( (dataset) => {
-				console.log(dataset);
 				this.updateStateOnDataChange(dataset['factors'], 
 					dataset['item_embeddings1d'][item_projection_method], 
 					dataset['item_embeddings2d'][item_projection_method], 
-					dataset['pattern_embeddings']);
+					dataset['pattern_embeddings']);				
+					this.setState({
+						updateModelFlag: true
+					});				
 			});		
 	}	
 
@@ -1012,7 +1022,8 @@ class App extends Component {
 			item_similarity, error_data, stability_data,  fit_data, entropy_data, normalized_entropy_data,
 			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricAggregated,
 			itemEmbeddings_1d, itemEmbeddings_2d, clickedPatternIdx, patternEmbeddings,
-			deletedPatternIdx, mergePatternIdx, display_projection, updateItemPostionsFlag
+			deletedPatternIdx, mergePatternIdx, display_projection, updateItemPostionsFlag,
+			updateModelFlag
 		} = this.state;
 
 
@@ -1044,8 +1055,10 @@ class App extends Component {
 				datasets={datasets}	
 				domain={domain}
 				weights={weights}
+				updateModelFlag={updateModelFlag}
 				metricAggregated={metricAggregated}
 				onChangeDataset={this.handleChangeDataset}	
+				onCloseUpdateModelAlert={this.closeUpdateModelAlert}
 				onSetWeight={this.handleSetWeight}		
 			/>
 			<div className={styles.rowC}>
