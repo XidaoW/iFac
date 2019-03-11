@@ -6,7 +6,8 @@ import {scaleRadial} from '../../lib/draw_radial.js';
 import * as quadPath from '../../lib/draw_quadratic_path.js';
 import * as petal from '../../lib/draw_petals.js';
 
-import { legendColor } from 'd3-svg-legend'
+import { legendColor } from 'd3-svg-legend';
+import { legendSize } from 'd3-svg-legend';
 
 import _ from 'lodash';
 import styles from './styles.scss';
@@ -269,41 +270,60 @@ class CircularView extends Component {
 						.attr('transform', 'translate(' + ((width)/2-(innerRadius)/2) + ',' + ((height)/2-( innerRadius)/2) + ')')
 						.attr('class', 'g_flowers');
 
+		plot_legend();
+		function plot_legend(){
+			d3.selectAll("div#svg-color-quant").selectAll("svg").remove()
+			// var sequentialScale = d3.scaleSequential(d3.interpolateRainbow)
+			// 	.domain([0,1])
+			// 	.range(['white','#fc8d12']);				
 
-		// d3.selectAll("div#svg-color-quant").selectAll("svg").remove()
-		// var sequentialScale = d3.scaleSequential(d3.interpolateRainbow)
-		// 	.domain([0,10]);
-
-		// var legendSequential = legendColor()
-		// 	.shapeWidth(30)
-		// 	.cells(10)
-		// 	.orient("horizontal")
-		// 	.scale(sequentialScale) 
-		
-		// var svg_legend = d3.selectAll("div#svg-color-quant").append("svg")
-		// svg_legend.append("g")
-		// 	.attr("class", "legendQuant")
-		// 	.attr("transform", "translate(20,20)");
-
-
-		// var linearColor = d3.scaleLinear()
-		// 	.domain([0,1])
-		// 	.range(['white','#fc8d12']);
+			// var legendSequential = legendColor()
+			// 	.shapeWidth(30)
+			// 	.cells(5)
+			// 	.orient("horizontal")
+			// 	.scale(sequentialScale) 
+			
+			var svg_legend = d3.selectAll("div#svg-color-quant").append("svg")
+			svg_legend.append("g")
+				.attr("class", "legendQuant")
+				.attr("transform", "translate(20,20)");
 
 
-		// var legendLinear = legendColor()
-		// 	.shapeWidth(30)
-		// 	.cells([0.1, 0.8])
-		// 	.orient('horizontal')
-		// 	.scale(linearColor);
-
-		// // svg.select(".legendLinear")
-		// // 	.call(legendLinear);
-		// svg_legend.select(".legendQuant")
-		// 	.call(legendLinear);		  
+			var linearColor = d3.scaleLinear()
+				.domain([0,1])
+				.range(['white','#fc8d12']);
 
 
+			var legendLinear = legendColor()
+				.shapeWidth(20)
+				.cells(5)
+				.orient('horizontal')
+				.scale(linearColor);
 
+			// svg.select(".legendLinear")
+			// 	.call(legendLinear);
+			// svg_legend.select(".legendQuant")
+			// 	.call(legendLinear);	
+
+
+			// var linearSize = d3.scaleLinear().domain([0,10]).range([10, 30]);
+
+			// var svg_legend1 = d3.selectAll("div#svg-color-quant").append("svg")
+			// svg_legend1.append("g")
+			// 	.attr("class", "legendSize")
+			// 	.attr("transform", "translate(20, 40)");
+
+			// var legendSize = legendSize()
+			// 	.scale(linearSize)
+			// 	.shape('circle')
+			// 	.shapePadding(15)
+			// 	.labelOffset(20)
+			// 	.orient('horizontal');
+
+			// svg_legend1.select(".legendSize")
+			// .call(legendSize);
+
+		}	  
 
 		// DRAW THE RADIAL BAR CHART
 		for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
