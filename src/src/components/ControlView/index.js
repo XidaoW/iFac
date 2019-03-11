@@ -4,7 +4,7 @@ import ReactFauxDOM from 'react-faux-dom';
 import { plot_linechart } from '../../lib/draw_linechart.js'
 import _ from 'lodash';
 import { Dropdown, DropdownItem, DropdownToggle, DropdownMenu } from 'reactstrap';
-import { Tooltip, Slider, Icon, Collapse } from 'antd';
+import { Alert, Tooltip, Slider, Icon, Collapse } from 'antd';
 
 import styles from './styles.scss';
 import index from '../../index.css';
@@ -33,12 +33,19 @@ class ControlView extends Component {
 		this.handleSetWeight = this.handleSetWeight.bind(this);		
 		this.tipFormatter = this.tipFormatter.bind(this);	
 		this.renderDescriptorDescription = this.renderDescriptorDescription.bind(this);
+		this.onCloseModelUpdateAlert = this.onCloseModelUpdateAlert.bind(this);
+
+		
 	}
 
 	toggleDatasetDropdown() {
 		this.setState({
 			datasetDropdownOpen: !this.state.datasetDropdownOpen
 		});
+	}
+
+	onCloseModelUpdateAlert(){
+		this.props.onCloseUpdateModelAlert();
 	}
 
 	handleClickDataset(e) {
@@ -88,7 +95,7 @@ class ControlView extends Component {
 		// line charts adapted from https://bl.ocks.org/NGuernse/8dc8b9e96de6bedcb6ad2c5467f5ef9a
 		// slider bar/ zoom drag https://bl.ocks.org/ngminhtrung/7c5721a1504f3e29a36da9ddd9e5039b
 		const _self = this;
-		const { descriptors, components_cnt, descriptors_text, 
+		const { descriptors, components_cnt, descriptors_text, updateModelFlag,
 				error_data,  stability_data, fit_data, entropy_data, normalized_entropy_data,
 				gini_data, theil_data, pctnonzeros_data, onClickPoint, domain,weights, metricAggregated } = this.props;
 
@@ -187,6 +194,14 @@ class ControlView extends Component {
 					<div className={styles.descriptionDescriptors}>
 						<div>Descriptors:</div>
 						{this.renderDescriptorDescription()}</div>
+						{(this.props.updateModelFlag) ? (
+							<Alert
+								message="The model has been updated"
+								type="success"
+								closable
+								onClose={this.onCloseModelUpdateAlert}
+							/>
+							):<div></div>}					
 				</div>
 				<div className={styles.modelInspector}>
 					<div class={index.title}>
