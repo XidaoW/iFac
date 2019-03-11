@@ -76,6 +76,9 @@ class CircularView extends Component {
 	handleResetPatterns() {
 		d3.selectAll('.pattern_circles').attr('stroke-opacity', 0.3);
 		d3.selectAll('.pattern_mini_circles').attr('stroke-opacity', 0.3);
+		d3.selectAll('.pattern_circles').attr('stroke', 'grey');
+		d3.selectAll('.pattern_mini_circles').attr('stroke', 'grey');
+
 		// d3.selectAll('.pattern_circles').attr('stroke', 'none');
 		this.props.onResetPatterns();
 	}
@@ -106,10 +109,28 @@ class CircularView extends Component {
 	}	
 
 	handleUpdatePattern() {
+		d3.select('.pattern_circles').attr('stroke', 'grey');                                      
+		d3.select('.pattern_circles').attr('stroke-opacity', 0.3);
+		d3.select('.pattern_mini_circles').attr('stroke', 'grey');
+		d3.select('.pattern_mini_circles').attr('stroke-opacity', 0.3);		
 		this.props.onUpdatePatterns();
-	}	
+	}
 
-	handleMergePattern() {
+	handleMergePattern(mergePatternIdx) {
+		var t = d3.transition()
+			.duration(1000)
+			.delay(100)
+			.ease(d3.easeBounce);
+
+		d3.select('.pattern_circles').attr('stroke', 'grey');                                      
+		d3.select('.pattern_circles').attr('stroke-opacity', 0.3);
+		d3.select('.pattern_mini_circles').attr('stroke', 'grey');
+		d3.select('.pattern_mini_circles').attr('stroke-opacity', 0.3);		
+		[mergePatternIdx[1]].map((idx) => {
+			d3.select('.pattern_circles#pattern_' + idx).transition(t).style("display", "none");
+			d3.select('.flower#flower_' + idx).transition(t).style("display", "none");
+			d3.select('tr.pattern_row_' + idx).transition(t).style("display", "none");
+		});		
 		this.props.onMergePatterns();
 	}	
 
@@ -149,6 +170,13 @@ class CircularView extends Component {
 				itemEmbeddings_1d,itemEmbeddings_2d,patternEmbeddings,deletedPatternIdx,mergePatternIdx } = this.props;  
 
 
+		console.log(selectedPatterns);
+		if(selectedPatterns.length == 0){
+			d3.select('.pattern_circles').attr('stroke', 'grey');                                      
+			d3.select('.pattern_circles').attr('stroke-opacity', 0.3);
+			d3.select('.pattern_mini_circles').attr('stroke', 'grey');
+			d3.select('.pattern_mini_circles').attr('stroke-opacity', 0.3);	
+		}
 		const ButtonGroup = Button.Group;
 		const confirm = Modal.confirm;
 		const RadioButton = Radio.Button;
@@ -896,7 +924,7 @@ class CircularView extends Component {
 				content: '',
 				onOk() {					
 					if(mergeFlag){
-						_self.handleMergePattern();
+						_self.handleMergePattern(selectedPatterns);
 					}					
 				},
 				onCancel() {},
@@ -979,7 +1007,7 @@ class CircularView extends Component {
     					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
   					</Tooltip>					
 				</div>
-			    <div>
+				<div>
 					<RadioGroup onChange={this.handleChangeProjection} defaultValue="p" size="small">
 						<RadioButton value={-1}>Pattern</RadioButton>	
 						{this.renderRadioButton()}				
@@ -999,17 +1027,17 @@ class CircularView extends Component {
 					<ButtonGroup size="small">
 						{(this.props.selectedPatterns.length > 0) ? (
 							<Button onClick={showConfirmDelete}>
-								Delete Pattern
+								Delete
 							</Button>							
 						) : <div></div>}
 						{(this.props.selectedPatterns.length > 1) ? (
 							<Button onClick={showConfirmMerge}>
-								Merge Pattern
+								Merge
 							</Button>	
 						) : <div></div>}	
 						{(this.props.deletedPatternIdx.length > 0 || this.props.updateItemPostionsFlag ) ? (
 							<Button onClick={showConfirmUpdate}>
-								Update
+								Update Model
 							</Button>						
 						) : <div></div>}												
 					</ButtonGroup>

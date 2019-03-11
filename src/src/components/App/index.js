@@ -415,6 +415,8 @@ class App extends Component {
 			bar_data = {},
 			components_cnt = this.state.components_cnt;
 
+
+		console.log(factors_cur.length);
 		d3.range(this.state.modes.length)
 			.map((mode) => {
 				let sum_value = 0,
@@ -441,11 +443,11 @@ class App extends Component {
 				factors_cur[target].factors[mode].entropy = (factors_cur[target].factors[mode].entropy + factors_cur[source].factors[mode].entropy) / 2;
 				factors_cur[target].petals[mode].length = 1 - factors_cur[target].factors[mode].entropy;
 				factors_cur[target].petals[mode].width = factors_cur[target].factors[mode].similarity.average;
-
 			}
 		)
 		factors_cur[target].weight += factors_cur[source].weight;
 		factors_cur[target].circles.dominance = factors_cur[target].weight;
+		console.log(factors_cur.length);
 
 
 		for(let i = 0; i < this.state.modes.length; i++){
