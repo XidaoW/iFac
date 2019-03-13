@@ -625,7 +625,9 @@ class App extends Component {
 			mergePatternIdx: [],
 			selectedPatterns: [],
 			display_projection: -1,
-			updatingFlag: false
+			updatingFlag: false,
+			updateItemPostionsFlag: false,
+			updateModelFlag: false
 		}));
 
 	}

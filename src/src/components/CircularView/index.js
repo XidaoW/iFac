@@ -166,11 +166,16 @@ class CircularView extends Component {
 	}
 
 	renderRadioButton(){
-		var color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];		
+		var color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];	
+		// checked={(this.props.display_projection == i)? true: false};
+
 		return Object.keys(this.props.descriptors).map((d, i) => 
-			 (<Radio.Button style={{color: color_list_petal[i]}} value={i}>
+			 (<Radio.Button 
+			 	defaultChecked={false}
+			 	style={{color: color_list_petal[i]}} 
+			 	value={i}>
 					{d}
-				</Radio.Button>)
+			</Radio.Button>)
 		)
 		// render the radio button group
 	}
@@ -369,8 +374,6 @@ class CircularView extends Component {
 
 		if(display_projection == -1){
 			drawPatterns();	
-			// d3.select('.detailView').attr("display", "inline");
-			// d3.select('.queryView').attr("display", "inline");					
 
 		}else{
 			drawItems(display_projection);
@@ -389,6 +392,9 @@ class CircularView extends Component {
 
 		
 		function drawPatterns(){
+
+			d3.selectAll('.detailView').attr("opacity", 1);
+			d3.selectAll('.queryView').attr("opacity", 1);					
 
 			// Add the outer circles to the backdrop.
 			const circles = gFlowers.selectAll('.pattern_circles')
@@ -542,6 +548,7 @@ class CircularView extends Component {
 							.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
 							.style('fill-opacity', (d) => color_threshold(d.data.width));
 			}
+
 		}
 		
 		function drawItems(descriptor_index){
@@ -572,19 +579,19 @@ class CircularView extends Component {
 									.attr("class", "item_group")
 									.attr("transform", 
 									"translate(" + 0 + "," + 0 + ")")												
-			// for(let descriptor_idx = 0; descriptor_idx < descriptor_size; descriptor_idx++){														
-			// 	if(descriptor_idx == descriptor_index){
-			// 		d3.select('.detailView#descriptor_'+descriptor_idx+'_barchart').attr("display", "inline");
-			// 		d3.select('.queryView#query_'+descriptor_idx+'_barchart').attr("display", "inline");					
-			// 	}else{
-			// 		d3.select('.detailView#descriptor_'+descriptor_idx+'_barchart').attr("display", "none");
-			// 		d3.select('.queryView#query_'+descriptor_idx+'_barchart').attr("display", "none");					
-			// 	}
-			// }
+			for(let descriptor_idx = 0; descriptor_idx < descriptor_size; descriptor_idx++){
+				if(descriptor_idx == descriptor_index){
+					d3.select('.detailView#descriptor_'+descriptor_idx+'_barchart').attr("opacity", 1);
+					d3.select('.queryView#query_'+descriptor_idx+'_barchart').attr("opacity", 1);					
+				}else{
+					d3.select('.detailView#descriptor_'+descriptor_idx+'_barchart').attr("opacity", 0.2);
+					d3.select('.queryView#query_'+descriptor_idx+'_barchart').attr("opacity", 0.2);					
+				}
+			}
 			item_group.append("circle")
 							.attr("class", "dot")
 							.attr("r", (d) => d.radius)
-							.attr("id", (d, i) => "item_circle_" + i)
+							.attr("id", (d, i) => "item_circle_" + descriptor_index + "_"+ d.label)
 							.attr("cx", function(d) { return d.x; })
 							.attr("cy", function(d) { return d.y; })
 							.attr('fill', axisStroke(descriptor_index))
@@ -594,49 +601,53 @@ class CircularView extends Component {
 							.attr('stroke-opacity', 0.4)
 							.on('mouseover', function (d) {								
 								d3.selectAll('path#bar_' + descriptor_index+ '_'+ d.label).attr("stroke-width", "2px");
+								d3.selectAll('circle#item_circle_' + descriptor_index+ '_'+ d.label).attr("stroke", "black");
 
 							})
 							.on('mouseout', function (d) {                
 								d3.selectAll('path#bar_' + descriptor_index+ '_'+ d.label).attr("stroke-width", "0px");
+								d3.selectAll('circle#item_circle_' + descriptor_index+ '_'+ d.label).attr("stroke", "grey");
 							});
 
 			  
 			item_group.append("text")
 							.attr('class', 'labeltext')		
-							.attr("id", (d, i) => "item_text_" + i)																
+							.attr("id", (d, i) => "item_text_" + descriptor_index + "_"+ d.label)																
 							.attr("x", function(d) { return d.x; })
 							.attr("y", function(d) { return d.y; })							
 							.attr("font-size", "8px")							
 							.text((d) => {return d.label})	
-							// .text((d) => "")	
+							.attr("display", "none");
 
 			item_group.call(d3.drag()
 							.on("start", dragstarted)
 							.on("drag", dragged)
 							.on("end", dragended));			            			
 			function dragstarted(d, i) {
-				console.log(itemEmbeddingAll_original[i]);
-				d3.select("circle#item_circle_" + i).classed("drag_active", true);
-				d3.select("text#item_text_" + i).classed("drag_active", true);				
+				d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label).classed("drag_active", true);
+				// d3.select("text#item_text_" + descriptor_index+ '_'+ d.label).classed("drag_active", true);				
+				d3.selectAll(".labeltext").attr("display", "inline");
 			}
 
 			function dragged(d, i) {
 				var cur_x = d3.event.sourceEvent.offsetX - ((width)/2-(innerRadius)/2) - 100;
 				var cur_y = d3.event.sourceEvent.offsetY - ((height)/2-( innerRadius)/2) - 100;				 
-				d3.select("text#item_text_" + i)
+				d3.select("text#item_text_" + descriptor_index+ '_'+ d.label)
 						.attr("x", cur_x)
 						.attr("y", cur_y);
-				d3.select("circle#item_circle_" + i)
+				d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label)
 						.attr("cx", cur_x)
 						.attr("cy", cur_y);
+				// d3.selectAll(".labeltext").attr("opacity", 1);
 			}
 
 			function dragended(d, i) {
-				d3.select("circle#item_circle_" + i).classed("drag_active", false);
-				d3.select("text#item_text_" + i).classed("drag_active", false);
+				d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label).classed("drag_active", false);
+				// d3.select("text#item_text_" + descriptor_index+ '_'+ d.label).classed("drag_active", false);
 				_self.handleMoveItemPosition(i, descriptor_index,
-					[circle_position_x_item.invert(d3.select("circle#item_circle_" + i).attr("cx")), 
-					circle_position_y_item.invert(d3.select("circle#item_circle_" + i).attr("cy"))]);
+					[circle_position_x_item.invert(d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label).attr("cx")), 
+					circle_position_y_item.invert(d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label).attr("cy"))]);
+				d3.selectAll(".labeltext").attr("display", "none");
 			}
 		}
 
@@ -763,29 +774,43 @@ class CircularView extends Component {
 
 						tooltip.html('<span>' + d.key + "(" + d3.format(".0%")(d.value) + ")"+ '</span>');
 						tooltip.show();
+						d3.selectAll('circle#item_circle_' + descriptor_index+ '_'+ d.key).attr("stroke", "black");
 
 					})
 					.on("mouseout", function(d){
 						// d3.selectAll("circle.rank"+d.x.toString()).attr("stroke", "none");
 						tooltip.hide();
+						d3.selectAll('circle#item_circle_' + descriptor_index+ '_'+ d.key).attr("stroke", "grey");
 					})			
 
 
 			// Add the labels     
 			backdrop.selectAll("text.label_bar" + descriptor_index).remove();
+
 			var draw_label = true;
+			const label_length = 12;
+
 			if(draw_label){
 				descriptor_arcs.append('g')
 					.attr('class', 'descriptor_text' + descriptor_index)
 					.attr('text-anchor', (d) => (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'end' : 'start')
 					.attr('transform', (d) => 'rotate(' + ((x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length) * 180 / Math.PI - 90) + ')'+'translate(' + (y(d.value)+20) + ',0)')
 					.append('text')
-					.text((d) => d.key)
+					.text((d) => {
+						return (d.key.length > label_length) ? d.key.slice(0, label_length)+"..." : d.key;
+					})
 					.attr('transform', (d) => (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'rotate(180)' : 'rotate(0)')
 					.style('font-size', '6px')
 					.attr('id', (d) => 'label_' + descriptor_index + '_' + d.key)
-					.attr('class', 'label_bar' + descriptor_index)
-					.attr('alignment-baseline', 'middle');						
+					.attr('class', 'label_bar' + descriptor_index)					
+					.attr('alignment-baseline', 'middle')
+					.on("mouseover", function(d){
+						tooltip.html('<span>' + d.key + '</span>');
+						tooltip.show();
+					})
+					.on("mouseout", function(d){
+						tooltip.hide();
+					});
 			}
 	
 		}
@@ -885,6 +910,7 @@ class CircularView extends Component {
 						}						
 					})
 					.on('mouseover', (d) => {
+						d3.selectAll('circle#item_circle_' + descriptor_index+ '_'+ d.key).attr("stroke", "black");						
 						// d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("opacity",1);
 						// Object.keys(item_similarity[descriptor_index][d.key]).map(function(key){										
 						// 	d3.select('#query_bar_' + descriptor_index+ '_'+ key).attr("opacity", item_similarity[descriptor_index][d.key][key]);
@@ -916,6 +942,7 @@ class CircularView extends Component {
 
 					})
 					.on('mouseout', (d) => {
+						d3.selectAll('circle#item_circle_' + descriptor_index+ '_'+ d.key).attr("stroke", "grey");												
 						// d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("opacity",barFillOpacityConst);
 						// // d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke","none");
 						// Object.keys(item_similarity[descriptor_index][d.key]).map(function(key){										
@@ -1053,12 +1080,10 @@ class CircularView extends Component {
   					</Tooltip>					
 				</div>
 				<div>
-					<div>
 						<RadioGroup onChange={this.handleChangeProjection} defaultValue={-1} size="small">
 							<RadioButton value={-1}>Pattern</RadioButton>	
 							{this.renderRadioButton()}				
 						</RadioGroup>																								
-					</div>
 					<ButtonGroup size="small">
 						{(this.props.selectedPatterns.length > 0) ? (
 							<Button onClick={this.handleResetPatterns}>
