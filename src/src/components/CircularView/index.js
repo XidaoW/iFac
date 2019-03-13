@@ -5,6 +5,8 @@ import d3tooltip from 'd3-tooltip';
 import {scaleRadial} from '../../lib/draw_radial.js';
 import * as quadPath from '../../lib/draw_quadratic_path.js';
 import * as petal from '../../lib/draw_petals.js';
+import PatternGlyph from 'components/PatternGlyph';
+
 
 import { legendColor } from 'd3-svg-legend';
 import { legendSize } from 'd3-svg-legend';
@@ -14,7 +16,7 @@ import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 import Circos, { SCATTER } from 'react-circos';
-import { message, Modal, Tag, Input, Tooltip, Icon, Button, Radio } from 'antd';
+import { Spin, message, Modal, Tag, Input, Tooltip, Icon, Button, Radio } from 'antd';
 import QueryPanel from 'components/QueryPanel';
 import scrollIntoView from 'scroll-into-view';
 
@@ -71,7 +73,10 @@ class CircularView extends Component {
 		this.handleChangeProjection = this.handleChangeProjection.bind(this);		
 		this.handleMoveItemPosition = this.handleMoveItemPosition.bind(this);		
 		this.renderRadioButton = this.renderRadioButton.bind(this);		
-		this.renderUpdateButton = this.renderUpdateButton.bind(this);				
+		this.renderUpdateButton = this.renderUpdateButton.bind(this);	
+		this.renderSpinGlyph = this.renderSpinGlyph.bind(this);	
+
+					
 
 	}
 
@@ -142,6 +147,23 @@ class CircularView extends Component {
 		this.props.onChangeProjection(e.target.value);
 	}	
 
+	renderSpinGlyph(){
+		console.log(Object.keys(this.props.descriptors).length);
+		// var petals_spin = d3.range(Object.keys(this.props.descriptors).length).map((d) => 
+		// 		{return {id: 'spin', length: 0.5, petal_idx: d, width: 1}}
+		// 	)
+		
+		// var spinData = {};
+		// spinData['spin'] = {id: 'spin', weight: 0, petals: petals_spin};
+		// console.log(spinData);
+		// const spinGlyph = <PatternGlyph 
+		// 					idx={'spin'} 
+		// 					data={spinData}
+		// 				/>
+		// const antIcon = <Icon type="loading" style={{ fontSize: 24 }} spin />;
+
+		return <div className={"spin"}><Spin size={"large"} spinning={true}/></div>
+	}
 
 	renderRadioButton(){
 		var color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];		
@@ -1068,7 +1090,7 @@ class CircularView extends Component {
 					</ButtonGroup>
 				</div>
 				<div id="svg-color-quant" className={styles.legend}></div>
-				{svg.toReact()}				
+				{!this.props.updatingFlag ? svg.toReact() : this.renderSpinGlyph()}
 			</div>
 		);
   }

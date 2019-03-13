@@ -36,8 +36,10 @@ class PatternGlyph extends Component {
   render() {
 
 		const { data, idx } = this.props;
+		console.log(data[idx]);
+		console.log(data[idx].petal);
 		const _self = this,
-				descriptor_size = data[0].dims;
+				descriptor_size = data[idx].petals.length;
 		let g,
 			svg = new ReactFauxDOM.Element('svg'),
 			patternSize = this.miniPatternSize,
@@ -50,7 +52,7 @@ class PatternGlyph extends Component {
 		this.pie = d3.pie().sort(null).value((d) => 1);
 		const x_offset = width/2,
 			y_offset = height/2;
-
+		console.log(data[idx]);
 		// Add the outer circles to the backdrop.
 		const circles = d3.select(svg).selectAll('.pattern_circles_mini')
 						.data([data[idx]])
