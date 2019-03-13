@@ -602,8 +602,8 @@ class iFacData():
 			"purchase1": {"lambda_0": 0, "lambda_1": 0},
 		}
 		lambda_1 = 0.1
-		self.lambda_0 = parameter_config[domain][lambda_0]
-		self.lambda_1 = parameter_config[domain][lambda_1]
+		self.lambda_0 = parameter_config[domain]["lambda_0"]
+		self.lambda_1 = parameter_config[domain]["lambda_1"]
 
 		self.random_seed = random_seed
 		self.save_flag = False
