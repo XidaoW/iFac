@@ -310,7 +310,7 @@ class TreeMapView extends Component {
 				function text2(text) {
 					text.attr("x", function(d) { return d.x0; })
 						.attr("y", function(d) { return d.y0; })
-						.style("font-size", function(d) { return  Math.pow((d.y1 - d.y0),0.9) * Math.pow((d.x1 - d.x0), 1.1) / this.getComputedTextLength() / 20  + "px"; })
+						.style("font-size", function(d) { return  Math.pow((d.y1 - d.y0),0.9) * Math.pow((d.x1 - d.x0), 1.1)*1.5 / this.getComputedTextLength() / 20  + "px"; })
 						// .style("font-size", function(d) { return  Math.pow((d.x1 - d.x0), 1)*5 / this.getComputedTextLength()  + "px"; })
 						.attr("dy", ".8em")						
 						.style("opacity", function(d) { return 0.4; });
