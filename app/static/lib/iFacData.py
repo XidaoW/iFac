@@ -372,9 +372,9 @@ class iFacData():
 		"""
 		
 		_log.info("Start factorization: ")
-		_log.info("Random Seed: {}; Bases: {}; reference_matrix: {}; L_matrix: {}; lambda_0: {}; lambda_1: {}; ".format(
-				random_seed, self.cur_base, self.reference_matrix, self.L_matrix, self.lambda_0, self.lambda_1
-			) )
+		# _log.info("Random Seed: {}; Bases: {}; reference_matrix: {}; L_matrix: {}; lambda_0: {}; lambda_1: {}; ".format(
+		# 		random_seed, self.cur_base, self.reference_matrix, self.L_matrix, self.lambda_0, self.lambda_1
+		# 	) )
 		self.ntfInstance = ntf.NTF(self.cur_base, self.hist, parallelCalc=True, ones = ones, random_seed = random_seed)
 		self.ntfInstance.factorize(self.hist, showProgress=True, default = False, 
 			reference_matrix = self.reference_matrix, L_matrix = self.L_matrix,
@@ -587,8 +587,7 @@ class iFacData():
 		self.savePatternEmbedding()
 
 	def generateSingleOutput(self, domain = "", base = 10, 
-		reference_matrix = [], L_matrix = [],
-		lambda_0 = 0.0, lambda_1 = 0.0, random_seed = 0):
+		reference_matrix = [], L_matrix = [], random_seed = 0):
 		self.domain = domain
 		self.cur_base = base
 		self.start_index = base		
@@ -596,15 +595,22 @@ class iFacData():
 		self.column_cnt = len(self.column)	
 		self.reference_matrix = reference_matrix
 		self.L_matrix = L_matrix
-		
-		self.lambda_0 = lambda_0
-		self.lambda_1 = lambda_1
+		parameter_config = {
+			"picso1": {"lambda_0": 0, "lambda_1": 0},
+			"nbaplayer1": {"lambda_0": 0.01, "lambda_1": 0.1},
+			"policyKeyword1": {"lambda_0": 0, "lambda_1": 0},
+			"purchase1": {"lambda_0": 0, "lambda_1": 0},
+		}
+		lambda_1 = 0.1
+		self.lambda_0 = parameter_config[domain][lambda_0]
+		self.lambda_1 = parameter_config[domain][lambda_1]
+
 		self.random_seed = random_seed
 		self.save_flag = False
 
-		if len(reference_matrix) > 0:
-			print("using reference matrix: {}".format(reference_matrix))
-			print("using L matrix: {}".format(self.L_matrix))
+		# if len(reference_matrix) > 0:
+		# 	print("using reference matrix: {}".format(reference_matrix))
+		# 	print("using L matrix: {}".format(self.L_matrix))
 		self.computePatterns(random_seed = self.random_seed)
 		self.item_mds1 = self.generateItemEmbedding(n_component = 1)
 		self.item_mds2 = self.generateItemEmbedding(n_component = 2)

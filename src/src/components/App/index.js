@@ -264,6 +264,7 @@ class App extends Component {
 			metricAggregated: metricAggregated,
 			minErrorIdx: screeData.min_error_index,	
 			updateItemPostionsFlag: false,
+			updatingFlag: false,
 			start_index: start_index
 		});    
 	}
@@ -320,7 +321,7 @@ class App extends Component {
 		item_embeddings_tmp[descriptor_index][item_index] = positions;
 		this.setState({
 			item_embeddings2d: item_embeddings_tmp,
-			updateItemPostionsFlag: true
+			updateItemPostionsFlag: true,
 		});
 	}
 
@@ -500,9 +501,11 @@ class App extends Component {
 			itemEmbeddings_2d = this.state.itemEmbeddings_2d,
 			randomIdx = this.state.minErrorIdx[components_cnt-start_index];
 
-		const lambda_0 = 0.1,
-			lambda_1 = 0;
+		this.setState({
+			updatingFlag: true
+		});				
 
+		
 		let new_bar_data = d3.range(Object.keys(bar_data).length).map((mode) => {
 					return bar_data[mode].filter((d, i) => deletedIdx.concat(components_cnt).indexOf(i) < 0).map((each_d) => {
 						return Object.values(each_d).slice(0, -1);
@@ -515,8 +518,6 @@ class App extends Component {
 					reference_matrix: new_bar_data,
 					domain: this.state.domain,
 					randomIdx: randomIdx,
-					lambda_0: lambda_0,
-					lambda_1: lambda_1,
 					base: new_bar_data[0].length,
 					itemEmbeddings_2d: itemEmbeddings_2d
 				})
@@ -530,8 +531,11 @@ class App extends Component {
 					dataset['item_embeddings2d'][item_projection_method], 
 					dataset['pattern_embeddings']);				
 					this.setState({
-						updateModelFlag: true
-					});				
+						updateModelFlag: true,
+						updatingFlag: false,
+						updateItemPostionsFlag: false
+					});	
+
 			});		
 	}	
 
@@ -620,7 +624,8 @@ class App extends Component {
 			deletedPatternIdx: [],
 			mergePatternIdx: [],
 			selectedPatterns: [],
-			display_projection: -1
+			display_projection: -1,
+			updatingFlag: false
 		}));
 
 	}
@@ -641,7 +646,11 @@ class App extends Component {
 		 * @param {var}   idx           the rank.
 		 * 
 		 */
+		this.setState({
+			updatingFlag: true
+		});		 
 		var domain = this.state.domain;
+
 		var [new_data, itemEmbeddings_1d, itemEmbeddings_2d, patternEmbeddings] = this.loadDatasetOnClickPoint(domain, rank);
 		this.updateStateOnDataChange(new_data, itemEmbeddings_1d, itemEmbeddings_2d, patternEmbeddings);		
 	}
@@ -1023,7 +1032,7 @@ class App extends Component {
 			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricAggregated,
 			itemEmbeddings_1d, itemEmbeddings_2d, clickedPatternIdx, patternEmbeddings,
 			deletedPatternIdx, mergePatternIdx, display_projection, updateItemPostionsFlag,
-			updateModelFlag
+			updateModelFlag, updatingFlag
 		} = this.state;
 
 
@@ -1056,6 +1065,7 @@ class App extends Component {
 				domain={domain}
 				weights={weights}
 				updateModelFlag={updateModelFlag}
+				updatingFlag={updatingFlag}
 				metricAggregated={metricAggregated}
 				onChangeDataset={this.handleChangeDataset}	
 				onCloseUpdateModelAlert={this.closeUpdateModelAlert}
@@ -1105,6 +1115,7 @@ class App extends Component {
 						itemEmbeddings_2d={itemEmbeddings_2d}
 						patternEmbeddings={patternEmbeddings}
 						updateItemPostionsFlag={updateItemPostionsFlag}
+						updatingFlag={updatingFlag}
 						modes={modes}
 						queries={queries}
 						item_links={item_links}

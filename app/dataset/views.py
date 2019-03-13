@@ -39,14 +39,12 @@ class RunRegNTF(APIView):
 
 	def post(self, request, format=None):
 		json_request = json.loads(request.body.decode(encoding='UTF-8'))	
-		_log.info(json_request['reference_matrix'])
+		# _log.info(json_request['reference_matrix'])
 		whole_dataset_df = pd.DataFrame({'test': ['yes']})
 		iFac = iFacData()
 		base = json_request['base']
 		domain = json_request['domain']
 		randomIdx = json_request['randomIdx']
-		lambda_0 = json_request['lambda_0']
-		lambda_1 = json_request['lambda_1']
 		reference_matrix = []
 		W_matrix = []
 		L_matrix = []			
@@ -68,6 +66,5 @@ class RunRegNTF(APIView):
 
 		result = iFac.generateSingleOutput(domain = domain, base = base, 
 			random_seed = randomIdx, L_matrix = L_matrix, 
-			reference_matrix = reference_matrix,
-			lambda_0 = lambda_0, lambda_1 = lambda_1)
+			reference_matrix = reference_matrix)
 		return Response(result)

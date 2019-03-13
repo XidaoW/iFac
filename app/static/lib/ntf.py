@@ -10,6 +10,14 @@ from random import randint
 from sktensor import dtensor, cp_als
 import pdb
 import scipy.sparse as sps
+import math
+import logging
+_log = logging.getLogger(__name__)
+logging.basicConfig(
+	level = logging.DEBUG,
+	format = '%(name)s %(levelname)s %(message)s',
+)
+
 
 ###########################################
 EPS = 0.0000001
@@ -212,6 +220,23 @@ class NTF():
 		for i1 in factor:
 			self.updateFactorEachBasis(x, i1)
 
+	def computeError(self, x, X_itr, reference_matrix, L_matrix):
+		ktensor_X = ktensor(X_itr)
+		
+		error = math.sqrt(getError(x,ktensor_X,x.norm()))/x.norm()
+		reference_error = 0
+		similarity_error = 0
+		# similarity_error = sum([np.trace(X_itr[i].T.dot(L_matrix[i]).dot(X_itr[i])) for i in range(len(L_matrix))])
+		# similarity_error = similarity_error / len(L_matrix)
+		for i in range(len(L_matrix)):			
+			similarity_error += np.trace(X_itr[i].T.dot(L_matrix[i]).dot(X_itr[i]))			
+			reference_error += np.linalg.norm(X_itr[i] - reference_matrix[i])
+
+		reference_error /= len(L_matrix)
+		similarity_error /= len(L_matrix)
+		return error, similarity_error, reference_error
+
+
 	def factorize(self, x, iterations=100, showProgress=False, default=True, 
 		reference_matrix=[], L_matrix = [], lambda_0 = 0.0, lambda_1 = 0.0):
 		if not default:
@@ -224,24 +249,30 @@ class NTF():
 				for r in range(R):
 					X_cur.append(self.factor[r][way_index].tolist())
 				X_itr.append(np.array(X_cur).T)
+			error, similarity_error, reference_error = self.computeError(x, 
+				X_itr, reference_matrix, L_matrix)
+			print("start: {}/{}. reconstruct: {}; item: {}; pattern: {} ".format(
+					0, iterations, error, similarity_error, reference_error))
 
 		for i1 in np.arange(1, iterations + 1):
-			if showProgress and (i1 % 20) == 0:
-				# progress = "*" if 0 < (i1 % 20) \
-				# 	else "[%d/%d]\n" % (i1, iterations)
-				print("[%d/%d]\n" % (i1, iterations))
 			if default:
 				self.updateAllFactors(x, self.factor)
 			else:				
 				# pdb.set_trace()
+				# lambda_0 = 0.01
 				X_itr = self.updateAllFactorsGradient(x, X_itr, num_ways, R, 
 					reference_matrix = reference_matrix, 
 					L_matrix = L_matrix,
 					lambda_0 = lambda_0, 
-					lambda_1 = lambda_1)
-				ktensor_X = ktensor(X_itr)
-				import math
-				error_X = math.sqrt(getError(x,ktensor_X,x.norm()))/x.norm()
+					lambda_1 = lambda_1)				
+				error, similarity_error, reference_error = self.computeError(x, 
+					X_itr, reference_matrix, L_matrix)
+				# error_X = math.sqrt(getError(x,ktensor_X,x.norm()))/x.norm()
+			if showProgress and (i1 % 1) == 0:
+				# progress = "*" if 0 < (i1 % 20) \
+				# 	else "[%d/%d]\n" % (i1, iterations)
+				print("{}/{}. reconstruct: {}; item: {}; pattern: {} ".format(
+					i1, iterations, error, similarity_error, reference_error))
 				# print(error_X)
 		if not default:
 			result_factor = []
@@ -281,7 +312,7 @@ class NTF():
 				X_itr[way_index][:,l] = (
 						X_itr[way_index][:,l] * (X_FF_iter[way_index][l,l]) - 
 						(
-							factor_gradient  + 2*lambda_0 * similarity_reg + lambda_1 * reference_reg
+							factor_gradient/np.linalg.norm(X_itr[way_index])  + 2*lambda_0 * similarity_reg + lambda_1 * reference_reg
 						)
 					) / (X_FF_iter[way_index][l,l] + EPS)
 
