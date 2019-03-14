@@ -73,7 +73,9 @@ class App extends Component {
 			updateItemPostionsFlag: false,
 			updateModelFlag: false,
 			minErrorIdx: metrics.min_error_index,			
-			clickedPatternIdx: [] /* listview */
+			clickedPatternIdx: [], /* listview */
+			color_list_petal: ["#85D4E3", "#F4B5BD", "#20B2AA", "#CDC08C", "#FAD77B"]				
+			// color_list_petal: ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]				
 		};
 
 		this.handleClickPattern = this.handleClickPattern.bind(this);
@@ -1055,7 +1057,7 @@ class App extends Component {
 			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricAggregated,
 			itemEmbeddings_1d, itemEmbeddings_2d, clickedPatternIdx, patternEmbeddings,
 			deletedPatternIdx, mergePatternIdx, display_projection, updateItemPostionsFlag,
-			updateModelFlag, updatingFlag
+			updateModelFlag, updatingFlag,color_list_petal
 		} = this.state;
 
 
@@ -1088,6 +1090,7 @@ class App extends Component {
 				queries={queries}
 				updateModelFlag={updateModelFlag}
 				updatingFlag={updatingFlag}
+				color_list_petal={color_list_petal}
 				metricAggregated={metricAggregated}
 				onChangeDataset={this.handleChangeDataset}	
 				onCloseUpdateModelAlert={this.closeUpdateModelAlert}
@@ -1105,6 +1108,7 @@ class App extends Component {
 					deletedPatternIdx={deletedPatternIdx}
 					similarPatternToQueries={similarPatternToQueries}
 					display_projection={display_projection}
+					color_list_petal={color_list_petal}
 					onClickPattern={this.handleClickPattern}
 				/>
 			  	<CircularView 
@@ -1142,6 +1146,7 @@ class App extends Component {
 						queries={queries}
 						item_links={item_links}
 						descriptors={descriptors}
+						color_list_petal={color_list_petal}
 						deletedPatternIdx={deletedPatternIdx}
 						mergePatternIdx={mergePatternIdx}
 						mouseOveredDescriptorIdx={mouseOveredDescriptorIdx}
@@ -1157,6 +1162,7 @@ class App extends Component {
 					descriptors={descriptors}
 					modes={modes}
 					queries={queries}
+					color_list_petal={color_list_petal}
 					onClickItem={this.handleClickItem}
 					onResetPatterns={this.handleResetPatterns}
 					onResetItems={this.handleResetItems}					

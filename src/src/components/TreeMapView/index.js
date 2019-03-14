@@ -32,6 +32,7 @@ class TreeMapView extends Component {
 				}
 			}			
 		};
+		this.color_list_petal = props.color_list_petal;
 		this.detailViewMarginTop = gs.detailViewMarginTop;
 		this.detailViewMarginBottom = gs.detailViewMarginBottom;
 		this.detailViewMarginLeft = gs.detailViewMarginLeft;
@@ -90,7 +91,7 @@ class TreeMapView extends Component {
 			.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
 
-		var color_list = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
+		var color_list = this.color_list_petal;
 		var orderedDescriptors = Object.keys(bar_data)
 		var color = d3.scaleOrdinal()
 			.domain(orderedDescriptors)
@@ -333,6 +334,7 @@ class TreeMapView extends Component {
 						<QueryPanel
 							onQueryItem={this.props.onClickItem}
 							onResetItem={this.handleResetItems}
+							color_list_petal={this.props.color_list_petal}
 							descriptors={descriptors}
 							components_cnt={components_cnt}
 							modes={modes}

@@ -7,7 +7,8 @@ import {AutoComplete, Tag, Input, Tooltip, Icon} from 'antd';
 class QueryPanel extends Component {
 
 	constructor(props) {
-		super(props);			
+		super(props);	
+		this.color_list_petal = props.color_list_petal;		
 	}	
 	state = {
 		tags: this.props.queries,
@@ -77,7 +78,7 @@ class QueryPanel extends Component {
 		const { onQueryItem, descriptors, components_cnt, modes, queries } = this.props;
 		var { tags, inputValue } = this.state;
 		tags = queries;
-		const color_list = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
+		const color_list = this.color_list_petal;
 		if(Object.keys(tags).length > 0){
 	  		return Object.keys(tags).map((mode, idx) => {
 				if((mode in tags) && tags[mode].length > 0){	  						

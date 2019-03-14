@@ -25,6 +25,7 @@ class PatternGlyph extends Component {
 		this.pie;
 		this.compare_N = 2;
 		this.miniPatternSize = 30,
+		this.color_list_petal = props.color_list_petal;
 		this.outerCircleRadius = parseInt(gs.outerCircleRadius);
 		this.innerCircleRadius = parseInt(gs.innerCircleRadius);
 		this.innerCircleStrokeWidth = parseInt(gs.innerCircleStrokeWidth);
@@ -105,7 +106,7 @@ class PatternGlyph extends Component {
 										+ coords.y + ')';})
 						.attr('r', (d) => size_petal_radius(d.data.length))
 						.style('stroke', (d, i) => 'gray')
-						.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
+						.style('fill', (d, i) => petalFill(d, i, descriptor_size))
 						.style('fill-opacity', (d) => d.data.width);				
 		}else if(use_petal){
 			const petals = flowers.selectAll('.petal')
@@ -130,7 +131,7 @@ class PatternGlyph extends Component {
 					.on("mouseout", function(d){
 						tooltip.hide();
 					})
-					.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
+					.style('fill', (d, i) => petalFill(d, i, descriptor_size))
 					.style('fill-opacity', (d) => d.data.width);						
 		}else{
 			// var min_width = d3.min(data, (d) => {console.log(d); return d.data.width});
@@ -160,10 +161,16 @@ class PatternGlyph extends Component {
 						.attr('rx', (d) => size_petal_radius(1))
 						.attr('ry', (d) => size_petal_radius(d.data.length))						
 						.style('stroke', (d, i) => 'gray')
-						.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
+						.style('fill', (d, i) => petalFill(i, descriptor_size))
 						.style('fill-opacity', (d) => color_threshold(d.data.width));
 		}
 				
+
+		function petalFill(i, descriptor_size) {
+			// var _self.color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];
+			return _self.color_list_petal[i];
+			// return d3.hcl(i / descriptor_size * 360, 60, 70);
+		};
 
 		return (
 			<span>					

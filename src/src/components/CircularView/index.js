@@ -45,7 +45,7 @@ class CircularView extends Component {
 		this.circle_color;
 		this.circle_width;
 		this.compare_N = 2;
-		this.color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];
+		this.color_list_petal = props.color_list_petal;
 		this.outerCircleRadius = parseInt(gs.outerCircleRadius);
 		this.innerCircleRadius = parseInt(gs.innerCircleRadius);
 		this.innerCircleStrokeWidth = parseInt(gs.innerCircleStrokeWidth);
@@ -82,7 +82,6 @@ class CircularView extends Component {
 		d3.selectAll('.pattern_circles').attr('stroke', 'grey');
 		d3.selectAll('.pattern_mini_circles').attr('stroke', 'grey');
 
-		// d3.selectAll('.pattern_circles').attr('stroke', 'none');
 		this.props.onResetPatterns();
 	}
 	handleResetItems() {
@@ -183,7 +182,7 @@ class CircularView extends Component {
 	}
 
 	renderRadioButton(){
-		var color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];	
+		var color_list_petal = this.color_list_petal;	
 		// checked={(this.props.display_projection == i)? true: false};
 
 		return Object.keys(this.props.descriptors).map((d, i) => 
@@ -463,7 +462,7 @@ class CircularView extends Component {
 											+ coords.y + ')';})
 							.attr('r', (d) => size_petal_radius(d.data.length))
 							.style('stroke', (d, i) => 'gray')
-							.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
+							.style('fill', (d, i) => axisStroke(i, descriptor_size))
 							.style('fill-opacity', (d) => d.data.width);				
 			}else if(use_petal){
 				const petals = flowers.selectAll('.petal')
@@ -488,7 +487,7 @@ class CircularView extends Component {
 						.on("mouseout", function(d){
 							tooltip.hide();
 						})
-						.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
+						.style('fill', (d, i) => axisStroke(i, descriptor_size))
 						.style('fill-opacity', (d) => d.data.width);						
 			}else{
 				// var min_width = d3.min(data, (d) => {console.log(d); return d.data.width});
@@ -519,7 +518,7 @@ class CircularView extends Component {
 							.attr('ry', (d) => size_petal_radius(d.data.length))						
 							.style('stroke', (d, i) => 'gray')
 							.style("display", "inline")
-							.style('fill', (d, i) => petal.petalFill(d, i, descriptor_size))
+							.style('fill', (d, i) => axisStroke(i, descriptor_size))
 							.style('fill-opacity', (d) => color_threshold(d.data.width));
 			}
 
@@ -989,8 +988,8 @@ class CircularView extends Component {
 
 
 		function axisStroke(i, descriptor_size) {
-			var color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];
-			return color_list_petal[i];
+			// var _self.color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];
+			return _self.color_list_petal[i];
 			// return d3.hcl(i / descriptor_size * 360, 60, 70);
 		};
 

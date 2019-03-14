@@ -33,7 +33,8 @@ class ListView extends Component {
 				height: 700
 			},
 		};
-		this.selector = React.createRef();		
+		this.selector = React.createRef();	
+		this.color_list_petal = props.color_list_petal;	
 		this.handleOnClick = this.handleOnClick.bind(this);						
 		this.handleOnMouseEnter = this.handleOnMouseEnter.bind(this);						
 		this.handleOnMouseLeave = this.handleOnMouseLeave.bind(this);						
@@ -91,6 +92,7 @@ class ListView extends Component {
 					<PatternGlyph 
 							idx={Glyph} 
 							data={data}
+							color_list_petal={this.color_list_petal}
 							similarPatternToQueries={similarPatternToQueries}							
 						/>
 			    </span>
@@ -105,6 +107,7 @@ class ListView extends Component {
 						idx={Snapshot} 
 						components_cnt={components_cnt}
 						itemEmbeddings_1d={itemEmbeddings_1d}
+						color_list_petal={this.color_list_petal}
 						bar_data={bar_data}
 					/>				
 			    </span>

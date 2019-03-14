@@ -22,7 +22,7 @@ class ControlView extends Component {
 		this.svg_stability;
 		this.svg_interpretability;
 		this.dominanceColor = "#fc8d12";
-		this.color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];		
+		this.color_list_petal = props.color_list_petal;		
 		this.layout = {
 			width: 130,
 			height: 130,
@@ -43,7 +43,7 @@ class ControlView extends Component {
 		this.onCloseLegendDrawer = this.onCloseLegendDrawer.bind(this);
 		this.renderLegend = this.renderLegend.bind(this);
 	
-		
+		console.log(props);
 	}
 
 	showLegendDrawer = () => {
@@ -109,7 +109,7 @@ class ControlView extends Component {
   }
 
 	renderDescriptorDescription(){
-		var color_list = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];
+		var color_list = this.color_list_petal;
 		const descriptor_names = this.props.descriptors_text;
 		return descriptor_names.map((d, i) => <div className={styles.descriptorName}>
 				<text style={{color:color_list[i]}}>{d}</text>

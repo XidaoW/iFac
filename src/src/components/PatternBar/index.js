@@ -23,6 +23,7 @@ class PatternBar extends Component {
 	constructor(props) {
 		super(props);
 		this.miniPatternBarSize = 80,
+		this.color_list_petal = props.color_list_petal;
 		this.outerCircleRadius = parseInt(gs.outerCircleRadius);
 		this.innerCircleRadius = parseInt(gs.innerCircleRadius);
 		this.innerCircleStrokeWidth = parseInt(gs.innerCircleStrokeWidth);
@@ -130,8 +131,7 @@ class PatternBar extends Component {
 		}	
 
 		function axisStroke(i, descriptor_size) {
-			var color_list = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]
-			return color_list[i]
+			return _self.color_list_petal[i]
 			// return d3.hcl(i / descriptor_size * 360, 60, 70);
 		};		
 
