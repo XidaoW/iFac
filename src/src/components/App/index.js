@@ -1066,6 +1066,7 @@ class App extends Component {
 				datasets={datasets}	
 				domain={domain}
 				weights={weights}
+				queries={queries}
 				updateModelFlag={updateModelFlag}
 				updatingFlag={updatingFlag}
 				metricAggregated={metricAggregated}

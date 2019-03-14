@@ -21,6 +21,7 @@ class ControlView extends Component {
 		this.svg_error;
 		this.svg_stability;
 		this.svg_interpretability;
+		this.dominanceColor = "#fc8d12";
 		this.color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];		
 		this.layout = {
 			width: 130,
@@ -123,7 +124,12 @@ class ControlView extends Component {
 		const _self = this;
 		const { descriptors, components_cnt, descriptors_text, updateModelFlag,
 				error_data,  stability_data, fit_data, entropy_data, normalized_entropy_data,
-				gini_data, theil_data, pctnonzeros_data, onClickPoint, domain,weights, metricAggregated } = this.props;
+				gini_data, theil_data, pctnonzeros_data, onClickPoint, domain,weights, metricAggregated,queries } = this.props;
+
+
+		const query_flag = (Object.keys(queries).length == 0)? false: Object.keys(queries).map(function(key){			
+						return queries[key].length;
+					}).reduce((a,b)=>a+b);
 
 
 		var n = error_data.length, 
@@ -204,7 +210,7 @@ class ControlView extends Component {
 
 			var linearColor = d3.scaleLinear()
 				.domain([0,1])
-				.range(['white','#fc8d12']);
+				.range(['white',_self.dominanceColor]);
 
 
 			var linearSize = d3.scaleLinear().domain([0,10]).range([10, 30]);
@@ -214,6 +220,7 @@ class ControlView extends Component {
 			svg_legend1.append("g")
 				.attr("class", "legendDominance")
 				.attr("transform", "translate(20, 10)");
+			console.log(query_flag);
 			var legendSize = legend.legendColor()
 				.scale(linearColor)
 				.shape('circle')
@@ -221,7 +228,7 @@ class ControlView extends Component {
 				.shapePadding(15)
 				.labelFormat(d3.format(".0%"))
 				.labelOffset(20)
-				.title("Dominance")
+				.title((d) => (query_flag? "Pattern Relevance": "Pattern Dominance"))
 				.orient('horizontal');
 
 			svg_legend1.select(".legendDominance")
