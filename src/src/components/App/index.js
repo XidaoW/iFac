@@ -267,7 +267,8 @@ class App extends Component {
 			minErrorIdx: screeData.min_error_index,	
 			updateItemPostionsFlag: false,
 			updatingFlag: false,
-			start_index: start_index
+			start_index: start_index,
+			similarPatternToQueries:[]
 		});    
 	}
 
@@ -799,20 +800,29 @@ class App extends Component {
 		 */
 		const factors = this.state.factors_data,
 			pattern_cnt = factors.length;
-		// p(item1_descriptor1/pattern)*p(item2_descriptor1/pattern)*p(item3_descriptor2/pattern)*p(item4_descriptor3/pattern)
-		let similarPatternToQueries = this.calculateSimilarityBtnPatternToQueries(pattern_cnt, new_queries, factors),
-			pattern_idx,
-			relevance_score,
-			coordinates;
+		const query_flag = (Object.keys(new_queries).length == 0)? false: Object.keys(new_queries).map(function(key){			
+			return new_queries[key].length;
+		}).reduce((a,b)=>a+b);			
 
-		similarPatternToQueries = d3.range(similarPatternToQueries.length).map(function(i){
-			return {
-					"rank": i,
-					"pattern_idx": similarPatternToQueries[i][0],
-					"relevance_score":similarPatternToQueries[i][1],
-					"dominance": similarPatternToQueries[i][2]
-				};
-		});
+		let similarPatternToQueries;
+
+		// p(item1_descriptor1/pattern)*p(item2_descriptor1/pattern)*p(item3_descriptor2/pattern)*p(item4_descriptor3/pattern)
+		if(query_flag){
+			similarPatternToQueries = this.calculateSimilarityBtnPatternToQueries(pattern_cnt, new_queries, factors);
+
+			similarPatternToQueries = d3.range(similarPatternToQueries.length).map(function(i){
+				return {
+						"rank": i,
+						"pattern_idx": similarPatternToQueries[i][0],
+						"relevance_score":similarPatternToQueries[i][1],
+						"dominance": similarPatternToQueries[i][2]
+					};
+			});
+			
+		}else{
+			similarPatternToQueries = []
+		}
+
 
 		this.setState({
 			queries:new_queries,
