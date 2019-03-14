@@ -7,10 +7,6 @@ import * as quadPath from '../../lib/draw_quadratic_path.js';
 import * as petal from '../../lib/draw_petals.js';
 import PatternGlyph from 'components/PatternGlyph';
 
-
-import { legendColor } from 'd3-svg-legend';
-import { legendSize } from 'd3-svg-legend';
-
 import _ from 'lodash';
 import styles from './styles.scss';
 import index from '../../index.css';
@@ -75,8 +71,8 @@ class CircularView extends Component {
 		this.renderRadioButton = this.renderRadioButton.bind(this);		
 		this.renderUpdateButton = this.renderUpdateButton.bind(this);	
 		this.renderSpinGlyph = this.renderSpinGlyph.bind(this);	
-
-					
+		this.renderGlyph = this.renderGlyph.bind(this);		
+		this.renderSingleGlyph = this.renderSingleGlyph.bind(this);								
 
 	}
 
@@ -116,13 +112,13 @@ class CircularView extends Component {
 	}	
 
 	handleUpdatePattern() {
-		d3.select('.pattern_circles').attr('stroke', 'grey');                                      
-		d3.select('.pattern_circles').attr('stroke-opacity', 0.3);
-		d3.select('.pattern_mini_circles').attr('stroke', 'grey');
-		d3.select('.pattern_mini_circles').attr('stroke-opacity', 0.3);		
+		d3.selectAll('.pattern_circles').attr('stroke', 'grey');                                      
+		d3.selectAll('.pattern_circles').attr('stroke-opacity', 0.3);
+		d3.selectAll('.pattern_mini_circles').attr('stroke', 'grey');
+		d3.selectAll('.pattern_mini_circles').attr('stroke-opacity', 0.3);		
 		this.props.onUpdatePatterns();
-		message.loading('Model Update in Progress..', 20)
-		.then(() => message.success('Loading finished', 2.5))
+		// message.loading('Model Update in Progress..', 20)
+		// .then(() => message.success('Loading finished', 2.5))
 	}
 
 	handleMergePattern(mergePatternIdx) {
@@ -131,10 +127,10 @@ class CircularView extends Component {
 			.delay(100)
 			.ease(d3.easeBounce);
 
-		d3.select('.pattern_circles').attr('stroke', 'grey');                                      
-		d3.select('.pattern_circles').attr('stroke-opacity', 0.3);
-		d3.select('.pattern_mini_circles').attr('stroke', 'grey');
-		d3.select('.pattern_mini_circles').attr('stroke-opacity', 0.3);		
+		d3.selectAll('.pattern_circles').attr('stroke', 'grey');                                      
+		d3.selectAll('.pattern_circles').attr('stroke-opacity', 0.3);
+		d3.selectAll('.pattern_mini_circles').attr('stroke', 'grey');
+		d3.selectAll('.pattern_mini_circles').attr('stroke-opacity', 0.3);		
 		[mergePatternIdx[1]].map((idx) => {
 			d3.select('.pattern_circles#pattern_' + idx).transition(t).style("display", "none");
 			d3.select('.flower#flower_' + idx).transition(t).style("display", "none");
@@ -147,8 +143,29 @@ class CircularView extends Component {
 		this.props.onChangeProjection(e.target.value);
 	}	
 
+	renderGlyph(selectedIdxs){
+		return selectedIdxs.map((idx) => <PatternGlyph 
+					idx={idx} 
+					data={this.props.data}
+				/>
+			)
+	}
+
+	renderSingleGlyph(weight){
+		var petals_spin = d3.range(Object.keys(this.props.descriptors).length).map((d) => 
+				{return {id: 'spin', length: 0.5, petal_idx: d, width: 1}}
+			)
+		
+		var spinData = {};
+		spinData['spin'] = {id: 'spin', weight: weight, petals: petals_spin};
+		return <PatternGlyph 
+							idx={'spin'} 
+							data={spinData}
+						/>
+	}
+
 	renderSpinGlyph(){
-		console.log(Object.keys(this.props.descriptors).length);
+		// console.log(Object.keys(this.props.descriptors).length);
 		// var petals_spin = d3.range(Object.keys(this.props.descriptors).length).map((d) => 
 		// 		{return {id: 'spin', length: 0.5, petal_idx: d, width: 1}}
 		// 	)
@@ -170,12 +187,13 @@ class CircularView extends Component {
 		// checked={(this.props.display_projection == i)? true: false};
 
 		return Object.keys(this.props.descriptors).map((d, i) => 
-			 (<Radio.Button 
+			 (<Radio 
+			 	shape={"circle"}			 	
 			 	defaultChecked={false}
 			 	style={{color: color_list_petal[i]}} 
 			 	value={i}>
 					{d}
-			</Radio.Button>)
+			</Radio>)
 		)
 		// render the radio button group
 	}
@@ -197,11 +215,12 @@ class CircularView extends Component {
 				arc_positions_bar_petal,item_max_pattern,
 				bar_data, max_pattern_item,modes,updateItemPostionsFlag,
 				queries, similarPatternToQueries, item_links, descriptors,
-				mouseOveredDescriptorIdx, item_similarity, components_cnt,display_projection,
-				itemEmbeddings_1d,itemEmbeddings_2d,patternEmbeddings,deletedPatternIdx,mergePatternIdx } = this.props;  
+				mouseOveredDescriptorIdx, item_similarity, components_cnt,
+				display_projection,
+				itemEmbeddings_1d,itemEmbeddings_2d,
+				patternEmbeddings,deletedPatternIdx,mergePatternIdx } = this.props;  
 
 
-		console.log(selectedPatterns);
 		if(selectedPatterns.length == 0){
 			d3.select('.pattern_circles').attr('stroke', 'grey');                                      
 			d3.select('.pattern_circles').attr('stroke-opacity', 0.3);
@@ -297,61 +316,7 @@ class CircularView extends Component {
 						.attr('transform', 'translate(' + ((width)/2-(innerRadius)/2) + ',' + ((height)/2-( innerRadius)/2) + ')')
 						.attr('class', 'g_flowers');
 
-		plot_legend();
-		function plot_legend(){
-			d3.selectAll("div#svg-color-quant").selectAll("svg").remove()
-			// var sequentialScale = d3.scaleSequential(d3.interpolateRainbow)
-			// 	.domain([0,1])
-			// 	.range(['white','#fc8d12']);				
-
-			// var legendSequential = legendColor()
-			// 	.shapeWidth(30)
-			// 	.cells(5)
-			// 	.orient("horizontal")
-			// 	.scale(sequentialScale) 
-			
-			var svg_legend = d3.selectAll("div#svg-color-quant").append("svg")
-			svg_legend.append("g")
-				.attr("class", "legendQuant")
-				.attr("transform", "translate(20,20)");
-
-
-			var linearColor = d3.scaleLinear()
-				.domain([0,1])
-				.range(['white','#fc8d12']);
-
-
-			var legendLinear = legendColor()
-				.shapeWidth(20)
-				.cells(5)
-				.orient('horizontal')
-				.scale(linearColor);
-
-			// svg.select(".legendLinear")
-			// 	.call(legendLinear);
-			// svg_legend.select(".legendQuant")
-			// 	.call(legendLinear);	
-
-
-			// var linearSize = d3.scaleLinear().domain([0,10]).range([10, 30]);
-
-			// var svg_legend1 = d3.selectAll("div#svg-color-quant").append("svg")
-			// svg_legend1.append("g")
-			// 	.attr("class", "legendSize")
-			// 	.attr("transform", "translate(20, 40)");
-
-			// var legendSize = legendSize()
-			// 	.scale(linearSize)
-			// 	.shape('circle')
-			// 	.shapePadding(15)
-			// 	.labelOffset(20)
-			// 	.orient('horizontal');
-
-			// svg_legend1.select(".legendSize")
-			// .call(legendSize);
-
-		}	  
-
+ 
 		// DRAW THE RADIAL BAR CHART
 		for(let descriptor_index = 0; descriptor_index < descriptor_size; descriptor_index++){
 			let selected_pattern_cnt = selectedPatterns.length;
@@ -382,7 +347,7 @@ class CircularView extends Component {
 
 
 		// deleted patterns reappear
-		d3.range(components_cnt).map((idx) => {
+		d3.range(components_cnt).filter((idx1) => deletedPatternIdx.indexOf(idx1) < 0).map((idx) => {			
 			d3.select('.pattern_circles#pattern_' + idx).style("display", "inline");
 			d3.select('.flower#flower_' + idx).style("display", "inline");
 			d3.select('tr.pattern_row_' + idx).style("display", "inline");				
@@ -968,13 +933,13 @@ class CircularView extends Component {
 			var title1 = '',
 				deleteFlag = selectedPatterns.length > 0;
 			if(deleteFlag){
-				title1 = 'Do you want to delete these patterns?';			
+				title1 = 'Do you want to delete the following patterns?';			
 			}else{
 				title1 = 'Please select at least one pattern to delete';
 			}			
 			confirm({
 				title: 'Do you want to delete these patterns?',
-				content: '',
+				content: _self.renderGlyph(selectedPatterns),
 				onOk() {	
 					if(deleteFlag){
 						_self.handleDeletePattern(selectedPatterns);
@@ -987,13 +952,13 @@ class CircularView extends Component {
 			var title1 = '',
 				mergeFlag = selectedPatterns.length == 2;
 			if(mergeFlag){
-				title1 = 'Do you want to merge these two patterns?';			
+				title1 = 'Do you want to merge the following patterns?';			
 			}else{
 				title1 = 'Please select two patterns to merge';
 			}
 			confirm({
 				title: title1,
-				content: '',
+				content: _self.renderGlyph(selectedPatterns),
 				onOk() {					
 					if(mergeFlag){
 						_self.handleMergePattern(selectedPatterns);
@@ -1072,6 +1037,8 @@ class CircularView extends Component {
 			return (d.id >= components_cnt)? barFillOpacityConst : 1;
 		};
 
+	
+
 		return (
 			<div className={styles.CircularOverview}>					
 				<div className={index.title}>Circular View
@@ -1080,41 +1047,47 @@ class CircularView extends Component {
   					</Tooltip>					
 				</div>
 				<div>
-						<RadioGroup onChange={this.handleChangeProjection} defaultValue={-1} size="small">
-							<RadioButton value={-1}>Pattern</RadioButton>	
-							{this.renderRadioButton()}				
-						</RadioGroup>																								
-					<ButtonGroup size="small">
-						{(this.props.selectedPatterns.length > 0) ? (
-							<Button onClick={this.handleResetPatterns}>
-								Reset Pattern Selection
-							</Button>
-						) : <div></div>}
-						{query_flag ? (
-							<Button onClick={this.handleResetItems}>
-								Reset Item Selection
-							</Button>
-						) : <div></div>}							
-					</ButtonGroup>					
+					<div>
+					<RadioGroup 
+						onChange={this.handleChangeProjection}
+						defaultValue={-1} 
+						size="small">
+						<Radio shape="circle" value={-1}>Pattern</Radio>	
+						{this.renderRadioButton()}				
+					</RadioGroup>																								
+					</div>
+					<div>
 					<ButtonGroup size="small">
 						{(this.props.selectedPatterns.length > 0) ? (
 							<Button onClick={showConfirmDelete}>
 								Delete
 							</Button>							
-						) : <div></div>}
+						) : ''}
 						{(this.props.selectedPatterns.length > 1) ? (
 							<Button onClick={showConfirmMerge}>
 								Merge
 							</Button>	
-						) : <div></div>}	
+						) : ''}	
 						{(this.props.deletedPatternIdx.length > 0 || this.props.updateItemPostionsFlag ) ? (
 							<Button onClick={showConfirmUpdate}>
-								Update Model
+								Update
 							</Button>						
-						) : <div></div>}												
+						) :''}												
 					</ButtonGroup>
-				</div>
-				<div id="svg-color-quant" className={styles.legend}></div>
+					<ButtonGroup size="small">
+						{(this.props.selectedPatterns.length > 0) ? (
+							<Button onClick={this.handleResetPatterns}>
+								Reset Pattern Selection
+							</Button>
+						) : ''}
+						{query_flag ? (
+							<Button onClick={this.handleResetItems}>
+								Reset Item Selection
+							</Button>
+						) : ''}							
+					</ButtonGroup>		
+					</div>								
+				</div>				
 				{!this.props.updatingFlag ? svg.toReact() : this.renderSpinGlyph()}
 			</div>
 		);

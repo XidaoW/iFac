@@ -4,7 +4,9 @@ import ReactFauxDOM from 'react-faux-dom';
 import { plot_linechart } from '../../lib/draw_linechart.js'
 import _ from 'lodash';
 import { Dropdown, DropdownItem, DropdownToggle, DropdownMenu } from 'reactstrap';
-import { Alert, Tooltip, Slider, Icon, Collapse } from 'antd';
+import { Alert, Drawer, Button, Tooltip, Slider, Icon, Collapse } from 'antd';
+import legend from 'd3-svg-legend';
+
 
 import styles from './styles.scss';
 import index from '../../index.css';
@@ -19,13 +21,15 @@ class ControlView extends Component {
 		this.svg_error;
 		this.svg_stability;
 		this.svg_interpretability;
+		this.color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];		
 		this.layout = {
 			width: 130,
 			height: 130,
 		};		
 
 		this.state = {
-			datasetDropdownOpen: false
+			datasetDropdownOpen: false,
+			legendDrawerVisible: false
 		}
 
 		this.toggleDatasetDropdown = this.toggleDatasetDropdown.bind(this);
@@ -34,9 +38,24 @@ class ControlView extends Component {
 		this.tipFormatter = this.tipFormatter.bind(this);	
 		this.renderDescriptorDescription = this.renderDescriptorDescription.bind(this);
 		this.onCloseModelUpdateAlert = this.onCloseModelUpdateAlert.bind(this);
-
+		this.showLegendDrawer = this.showLegendDrawer.bind(this);
+		this.onCloseLegendDrawer = this.onCloseLegendDrawer.bind(this);
+		this.renderLegend = this.renderLegend.bind(this);
+	
 		
 	}
+
+	showLegendDrawer = () => {
+		this.setState({
+			legendDrawerVisible: true,
+		});
+	};
+
+	onCloseLegendDrawer = () => {
+		this.setState({
+			legendDrawerVisible: false,
+		});
+	};	
 
 	toggleDatasetDropdown() {
 		this.setState({
@@ -69,6 +88,13 @@ class ControlView extends Component {
 				]
 		return tooltip_strings[idx]+ `${value}`;
 	}
+
+	renderLegend(){
+
+	
+
+	}
+
 	renderDatasets() {
     const { datasets } = this.props;
 
@@ -171,6 +197,85 @@ class ControlView extends Component {
 
 
 
+
+		plot_legend();
+		function plot_legend(){
+			d3.selectAll("div#svgLegend").selectAll("svg").remove()
+
+			var linearColor = d3.scaleLinear()
+				.domain([0,1])
+				.range(['white','#fc8d12']);
+
+
+			var linearSize = d3.scaleLinear().domain([0,10]).range([10, 30]);
+
+			var svg_legend1 = d3.selectAll("div#svgLegend").append("svg")
+								.attr("height","100%");
+			svg_legend1.append("g")
+				.attr("class", "legendDominance")
+				.attr("transform", "translate(20, 10)");
+			var legendSize = legend.legendColor()
+				.scale(linearColor)
+				.shape('circle')
+				.classPrefix('legendCircle')
+				.shapePadding(15)
+				.labelFormat(d3.format(".0%"))
+				.labelOffset(20)
+				.title("Dominance")
+				.orient('horizontal');
+
+			svg_legend1.select(".legendDominance")
+			.call(legendSize);
+
+			//plot the informative legend
+			svg_legend1.append("g")
+				.attr("class", "legendInformative")
+				.attr("transform", "translate(20, 90)");
+			var legendSizeInformative = legend.legendColor()
+				.shape("circle")
+				.classPrefix('legendInformativeEllipse')
+				.shapePadding(15)
+				.labelFormat(d3.format(".0%"))
+				.labelOffset(20)
+				.title("Informativeness")
+				.orient('horizontal');
+
+			svg_legend1.select(".legendInformative")
+			.call(legendSizeInformative);
+			d3.selectAll(".legendInformativeEllipseswatch").attr("transform", (d) => "scale(1, "+((d == 0)? 0.1 : 1*d)+")");
+
+			// plot the similarity in descriptors
+			Object.keys(descriptors).map((d, i) => {
+				var linearColorDescriptor = d3.scaleLinear()
+					.domain([0,1])
+					.range(['white',_self.color_list_petal[i]]);
+
+				
+				svg_legend1.append("g")
+					.attr("class", "legendDescriptor_" + i)
+					.attr("transform", "translate(20, "+90*(i+2)+")");
+				var legendSize = legend.legendColor()
+					.scale(linearColorDescriptor)
+					.shape("circle")
+					.classPrefix('legendEllipse')
+					.shapePadding(15)
+					.labelFormat(d3.format(".0%"))
+					.labelOffset(20)
+					.title("Similarity in " + d)
+					.orient('horizontal');
+
+				svg_legend1.select(".legendDescriptor_" + i)
+				.call(legendSize);
+			})
+			d3.selectAll(".legendEllipseswatch").attr("transform", (d) => "scale(1.4, 0.8)");
+
+
+		}	 
+
+
+
+
+
 		return (
 			<div className={styles.infoPanel}>
 				<div className={styles.dataInspector}>
@@ -201,7 +306,21 @@ class ControlView extends Component {
 								closable
 								onClose={this.onCloseModelUpdateAlert}
 							/>
-							):<div></div>}					
+							):<div></div>}	
+
+					<Button onClick={this.showLegendDrawer}>
+					Legend
+					</Button>
+					<Drawer
+						title="Legend"
+						placement="right"
+						closable={false}
+						onClose={this.onCloseLegendDrawer}
+						visible={this.state.legendDrawerVisible}
+					>
+					<div id="svgLegend" className={styles.legend}>
+					</div>					
+					</Drawer>					
 				</div>
 				<div className={styles.modelInspector}>
 					<div class={index.title}>

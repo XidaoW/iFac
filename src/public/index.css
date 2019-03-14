@@ -159,3 +159,24 @@ display: none;
   padding: 30px 50px;
   margin: 20px 0;
 }
+
+.legendCircleswatch {
+  stroke: grey;
+  stroke-width: 2px;
+}
+
+.legendEllipseswatch {
+  stroke: grey;
+  stroke-width: 2px;  
+}
+
+.legendInformativeEllipseswatch {
+  fill: white;
+  stroke: grey;
+  stroke-width: 2px;  
+}
+
+
+#svgLegend, .ant-drawer-body {
+  height:100%;
+}

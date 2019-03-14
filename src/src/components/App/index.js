@@ -23,7 +23,7 @@ const domainSetting = {
 						// "nbaplayer": {"modes": "3", "cnt": "20"},
 						"nbaplayer1": {"modes": "3", "cnt": "40"},
 						"policyKeyword1": {"modes": "4", "cnt": "30"},
-						"purchase1": {"modes": "5", "cnt": "30"}
+						"purchase": {"modes": "5", "cnt": "20"}
 					};
 
 const item_projection_method = "mds";

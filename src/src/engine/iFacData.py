@@ -632,12 +632,12 @@ def generateData():
 	iFac.column_cnt = len(iFac.labels)
 	iFac.getFitForRanks(base, trials = nb_trials)
 
-	# for cur_base in range(iFac.start_index, base+1):
-	# 	_log.info("Getting Embedding for Rank at {}".format(cur_base))		
-	# 	iFac.cur_base = cur_base
-	# 	iFac.generateItemEmbedding(n_component = 1)
-	# 	iFac.generateItemEmbedding(n_component = 2)
-	# 	iFac.generatePatternEmbedding()
+	for cur_base in range(iFac.start_index, base+1):
+		_log.info("Getting Embedding for Rank at {}".format(cur_base))		
+		iFac.cur_base = cur_base
+		iFac.generateItemEmbedding(n_component = 1)
+		iFac.generateItemEmbedding(n_component = 2)
+		iFac.generatePatternEmbedding()
 
 def aggregateAll():
 	iFac = iFacData()	

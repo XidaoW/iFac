@@ -36,8 +36,7 @@ class PatternGlyph extends Component {
   render() {
 
 		const { data, idx } = this.props;
-		console.log(data[idx]);
-		console.log(data[idx].petal);
+
 		const _self = this,
 				descriptor_size = data[idx].petals.length;
 		let g,
