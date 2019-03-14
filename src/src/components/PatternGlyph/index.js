@@ -37,6 +37,7 @@ class PatternGlyph extends Component {
   render() {
 
 		const { data, idx, similarPatternToQueries } = this.props;
+		console.log(similarPatternToQueries);
 		const _self = this,
 				descriptor_size = data[idx].petals.length;
 		let g,
@@ -62,7 +63,7 @@ class PatternGlyph extends Component {
 						.attr('stroke', 'grey')
 						.attr('stroke-width', gs.innerCircleStrokeWidth)                
 						.attr('fill-opacity', (d, i) => {
-							return (similarPatternToQueries.length > 0)? similarPatternToQueries[i].relevance_score: d.weight;
+							return (similarPatternToQueries && similarPatternToQueries.length > 0)? similarPatternToQueries[i].relevance_score: d.weight;
 						}) 
 						.attr('stroke-opacity', 0.3)
 						.attr('id', (d) => 'pattern_mini_' + d.id)                

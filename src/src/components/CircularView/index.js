@@ -144,7 +144,8 @@ class CircularView extends Component {
 
 	renderGlyph(selectedIdxs){
 		return selectedIdxs.map((idx) => <PatternGlyph 
-					idx={idx} 
+					idx={idx}
+					color_list_petal={this.color_list_petal}
 					data={this.props.data}
 				/>
 			)
@@ -159,6 +160,7 @@ class CircularView extends Component {
 		spinData['spin'] = {id: 'spin', weight: weight, petals: petals_spin};
 		return <PatternGlyph 
 							idx={'spin'} 
+							color_list_petal={this.color_list_petal}							
 							data={spinData}
 						/>
 	}
