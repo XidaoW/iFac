@@ -35,8 +35,7 @@ class PatternGlyph extends Component {
 
   render() {
 
-		const { data, idx } = this.props;
-
+		const { data, idx, similarPatternToQueries } = this.props;
 		const _self = this,
 				descriptor_size = data[idx].petals.length;
 		let g,
@@ -51,7 +50,6 @@ class PatternGlyph extends Component {
 		this.pie = d3.pie().sort(null).value((d) => 1);
 		const x_offset = width/2,
 			y_offset = height/2;
-		console.log(data[idx]);
 		// Add the outer circles to the backdrop.
 		const circles = d3.select(svg).selectAll('.pattern_circles_mini')
 						.data([data[idx]])
@@ -62,7 +60,9 @@ class PatternGlyph extends Component {
 						.attr('fill', '#fc8d12')
 						.attr('stroke', 'grey')
 						.attr('stroke-width', gs.innerCircleStrokeWidth)                
-						.attr('fill-opacity', (d) => d.weight) 
+						.attr('fill-opacity', (d, i) => {
+							return (similarPatternToQueries.length > 0)? similarPatternToQueries[i].relevance_score: d.weight;
+						}) 
 						.attr('stroke-opacity', 0.3)
 						.attr('id', (d) => 'pattern_mini_' + d.id)                
 						.attr('transform', (d, i) => 'translate(' + x_offset + ',' 

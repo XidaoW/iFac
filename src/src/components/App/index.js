@@ -346,7 +346,12 @@ class App extends Component {
 					"id": id, "length": 1 - d.factors[i].entropy,
 					"width": d.factors[i].similarity.average
 				}; 
-			});   
+			}); 
+			console.log(d);
+  			d.circles = {
+				"dominance": d.weight, 
+				"radius": 6
+			};     
 		});
 
 		this.setState(prevState => ({
@@ -367,12 +372,28 @@ class App extends Component {
 		 *
 		 * 
 		 */	
+		const factors = this.state.factors_data;
+
+		factors.forEach(function(d, id) {
+			d.petals = d3.range(d.dims).map(function(i) { 
+				return {
+					"id": id, "length": 1 - d.factors[i].entropy,
+					"width": d.factors[i].similarity.average
+				}; 
+			});   
+			console.log(d);			
+			d.circles = {
+				"dominance": d.weight, 
+				"radius": 6
+			};     			
+		});		 
 		this.setState({
 			queries: d3.range(this.state.modes).reduce((obj, item) => {
 						obj[item] = [];
 						return obj;
 					}, {}),
-			similarPatternToQueries: []
+			similarPatternToQueries: [],
+			factors_data: factors
 		});		 
 	}
 
@@ -1039,8 +1060,6 @@ class App extends Component {
 
 
 	const components_cnt = factors_data.length;
-	console.log(itemEmbeddings_1d);
-	console.log(itemEmbeddings_2d);
 	console.log('domain: ', this.state.domain);
 
 	return (

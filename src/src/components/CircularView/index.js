@@ -353,6 +353,7 @@ class CircularView extends Component {
 			d3.select('tr.pattern_row_' + idx).style("display", "inline");				
 		})
 
+
 		draw_query_result(similarPatternToQueries, query_flag);
 
 		
@@ -377,16 +378,24 @@ class CircularView extends Component {
 							.attr('transform', (d, i) => 'translate(' + d.x + ',' 
 										+ d.y + ')')
 							.on("mouseover", function(d){
-								tooltip.html('<div>pattern#' + d.id + '</div>'+ 
-									'<div>dominance: ' + d3.format(".0%")(d.weight) + '</div>');
+								var curPattern = similarPatternToQueries.filter((sps) => sps.pattern_idx == d.id)
+								if(curPattern.length > 0){
+									var tooltipHtml = '<div>pattern#' + d.id + '</div>'+ 
+									'<div>' +
+									"Relevance:" + d3.format(".0%")(curPattern[0].relevance_score)
+									+ '</div>';
+								}else{
+									var tooltipHtml = '<div>pattern#' + d.id + '</div>'+ 
+									'<div>' +
+									"Dominance:" + d3.format(".0%")(d.weight)
+									+ '</div>';
+								}
+								tooltip.html(tooltipHtml);
 								tooltip.show();						
 								if (!d3.select('#pattern_' + d.id).classed('selected')){
 									d3.select('#pattern_' + d.id).attr('stroke-opacity', 1); 
 									d3.select('#pattern_mini_' + d.id).attr('stroke-opacity', 1); 
 								}							
-								
-								// console.log(d3.select("tr[data-row-key='"+d.id+"']").position())
-
 							})
 							.on("mouseout", function(d){
 								tooltip.hide();

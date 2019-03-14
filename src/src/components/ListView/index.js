@@ -91,6 +91,7 @@ class ListView extends Component {
 					<PatternGlyph 
 							idx={Glyph} 
 							data={data}
+							similarPatternToQueries={similarPatternToQueries}							
 						/>
 			    </span>
 			  ),		  
