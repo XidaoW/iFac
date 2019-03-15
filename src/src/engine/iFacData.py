@@ -192,7 +192,7 @@ class iFacData():
 
 		self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(self.column_cnt)]
 		is_distance = [False] * len(self.data)
-		mvmds_est = mvmds.MVMDS(k=2)
+		mvmds_est = mvmds.MVMDS(k=2, spearman=self.spearman)
 		self.factor_embeddings = {}
 		mvmds_est.fit(self.data, is_distance)
 		self.factor_embeddings['mds'] = mvmds_est.components_.tolist()
@@ -203,7 +203,7 @@ class iFacData():
 		# mvtsne_est.fit(self.data, is_distance)
 		# self.factor_embeddings['tsne'] = np.nan_to_num(np.asarray(mvtsne_est.embedding_)).tolist()		
 
-		mvsc_est = mvsc.MVSC(k=2)
+		mvsc_est = mvsc.MVSC(k=2, spearman=self.spearman)
 		mvsc_est.fit(self.data, is_distance)
 		self.factor_embeddings['sc'] = np.asarray(mvsc_est.evectors_).tolist()
 
@@ -514,6 +514,7 @@ class iFacData():
 					dataSetII = self.factors[k][j]
 					dataSetI = self.factors[i][j]
 					result = scipy.stats.spearmanr(dataSetI, dataSetII)[0]
+					# result = scipy.stats.entropy(dataSetI, dataSetII)
 					output_each_factor['similarity'][k] = result
 				dict_ = output_each_factor['similarity']
 				max_item = dict_[max(dict_, key=dict_.get)]
@@ -627,6 +628,7 @@ def generateData():
 	iFac.S_matrix = []
 	iFac.lambda_0 = 0
 	iFac.lambda_1 = 0
+	iFac.spearman = True
 
 	iFac.readData(domain = iFac.domain)
 	iFac.column_cnt = len(iFac.labels)
@@ -679,5 +681,5 @@ def helper():
 
 if __name__ == '__main__':
 	
-	generateData() # generate factor matrices with metrics
-	# aggregateAll() # aggreate metrics
+	# generateData() # generate factor matrices with metrics
+	aggregateAll() # aggreate metrics

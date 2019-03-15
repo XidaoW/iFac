@@ -298,12 +298,22 @@ class CircularView extends Component {
 
 		})
 		var simulation = d3.forceSimulation(data)
-			.force("x", d3.forceX(function(d) { return d.x; }).strength(0.05))
-			.force("y", d3.forceY(function(d) { return d.y; }).strength(0.05))
-			.force("collide", d3.forceCollide().radius(function(d){ return 1.2*d.radius }))
-			.force("manyBody", d3.forceManyBody().strength(-5))
+			.force("x", d3.forceX(function(d) { return d.x; }).strength(0.1))
+			.force("y", d3.forceY(function(d) { return d.y; }).strength(0.1))
+			.force("collide", d3.forceCollide().radius(function(d){ return 1.1*d.radius }))
+			.force("manyBody", d3.forceManyBody().strength(-1))
 			.stop();
   		for (var i = 0; i < 2000; ++i) simulation.tick();
+
+
+		// var simulation = d3.forceSimulation(data)
+		// 	.force("x", d3.forceX(function(d) { return d.x; }).strength(0.05))
+		// 	.force("y", d3.forceY(function(d) { return d.y; }).strength(0.05))
+		// 	.force("collide", d3.forceCollide().radius(function(d){ return 1.*d.radius }))
+		// 	.force("manyBody", d3.forceManyBody().strength(-5))
+		// 	.stop();
+  // 		for (var i = 0; i < 2000; ++i) simulation.tick();
+
 			// .force("center", d3.forceCenter((width)/2-(innerRadius)/2, (height)/2-( innerRadius)/2))
 
 
@@ -592,7 +602,7 @@ class CircularView extends Component {
 							.attr("y", function(d) { return d.y; })							
 							.attr("font-size", "8px")							
 							.text((d) => {return d.label})	
-							.attr("display", "none");
+							// .attr("display", "none");
 
 			item_group.call(d3.drag()
 							.on("start", dragstarted)
@@ -601,7 +611,7 @@ class CircularView extends Component {
 			function dragstarted(d, i) {
 				d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label).classed("drag_active", true);
 				// d3.select("text#item_text_" + descriptor_index+ '_'+ d.label).classed("drag_active", true);				
-				d3.selectAll(".labeltext").attr("display", "inline");
+				// d3.selectAll(".labeltext").attr("display", "inline");
 			}
 
 			function dragged(d, i) {
@@ -622,7 +632,7 @@ class CircularView extends Component {
 				_self.handleMoveItemPosition(i, descriptor_index,
 					[circle_position_x_item.invert(d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label).attr("cx")), 
 					circle_position_y_item.invert(d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label).attr("cy"))]);
-				d3.selectAll(".labeltext").attr("display", "none");
+				// d3.selectAll(".labeltext").attr("display", "none");
 			}
 		}
 

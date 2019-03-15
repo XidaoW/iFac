@@ -77,7 +77,7 @@ class ListView extends Component {
 				return {
 					children: <span>{text}</span>,
 					props: {
-						width: 3,
+						width: 1,
 						align: 'left',
 						padding: 3,
 					},

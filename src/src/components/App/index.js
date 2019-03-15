@@ -21,8 +21,8 @@ const domainSetting = {
 						// "picso": {"modes": "3", "cnt": "19"},
 						"picso1": {"modes": "3", "cnt": "30"},
 						// "nbaplayer": {"modes": "3", "cnt": "20"},
-						"nbaplayer1": {"modes": "3", "cnt": "40"},
-						"policyKeyword1": {"modes": "4", "cnt": "30"},
+						"nbaplayer1": {"modes": "3", "cnt": "50"},
+						"policyKeyword": {"modes": "4", "cnt": "40"},
 						"purchase": {"modes": "5", "cnt": "20"}
 					};
 
@@ -33,7 +33,6 @@ class App extends Component {
 		super(props);
 		const domain = "nbaplayer1";
 		const [factors_data, metrics, itemEmbeddings_1d, itemEmbeddings_2d, patternEmbeddings] = this.loadDefaultDataset(domain);
-		console.log(metrics);
 		this.state = {
 			factors_data: factors_data.data,
 			descriptors: factors_data.descriptors,
@@ -111,7 +110,6 @@ class App extends Component {
 			itemEmbeddingsLoad_1d = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_item_embedding_1d.json"),
 			itemEmbeddingsLoad_2d = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_item_embedding_2d.json"),			// itemEmbeddingsLoad2D = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_item_embedding_2d.json"),
 			patternEmbeddingsLoad = require("../../data/" + selectedDomain + "/factors_"+domainSetting[selectedDomain]['modes']+"_"+ domainSetting[selectedDomain]['cnt'] + "_sample_pattern_embedding.json");
-		console.log(metricsLoad);
 		return [factorsLoad, metricsLoad, itemEmbeddingsLoad_1d[item_projection_method],itemEmbeddingsLoad_2d[item_projection_method], patternEmbeddingsLoad]
 	}
 	loadDatasetOnClickPoint(selectedDomain, rank){
@@ -350,7 +348,6 @@ class App extends Component {
 					"width": d.factors[i].similarity.average
 				}; 
 			}); 
-			console.log(d);
   			d.circles = {
 				"dominance": d.weight, 
 				"radius": 6
@@ -384,7 +381,6 @@ class App extends Component {
 					"width": d.factors[i].similarity.average
 				}; 
 			});   
-			console.log(d);			
 			d.circles = {
 				"dominance": d.weight, 
 				"radius": 6
@@ -426,7 +422,6 @@ class App extends Component {
 			)
 
 		});
-		console.log(this.state.selectedPatterns);
 	}
 
 	handleMergePatterns(){
@@ -449,7 +444,6 @@ class App extends Component {
 			components_cnt = this.state.components_cnt;
 
 
-		console.log(factors_cur.length);
 		d3.range(this.state.modes.length)
 			.map((mode) => {
 				let sum_value = 0,
@@ -480,7 +474,6 @@ class App extends Component {
 		)
 		factors_cur[target].weight += factors_cur[source].weight;
 		factors_cur[target].circles.dominance = factors_cur[target].weight;
-		console.log(factors_cur.length);
 
 
 		for(let i = 0; i < this.state.modes.length; i++){
@@ -522,8 +515,8 @@ class App extends Component {
 			components_cnt = bar_data[0].length - 1,
 			screeData = this.state.screeData,
 			start_index = this.state.start_index,
-			itemEmbeddings_2d = this.state.itemEmbeddings_2d,
-			randomIdx = this.state.minErrorIdx[components_cnt-start_index];
+			itemEmbeddings_2d = this.state.itemEmbeddings_2d;
+			
 
 		this.setState({
 			updatingFlag: true
@@ -535,7 +528,9 @@ class App extends Component {
 						return Object.values(each_d).slice(0, -1);
 					});
 				});	
-
+		const randomIdx = this.state.minErrorIdx[new_bar_data[0].length-start_index];
+		// console.log(this.state.minErrorIdx);
+		// console.log(this.state.randomIdx);
 		fetch('/dataset/ntf/', {
 				method: 'post',
 				body: JSON.stringify({
@@ -603,7 +598,6 @@ class App extends Component {
 				obj[item] = [];
 				return obj;
 			}, {});			
-		console.log(new_data);
 		new_data.data.forEach(function(d, id) {
 			d.petals = d3.range(d.dims).map(function(i) { 
 				return {
@@ -933,7 +927,7 @@ class App extends Component {
 						return obj;
 					}, {});
 		let bar_data = {},
-				max_pattern_item = {},
+				// max_pattern_item = {},
 				descriptors_text = [];
 
 		factors.forEach(function(d, id) {
@@ -951,11 +945,11 @@ class App extends Component {
 
 		for(let i = 0; i < factors[0].dims; i++){
 			bar_data[i] = [];
-			max_pattern_item[i] = [];
+			// max_pattern_item[i] = [];
 			let pattern_cnt = factors.length;
 			for(let j = 0; j < pattern_cnt; j++) {
 				bar_data[i].push(factors[j].factors[i].values); 
-				max_pattern_item[i].push(factors[j].factors[i].max_item);         
+				// max_pattern_item[i].push(factors[j].factors[i].max_item);         
 			}      
 			bar_data[i].push(selectedDataset.average[i]); 
 		}
@@ -1035,7 +1029,7 @@ class App extends Component {
 			modes: selectedDataset.modes,
 			descriptors_text: descriptors_text,
 			bar_data: bar_data,      
-			max_pattern_item: max_pattern_item,
+			// max_pattern_item: max_pattern_item,
 			queries: queries,
 			error_data: error_data,
 			stability_data: stability_data,
@@ -1047,6 +1041,7 @@ class App extends Component {
 			pctnonzeros_data: pctnonzeros_data,
 			weights: weights,
 			components_cnt: factors.length,
+			minErrorIdx:metrics.min_error_index,
 			itemEmbeddings_1d: itemEmbeddings_1d,
 			itemEmbeddings_2d: itemEmbeddings_2d,
 			patternEmbeddings: patternEmbeddings,
