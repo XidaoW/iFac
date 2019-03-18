@@ -881,17 +881,18 @@ class CircularView extends Component {
 					.on('click', (d) => {
 						if (d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried')) {
 							queries[descriptor_index].pop(d.key);
-							_self.props.onClickItem(queries, top_k);							
-							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke", "none");							
-							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', false);							
+							_self.props.onClickItem(queries, top_k);
+							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke", "none");
+							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', false);
+
 						} else {
 							if(!(descriptor_index in queries)){
 								queries[descriptor_index] = [];	
 							}
 							queries[descriptor_index].push(d.key);							
 							_self.props.onClickItem(queries, top_k);
-							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke", "black");
-							d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', true);
+							// d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).attr("stroke", "black");
+							// d3.select('#query_bar_' + descriptor_index+ '_'+ d.key).classed('queried', true);
 						}						
 					})
 					.on('mouseover', (d) => {
@@ -934,7 +935,18 @@ class CircularView extends Component {
 						// 	d3.select('#query_bar_' + descriptor_index+ '_'+ key).attr("opacity", barFillOpacityConst);
 						// });
 						// _self.props.onMouseOutItem();
-					});			
+					});		
+	
+			Object.keys(queries).map((d) => {
+				queries[d].map((key) => {
+					d3.select('#query_bar_' + d+ '_'+ key).attr("stroke", "black");							
+					d3.select('#query_bar_' + d+ '_'+ key).classed('queried', true);							
+				})
+			})
+
+
+
+
 			var draw_correlation_link = false; 
 			if(draw_correlation_link){
 				var link_opacity = d3.scaleLinear()

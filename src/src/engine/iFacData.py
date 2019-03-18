@@ -82,6 +82,21 @@ class iFacData():
 			shots_group_data_attempted = shots_group_data_made.div(shots_group_data_attempted, level=0)
 			self.hist, self.labels = self.createDataHistogram(shots_group_data_attempted, self.column)
 
+		if self.domain in ["nbaplayershot"]:
+			top_cnt = 15
+			shots = pd.read_csv("data/NBA_shots_201415.csv")
+			shots = shots[['PLAYER_ID','PLAYER_NAME','TEAM_ID','TEAM_NAME','ZoneName','PERIOD','SHOT_ATTEMPTED_FLAG','SHOT_MADE_FLAG']]
+			shots.PERIOD[shots.PERIOD > 4] = 5
+			self.column = ['PERIOD','PLAYER_NAME','ZoneName']
+			shots_total = shots.groupby(['PLAYER_NAME'])['SHOT_ATTEMPTED_FLAG'].sum()
+			top_players = list(shots_total.sort_values(ascending=False).iloc[:top_cnt].index)
+			shots = shots[shots.PLAYER_NAME.isin(top_players)]
+			shots_group_data_attempted = shots.groupby(self.column)['SHOT_ATTEMPTED_FLAG'].sum()
+			# shots_group_data_made = shots.groupby(self.column)['SHOT_MADE_FLAG'].sum()
+			# shots_group_data_attempted = shots_group_data_made.div(shots_group_data_attempted, level=0)
+			self.hist, self.labels = self.createDataHistogram(shots_group_data_attempted, self.column)
+
+
 		elif self.domain in ["policy","policy1"]:
 			policy = pd.read_csv("data/policy_adoption.csv")
 			policy['adoption'] = 1

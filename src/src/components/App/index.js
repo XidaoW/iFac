@@ -22,6 +22,7 @@ const domainSetting = {
 						"picso1": {"modes": "3", "cnt": "30"},
 						// "nbaplayer": {"modes": "3", "cnt": "20"},
 						"nbaplayer1": {"modes": "3", "cnt": "50"},
+						"nbaplayershot": {"modes": "3", "cnt": "30"},
 						"policyKeyword": {"modes": "4", "cnt": "40"},
 						"purchase": {"modes": "5", "cnt": "20"}
 					};
@@ -31,7 +32,7 @@ const item_projection_method = "mds";
 class App extends Component {
 	constructor(props) {
 		super(props);
-		const domain = "nbaplayer1";
+		const domain = "nbaplayershot";
 		const [factors_data, metrics, itemEmbeddings_1d, itemEmbeddings_2d, patternEmbeddings] = this.loadDefaultDataset(domain);
 		this.state = {
 			factors_data: factors_data.data,
@@ -797,7 +798,6 @@ class App extends Component {
 		const query_flag = (Object.keys(new_queries).length == 0)? false: Object.keys(new_queries).map(function(key){			
 			return new_queries[key].length;
 		}).reduce((a,b)=>a+b);			
-
 		let similarPatternToQueries;
 
 		// p(item1_descriptor1/pattern)*p(item2_descriptor1/pattern)*p(item3_descriptor2/pattern)*p(item4_descriptor3/pattern)
