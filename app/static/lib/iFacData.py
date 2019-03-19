@@ -18,6 +18,9 @@ import pandas as pd
 from scipy import stats
 # from scipy.special import entr
 from scipy import spatial
+import scipy
+from scipy.spatial.distance import pdist, squareform
+
 import math
 
 import sys
@@ -35,6 +38,16 @@ def cleanOutputFile(output_file):
 	subprocess.call(["sed -i 's/NaN/0/g' {}".format(output_file)], shell=True)
 	subprocess.call(["sed -i 's/\\\"over\\\"/over/g' {}".format(output_file)], shell=True)
 	subprocess.call(["sed -i 's/\\\"under\\\"/under/g' {}".format(output_file)], shell=True)
+
+
+def localScaling(dMat, sk = 7):
+	## get sigma k for each row
+	sigmaK = np.zeros(dMat.shape[0])
+	for i in range(dMat.shape[0]):
+		row = dMat[i,:]
+		sigmaK[i] = np.sqrt(np.sort(row)[sk-1])
+
+	return sigmaK
 
 
 class iFacData():
@@ -85,6 +98,21 @@ class iFacData():
 			shots_group_data_attempted = shots_group_data_made.div(shots_group_data_attempted, level=0)
 			self.hist, self.labels = self.createDataHistogram(shots_group_data_attempted, self.column)
 
+
+
+		if self.domain in ["nbaplayershot"]:
+			top_cnt = 15
+			shots = pd.read_csv("app/static/data/NBA_shots_201415.csv")
+			shots = shots[['PLAYER_ID','PLAYER_NAME','TEAM_ID','TEAM_NAME','ZoneName','PERIOD','SHOT_ATTEMPTED_FLAG','SHOT_MADE_FLAG']]
+			shots.PERIOD[shots.PERIOD > 4] = 5
+			self.column = ['PERIOD','PLAYER_NAME','ZoneName']
+			shots_total = shots.groupby(['PLAYER_NAME'])['SHOT_ATTEMPTED_FLAG'].sum()
+			top_players = list(shots_total.sort_values(ascending=False).iloc[:top_cnt].index)
+			shots = shots[shots.PLAYER_NAME.isin(top_players)]
+			shots_group_data_attempted = shots.groupby(self.column)['SHOT_ATTEMPTED_FLAG'].sum()
+			self.hist, self.labels = self.createDataHistogram(shots_group_data_attempted, self.column)
+
+
 		elif self.domain in ["policy","policy1"]:
 			policy = pd.read_csv("app/static/data/policy_adoption.csv")
 			policy['adoption'] = 1
@@ -99,6 +127,30 @@ class iFacData():
 			policy = policy[policy.subject_name != "Unknown"]            
 			self.column = ['subject_name', 'adopted_year', 'state_id', 'key']
 			policy_group = policy.groupby(self.column)['val'].sum()
+			self.hist, self.labels = self.createDataHistogram(policy_group, self.column)
+
+
+
+		elif self.domain in ["policyTopic"]:
+			num_keyword_each_topic = 3
+			policy_state = pd.read_csv("data/policy_adoption_state.csv")
+			policy = pd.read_csv("data/policy_adoption.csv")
+			policy_lda = policy[['policy_id', 'policy_lda_1']]			
+			policy_state_topic = pd.merge(policy_state,policy_lda,on='policy_id')
+
+			policy_topic = pd.read_csv("data/policy_topic.txt", sep = ':')
+			policy_topic.columns = ['policy_lda_1','keywords']
+			policy_topic_keyword = policy_topic.keywords.str.split(',').apply(lambda x: '_'.join(x[0:num_keyword_each_topic]))
+			policy_topic_keyword.columns = ["keywords"]
+			policy_topic_keyword = pd.DataFrame(policy_topic_keyword)
+			policy_topic_keyword['policy_lda_1'] = policy_topic['policy_lda_1']
+
+			policy_state_topic = pd.merge(policy_state_topic,policy_topic_keyword,on='policy_lda_1')
+			policy_state_topic['adoption'] = 1
+			policy_state_topic = policy_state_topic[policy_state_topic.adopted_year >= 1990]
+			policy_state_topic = policy_state_topic[policy_state_topic.subject_name != "Unknown"]
+			self.column = ['subject_name', 'adopted_year', 'state_id', 'keywords']
+			policy_group = policy_state_topic.groupby(self.column)['adoption'].sum()
 			self.hist, self.labels = self.createDataHistogram(policy_group, self.column)
 
 
@@ -173,11 +225,11 @@ class iFacData():
 	def saveItemMDS(self, n_component=1):
 
 		from sklearn.manifold import MDS, spectral_embedding
-		self.loadFactors()
+		# self.loadFactors()
 		MDS_embeddings = MDS(n_components=n_component, random_state = 1)
 		SC_embeddings = MDS(n_components=n_component, random_state = 1)
 		
-		self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(self.column_cnt)]
+		# self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(self.column_cnt)]
 		self.item_mds = {}
 		self.item_mds['mds'] = {}
 		self.item_mds['sc'] = {}
@@ -192,9 +244,9 @@ class iFacData():
 			# cleanOutputFile(data_output_file)
 
 	def savePatternEmbedding(self):
-		self.loadFactors()
+		# self.loadFactors()
 
-		self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(self.column_cnt)]
+		# self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(self.column_cnt)]
 		is_distance = [False] * len(self.data)
 		mvmds_est = mvmds.MVMDS(k=2)
 		self.factor_embeddings = {}
@@ -403,7 +455,7 @@ class iFacData():
 		"""        
 		
 		self.factors = self.ntfInstance.factor
-		self.saveFactors()
+		# self.saveFactors()
 		self.data = [np.array([self.factors[i][j].tolist() for i in range(len(self.factors))]) for j in range(len(self.column))]
 		
 
@@ -549,9 +601,9 @@ class iFacData():
 			# cleanOutputFile(data_output_file)				
 
 
-	def computePatterns(self, random_seed = 1):
+	def computePatterns(self, ones = False, random_seed = 1):
 		_log.info("Factorize Tensor")   
-		self.factorizeTensor(ones = False, random_seed = random_seed)
+		self.factorizeTensor(ones = ones, random_seed = random_seed)
 		_log.info("Get Factors")          
 		self.normalizeFactor()
 		self.getFactors()
@@ -587,31 +639,68 @@ class iFacData():
 		self.savePatternEmbedding()
 
 	def generateSingleOutput(self, domain = "", base = 10, 
-		reference_matrix = [], L_matrix = [], random_seed = 0):
+		reference_matrix = [], itemEmbeddings_2d = [], random_seed = 0):
 		self.domain = domain
 		self.cur_base = base
 		self.start_index = base		
 		self.readData(domain = self.domain)
 		self.column_cnt = len(self.column)	
-		self.reference_matrix = reference_matrix
-		self.L_matrix = L_matrix
 		parameter_config = {
 			"picso1": {"lambda_0": 0, "lambda_1": 0},
-			"nbaplayer1": {"lambda_0": 0.01, "lambda_1": 0.1},
+			"nbaplayer1": {"lambda_0": 0.01, "lambda_1": 0.01, "s": 0.1},
+			"nbaplayershot": {"lambda_0": 0.05, "lambda_1": 0.1, "s": 0.1},
 			"policyKeyword1": {"lambda_0": 0, "lambda_1": 0},
-			"purchase1": {"lambda_0": 0, "lambda_1": 0},
+			"policyTopic": {"lambda_0": 0.01, "lambda_1": 0.01, "s": 0.1},
+			"purchase": {"lambda_0": 0.01, "lambda_1": 0.01, "s": 0.01},
 		}
-		lambda_1 = 0.1
 		self.lambda_0 = parameter_config[domain]["lambda_0"]
 		self.lambda_1 = parameter_config[domain]["lambda_1"]
-
+		self.s = parameter_config[domain]["s"]
 		self.random_seed = random_seed
 		self.save_flag = False
+		self.ones = True
+
+		reference_matrix_all = []
+		L_matrix = []	
+		W_matrix = []		
+		for x1 in reference_matrix:
+			reference_matrix_all.append(np.asarray(x1).T)
+		
+		for way_index in itemEmbeddings_2d:
+			# print(json_request['itemEmbeddings_2d'][way_index])
+			pairwise_sq_dists = squareform(pdist(np.array(itemEmbeddings_2d[way_index]), 'sqeuclidean'))
+			# pairwise_sq_dists = squareform(pairwise_dists)
+			# _log.info(pairwise_sq_dists.shape)
+			# https://papers.nips.cc/paper/2619-self-tuning-spectral-clustering.pdf
+			sigmaK = localScaling(pairwise_sq_dists, sk = min(7, pairwise_sq_dists.shape[0]))
+			W_matrix_each = np.zeros(pairwise_sq_dists.shape)
+			for i in range(pairwise_sq_dists.shape[0]):
+				for j in range(pairwise_sq_dists.shape[0]):
+					W_matrix_each[i,j] = np.exp((-1.0 * (pairwise_sq_dists[i,j]))  /  (sigmaK[i] * sigmaK[j]))			
+			
+			# _log.info(self.s)
+			# self.s = 0.1
+			# W_matrix_each = np.exp(-pairwise_sq_dists / (self.s*len(itemEmbeddings_2d[way_index])))
+
+			# self.s = np.sqrt(np.var(pairwise_sq_dists))
+			# W_matrix_each = np.exp(-pairwise_sq_dists / self.s**2)
+			# zero out the diagonal
+			W_matrix_each = W_matrix_each - np.diag(np.diag(W_matrix_each))
+			D_matrix = np.zeros(W_matrix_each.shape)
+			for i in range(W_matrix_each.shape[0]):
+				D_matrix[i,i] = sum(W_matrix_each[i, ])
+			L_matrix_each = D_matrix - W_matrix_each
+			L_matrix.append(L_matrix_each)
+			W_matrix.append(W_matrix_each)
+
+		self.reference_matrix = reference_matrix_all
+		self.L_matrix = L_matrix
+
 
 		# if len(reference_matrix) > 0:
 		# 	print("using reference matrix: {}".format(reference_matrix))
 		# 	print("using L matrix: {}".format(self.L_matrix))
-		self.computePatterns(random_seed = self.random_seed)
+		self.computePatterns(ones = self.ones, random_seed = self.random_seed)
 		self.item_mds1 = self.generateItemEmbedding(n_component = 1)
 		self.item_mds2 = self.generateItemEmbedding(n_component = 2)
 		self.generatePatternEmbedding()

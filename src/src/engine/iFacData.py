@@ -113,6 +113,27 @@ class iFacData():
 			policy_group = policy.groupby(self.column)['val'].sum()
 			self.hist, self.labels = self.createDataHistogram(policy_group, self.column)
 
+		elif self.domain in ["policyTopic"]:
+			num_keyword_each_topic = 3
+			policy_state = pd.read_csv("data/policy_adoption_state.csv")
+			policy = pd.read_csv("data/policy_adoption.csv")
+			policy_lda = policy[['policy_id', 'policy_lda_1']]			
+			policy_state_topic = pd.merge(policy_state,policy_lda,on='policy_id')
+
+			policy_topic = pd.read_csv("data/policy_topic.txt", sep = ':')
+			policy_topic.columns = ['policy_lda_1','keywords']
+			policy_topic_keyword = policy_topic.keywords.str.split(',').apply(lambda x: '_'.join(x[0:num_keyword_each_topic]))
+			policy_topic_keyword.columns = ["keywords"]
+			policy_topic_keyword = pd.DataFrame(policy_topic_keyword)
+			policy_topic_keyword['policy_lda_1'] = policy_topic['policy_lda_1']
+
+			policy_state_topic = pd.merge(policy_state_topic,policy_topic_keyword,on='policy_lda_1')
+			policy_state_topic['adoption'] = 1
+			policy_state_topic = policy_state_topic[policy_state_topic.adopted_year >= 1990]
+			policy_state_topic = policy_state_topic[policy_state_topic.subject_name != "Unknown"]
+			self.column = ['subject_name', 'adopted_year', 'state_id', 'keywords']
+			policy_group = policy_state_topic.groupby(self.column)['adoption'].sum()
+			self.hist, self.labels = self.createDataHistogram(policy_group, self.column)
 
 		elif self.domain in ["harvard","harvard1"]:
 			harvard = pd.read_csv("/home/xidao/project/hipairfac/output/harvard_data_tensor_students.csv")
@@ -656,6 +677,16 @@ def generateData():
 		iFac.generateItemEmbedding(n_component = 2)
 		iFac.generatePatternEmbedding()
 
+	measures = ["error", "fit", "stability", "entropy", "normalized_entropy", "pctnonzeros", "gini", "theil", "min_error_index"]        
+	start_metrics = iFac.readMetricJSON(base_cnt=iFac.start_index-1, domain = domain, ndims = iFac.column_cnt)
+	for i in range(iFac.start_index, base+1):
+		cur_metrics = iFac.readMetricJSON(base_cnt=i, domain = domain, ndims = iFac.column_cnt)
+		for m in measures:
+			cur_metrics[m] = [x for x in start_metrics[m] if x is not None] + [x for x in cur_metrics[m] if x is not None]        
+		with open('/home/xidao/project/thesis/iFac/src/src/data/'+domain+'/factors_'+str(iFac.column_cnt)+'_'+str(i)+'_sample_fit_metrics.json', 'w') as fp:
+			json.dump(cur_metrics, fp)   
+
+
 def aggregateAll():
 	iFac = iFacData()	
 	iFac.end_index = int(sys.argv[1])
@@ -696,5 +727,5 @@ def helper():
 
 if __name__ == '__main__':
 	
-	# generateData() # generate factor matrices with metrics
-	aggregateAll() # aggreate metrics
+	generateData() # generate factor matrices with metrics
+	# aggregateAll() # aggreate metrics

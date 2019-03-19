@@ -203,8 +203,8 @@ translations = json.loads(json_translations)
 def generateFeatureLabelIf(label, bins):
     if label is None:
         labelBins = list(map(str, bins))
-        labelBins.insert(0, "\"under\"")
-        labelBins[-1] += " \"over\""
+        labelBins.insert(0, "under")
+        labelBins[-1] += " over"
         label = ["%02d %s" % (i1, lb) for i1, lb in enumerate(labelBins)]
     return np.array(label)
 

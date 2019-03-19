@@ -38,33 +38,9 @@ class RunRegNTF(APIView):
 		pass
 
 	def post(self, request, format=None):
-		json_request = json.loads(request.body.decode(encoding='UTF-8'))	
-		# _log.info(json_request['reference_matrix'])
-		whole_dataset_df = pd.DataFrame({'test': ['yes']})
+		json_request = json.loads(request.body.decode(encoding='UTF-8'))		
 		iFac = iFacData()
-		base = json_request['base']
-		domain = json_request['domain']
-		randomIdx = json_request['randomIdx']
-		reference_matrix = []
-		W_matrix = []
-		L_matrix = []			
-		for x1 in json_request['reference_matrix']:
-			reference_matrix.append(np.asarray(x1).T)
-		s = 1			
-		for way_index in json_request['itemEmbeddings_2d']:
-			# print(json_request['itemEmbeddings_2d'][way_index])
-			pairwise_sq_dists = squareform(pdist(np.array(json_request['itemEmbeddings_2d'][way_index]), 'sqeuclidean'))
-			W_matrix_each = np.exp(-pairwise_sq_dists / s**2)
-
-			D_matrix = np.zeros(W_matrix_each.shape)
-			for i in range(W_matrix_each.shape[0]):
-				D_matrix[i,i] = sum(W_matrix_each[i, ])
-			L_matrix_each = D_matrix - W_matrix_each
-			W_matrix.append(W_matrix_each)			
-			L_matrix.append(L_matrix_each)
-
-
-		result = iFac.generateSingleOutput(domain = domain, base = base, 
-			random_seed = randomIdx, L_matrix = L_matrix, 
-			reference_matrix = reference_matrix)
+		result = iFac.generateSingleOutput(domain = json_request['domain'], base = json_request['base'], 
+			random_seed = json_request['randomIdx'], itemEmbeddings_2d=json_request['itemEmbeddings_2d'],
+			reference_matrix = json_request['reference_matrix'])
 		return Response(result)

@@ -229,7 +229,8 @@ class NTF():
 		# similarity_error = sum([np.trace(X_itr[i].T.dot(L_matrix[i]).dot(X_itr[i])) for i in range(len(L_matrix))])
 		# similarity_error = similarity_error / len(L_matrix)
 		for i in range(len(L_matrix)):			
-			similarity_error += np.trace(X_itr[i].T.dot(L_matrix[i]).dot(X_itr[i]))			
+			similarity_error += np.trace(X_itr[i].T.dot(L_matrix[i]).dot(X_itr[i]))
+			# similarity_error += np.linalg.norm(L_matrix[i] - X_itr[i].dot(X_itr[i].T)) 
 			reference_error += np.linalg.norm(X_itr[i] - reference_matrix[i])
 
 		reference_error /= len(L_matrix)
@@ -237,7 +238,7 @@ class NTF():
 		return error, similarity_error, reference_error
 
 
-	def factorize(self, x, iterations=100, showProgress=False, default=True, 
+	def factorize(self, x, iterations=200, showProgress=False, default=True, 
 		reference_matrix=[], L_matrix = [], lambda_0 = 0.0, lambda_1 = 0.0):
 		if not default:
 			x = dtensor(x)
@@ -304,7 +305,8 @@ class NTF():
 		# S_matrix = [np.zeros((x.shape[way_index], x.shape[way_index])) for way_index in range(num_ways)]
 		for l in range(R):
 			for way_index in range(num_ways):
-				# similarity_reg = -np.atleast_2d(X_itr[way_index][:,l]).dot(S_matrix[way_index]) + np.atleast_2d(X_itr[way_index][:,l]).dot(np.atleast_2d(X_itr[way_index][:,l]).T).dot(np.atleast_2d(X_itr[way_index][:,l]))
+				# similarity_reg = -np.atleast_2d(X_itr[way_index][:,l]).dot(L_matrix[way_index]) + np.atleast_2d(X_itr[way_index][:,l]).dot(np.atleast_2d(X_itr[way_index][:,l]).T).dot(np.atleast_2d(X_itr[way_index][:,l]))
+				# https://www.ideals.illinois.edu/bitstream/handle/2142/11453/Graph%20Regularized%20Non-negative%20Matrix%20Factorization%20for%20Data%20Representation.pdf
 				similarity_reg = (L_matrix[way_index]).dot(np.atleast_2d(X_itr[way_index][:,l]).T)
 				reference_reg = (X_itr[way_index][:,l] - reference_matrix[way_index][:,l])				
 				similarity_reg = similarity_reg.ravel()
@@ -312,16 +314,14 @@ class NTF():
 				X_itr[way_index][:,l] = (
 						X_itr[way_index][:,l] * (X_FF_iter[way_index][l,l]) - 
 						(
-							factor_gradient/np.linalg.norm(X_itr[way_index])  + 2*lambda_0 * similarity_reg + lambda_1 * reference_reg
+							factor_gradient  + 2*lambda_0 * similarity_reg + lambda_1 * reference_reg
 						)
 					) / (X_FF_iter[way_index][l,l] + EPS)
 
 				X_itr[way_index][:,l][X_itr[way_index][:,l] < EPS] = EPS
 
 		X_itr = [normalize_column(each_factor, by_norm='2')[0] if way_index < (num_ways - 1) else each_factor for way_index, each_factor in enumerate(X_itr)]
-		return X_itr
-				
-
+		return X_itr				
 
 	def reconstruct(self):
 		return self.createTensorFromFactors()
