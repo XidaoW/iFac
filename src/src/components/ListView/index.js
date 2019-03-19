@@ -115,7 +115,7 @@ class ListView extends Component {
 			}];
 
 		if(similarPatternToQueries.length > 0){
-			var patternIndices = similarPatternToQueries.sort((first, second) => 
+			var patternIndices = [...similarPatternToQueries].sort((first, second) => 
 				second.relevance_score - first.relevance_score
 			).map((d) => d.pattern_idx);
 		}else{

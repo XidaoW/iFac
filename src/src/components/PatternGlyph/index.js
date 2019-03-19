@@ -44,6 +44,9 @@ class PatternGlyph extends Component {
 			patternSize = this.miniPatternSize,
 			width = patternSize,
 			height = patternSize			
+		var min_relevance = d3.min(similarPatternToQueries, (d) => d.relevance_score);
+		var max_relevance = d3.max(similarPatternToQueries, (d) => d.relevance_score);
+		var fill_scale = d3.scaleLinear().domain([min_relevance, max_relevance]).range([0, 1]);
 
 		svg.setAttribute('width', width);
 		svg.setAttribute('height',width);
@@ -62,7 +65,7 @@ class PatternGlyph extends Component {
 						.attr('stroke', 'grey')
 						.attr('stroke-width', gs.innerCircleStrokeWidth)                
 						.attr('fill-opacity', (d, i) => {
-							return (similarPatternToQueries && similarPatternToQueries.length > 0)? similarPatternToQueries[i].relevance_score: d.weight;
+							return (similarPatternToQueries && similarPatternToQueries.length > 0)? fill_scale(similarPatternToQueries[idx].relevance_score): d.weight;
 						}) 
 						.attr('stroke-opacity', 0.3)
 						.attr('id', (d) => 'pattern_mini_' + d.id)                

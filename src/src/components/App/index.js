@@ -24,6 +24,7 @@ const domainSetting = {
 						"nbaplayer1": {"modes": "3", "cnt": "50"},
 						"nbaplayershot": {"modes": "3", "cnt": "30"},
 						"policyKeyword": {"modes": "4", "cnt": "40"},
+						"policyTopic": {"modes": "4", "cnt": "60"},
 						"purchase": {"modes": "5", "cnt": "20"}
 					};
 
@@ -863,7 +864,8 @@ class App extends Component {
 					});				
 					// multiply each probability if there are more than one item, otherwise use the probability of that item.
 					// p_d = \prod_{i\in I^{'}} ~p_{di}
-					return (query_result_each_key.length > 1)? query_result_each_key.reduce((a,b) => a * b) : query_result_each_key
+					// console.log(query_result_each_key.reduce((a,b) => a * b));
+					return (query_result_each_key.length > 0)? query_result_each_key.reduce((a,b) => a * b) : query_result_each_key
 				});
 			query_result = query_result.map(function(key){
 				// if there are no items in the query from certain descriptor, use 1 to multiply the ones that have items.				
