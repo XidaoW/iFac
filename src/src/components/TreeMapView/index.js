@@ -263,7 +263,11 @@ class TreeMapView extends Component {
 					items.enter()
 						.append("text")
 	        			.attr("class", "ctext")
-	        			.text(function(d) { return d.data.item.split('_')[1]; })				        
+	        			.text(function(d) { 
+	        				var curLabelText = d.data.item.split('_');
+	        				curLabelText.shift();
+	        				return curLabelText.join("_"); 
+	        			})				        
 	        			.call(text2);
 				
 				svg_descriptors.selectAll(".ctext").style("opacity", (options.item == null) ? 0.4:0);	        			
@@ -276,8 +280,12 @@ class TreeMapView extends Component {
 					.on('mouseover', function (d) {
 						svg.classed('hover-active', true)   							
 						items.classed('hover', function (e) {
+
+	        				var curLabelText = d.data.item.split('_');
+	        				curLabelText.shift();
+
 							// console.log(descriptors[Object.keys(descriptors)[d.parent.data.descriptor]]);
-							tooltip.html('<div>' + Object.keys(descriptors)[d.parent.data.descriptor] + ": " + d.data.item.split('_')[1] +"(" + d3.format(".0%")(d.data.value/descriptors[Object.keys(descriptors)[d.parent.data.descriptor]].length) + ")"+ '</div>');
+							tooltip.html('<div>' + Object.keys(descriptors)[d.parent.data.descriptor] + ": " + curLabelText.join("_") +"(" + d3.format(".0%")(d.data.value/descriptors[Object.keys(descriptors)[d.parent.data.descriptor]].length) + ")"+ '</div>');
 							tooltip.show();
 							d3.selectAll('path#bar_' + d.parent.data.descriptor+ '_'+ d.data.item).attr("stroke-width", "2px");
 							return e.data.item === d.data.item

@@ -19,12 +19,12 @@ import 'antd/dist/antd.css';
 
 const domainSetting = {
 						// "picso": {"modes": "3", "cnt": "19"},
-						"picso1": {"modes": "3", "cnt": "30"},
+						// "picso1": {"modes": "3", "cnt": "30"},
 						// "nbaplayer": {"modes": "3", "cnt": "20"},
-						"nbaplayer1": {"modes": "3", "cnt": "50"},
+						// "nbaplayer1": {"modes": "3", "cnt": "50"},
 						"nbaplayershot": {"modes": "3", "cnt": "30"},
-						"policyKeyword": {"modes": "4", "cnt": "40"},
-						"policyTopic": {"modes": "4", "cnt": "60"},
+						// "policyKeyword": {"modes": "4", "cnt": "40"},
+						"policyTopic": {"modes": "4", "cnt": "70"},
 						"purchase": {"modes": "5", "cnt": "20"}
 					};
 

@@ -243,6 +243,7 @@ class CircularView extends Component {
 			reorder_item = false,
 			translate_x = 0,
 			translate_y = 0,
+			draw_label = true,
 			top_k = 5;
 
 
@@ -345,7 +346,9 @@ class CircularView extends Component {
 			}
 			// when two patterns are selected for comparison, the query bar also needs to or-ordered. 
 			reorder_item = (selected_pattern_cnt == 2)? true : false;
-			draw_query_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height, reorder_item = reorder_item);
+			// let query_pattern_idx = (selected_pattern_cnt > 0)? selectedPatterns : [components_cnt];
+			// draw_query_circular(bar_data, descriptor_index, max_pattern_item, query_pattern_idx, descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height, reorder_item = reorder_item);
+			draw_query_circular(bar_data, descriptor_index, max_pattern_item, [components_cnt], descriptor_size, descriptor_size_list, this.layout.detailView.margin, width, height, selectedPatterns, reorder_item = reorder_item);
 		}
 
 		if(display_projection == -1){
@@ -598,10 +601,12 @@ class CircularView extends Component {
 			item_group.append("text")
 							.attr('class', 'labeltext')		
 							.attr("id", (d, i) => "item_text_" + descriptor_index + "_"+ d.label)																
-							.attr("x", function(d) { return d.x; })
-							.attr("y", function(d) { return d.y; })							
+							.text((d) => {return d.label})
+							.attr("x", function(d) { 								
+								return d.x-2; })
+							.attr("y", function(d) { return d.y+2; })							
 							.attr("font-size", "8px")							
-							.text((d) => {return d.label})	
+							
 							// .attr("display", "none");
 
 			item_group.call(d3.drag()
@@ -678,7 +683,7 @@ class CircularView extends Component {
 		}
 
 
-		function draw_bars_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, descriptor_size_list, margin, width, height){
+		function draw_bars_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, descriptor_size_list, margin, width, height, draw_label = true){
 			/**
 			 * Draws the circular bar for each descriptor
 			 *
@@ -697,19 +702,23 @@ class CircularView extends Component {
 			 */					
 			let patterns, items, items1, descriptor_arcs;
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
-
 			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();
 			
-			items = items.map((d, idx) => [d, itemEmbeddings_1d[descriptor_index][idx][0]])
-						.sort((first, second) => second[1] - first[1])
-						.map((d) => d[0]);
+			// items = items.map((d, idx) => [d, itemEmbeddings_1d[descriptor_index][idx][0]])
+			// 			.sort((first, second) => second[1] - first[1])
+			// 			.map((d) => d[0]);
 			if(patterns.length == 2){
+				let zero_items;
+				zero_items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').filter((key) => {
+					return (bar_data[descriptor_index][patternIndices[0]][key] < 1e-3 && bar_data[descriptor_index][patternIndices[1]][key] < 1e-3)
+				});
 				// re-ordering the items based on the difference between the two patterns on each descriptor.
 				items1 = Object.keys(bar_data[descriptor_index][components_cnt+1])
 								.filter((d) => d !== 'id')
+								.filter((d) => zero_items.indexOf(d) < 0)
 								.map((key) => [key, bar_data[descriptor_index][components_cnt+1][key]])
 								.sort((first, second) => second[1] - first[1]);
-				items = items1.map((key) => key[0]);				
+				items = items1.map((key) => key[0]);	
 			}
 			// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
 			const x = d3.scaleBand()
@@ -772,7 +781,7 @@ class CircularView extends Component {
 			// Add the labels     
 			backdrop.selectAll("text.label_bar" + descriptor_index).remove();
 
-			var draw_label = true;
+			// var draw_label = true;
 			const label_length = 12;
 
 			if(draw_label){
@@ -800,7 +809,7 @@ class CircularView extends Component {
 	
 		}
 
-		function draw_query_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, descriptor_size_list, margin, width, height, reorder_item = false){
+		function draw_query_circular(bar_data, descriptor_index, max_pattern_item, patternIndices, descriptor_size, descriptor_size_list, margin, width, height, selectedPatterns, reorder_item = false){
 			/**
 			 * Draws the circular bar for input query and visualize item similarity
 			 *
@@ -821,13 +830,19 @@ class CircularView extends Component {
 			
 			patterns = patternIndices.map((pattern_id) => bar_data[descriptor_index][pattern_id]);
 			items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').sort();			
-			items = items.map((d, idx) => [d, itemEmbeddings_1d[descriptor_index][idx][0]])
-						.sort((first, second) => second[1] - first[1])
-						.map((d) => d[0]);
+			
+			// items = items.map((d, idx) => [d, itemEmbeddings_1d[descriptor_index][idx][0]])
+			// 			.sort((first, second) => second[1] - first[1])
+			// 			.map((d) => d[0]);
 
 			if(reorder_item){
+				let zero_items;
+				zero_items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').filter((key) => {
+					return (bar_data[descriptor_index][selectedPatterns[0]][key] < 1e-3 && bar_data[descriptor_index][selectedPatterns[1]][key] < 1e-3)
+				});
 				items1 = Object.keys(bar_data[descriptor_index][components_cnt+1])
 								.filter((d) => d !== 'id')
+								.filter((d) => zero_items.indexOf(d) < 0)								
 								.map((key) => [key, bar_data[descriptor_index][components_cnt+1][key]])
 								.sort((first, second) => second[1] - first[1]);
 				items = items1.map((key) => key[0]);	

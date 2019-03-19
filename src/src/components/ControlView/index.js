@@ -220,7 +220,6 @@ class ControlView extends Component {
 			svg_legend1.append("g")
 				.attr("class", "legendDominance")
 				.attr("transform", "translate(20, 10)");
-			console.log(query_flag);
 			var legendSize = legend.legendColor()
 				.scale(linearColor)
 				.shape('circle')
