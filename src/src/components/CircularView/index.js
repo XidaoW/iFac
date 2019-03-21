@@ -102,6 +102,10 @@ class CircularView extends Component {
 			d3.select('.flower#flower_' + idx).transition(t).style("display", "none");
 			d3.select('tr.pattern_row_' + idx).transition(t).style("display", "none");
 		});
+		d3.selectAll('.pattern_circles').attr('stroke', 'grey');                                      
+		d3.selectAll('.pattern_circles').attr('stroke-opacity', 0.3);
+		d3.selectAll('.pattern_mini_circles').attr('stroke', 'grey');
+		d3.selectAll('.pattern_mini_circles').attr('stroke-opacity', 0.3);		
 
 		this.props.onDeletePatterns(deletedPatternsIdx);
 	}
@@ -276,8 +280,8 @@ class CircularView extends Component {
 		this.pie = d3.pie().sort(null).value((d) => 1);
 		this.circle_color = d3.scaleLinear().domain([0, 1]).range(['#bf5b17','#e31a1c']).interpolate(d3.interpolateHcl);
 		this.circle_width = d3.scaleLinear().domain([0, 1]).range([1,2]);
-		this.circle_position_x = d3.scaleLinear().domain([min_tsne[0],max_tsne[0]]).range([- 0 + this.innerCircleRadius*2, + innerRadius - this.innerCircleRadius*2]);
-		this.circle_position_y = d3.scaleLinear().domain([min_tsne[1],max_tsne[1]]).range([- 0 + this.innerCircleRadius*2, + innerRadius - this.innerCircleRadius*2]);
+		this.circle_position_x = d3.scaleLinear().domain([min_tsne[0],max_tsne[0]]).range([+ 5 - this.innerCircleRadius*2, + innerRadius + this.innerCircleRadius*2]);
+		this.circle_position_y = d3.scaleLinear().domain([min_tsne[1],max_tsne[1]]).range([+ 5 - this.innerCircleRadius*2, + innerRadius + this.innerCircleRadius*2]);
 
 		for(var i = 0; i < selectedPatterns.length; i++){
 			used_color = d3.select('#pattern_' + selectedPatterns[i]).attr('stroke');   
@@ -301,7 +305,7 @@ class CircularView extends Component {
 		var simulation = d3.forceSimulation(data)
 			.force("x", d3.forceX(function(d) { return d.x; }).strength(0.1))
 			.force("y", d3.forceY(function(d) { return d.y; }).strength(0.1))
-			.force("collide", d3.forceCollide().radius(function(d){ return 1.1*d.radius }))
+			.force("collide", d3.forceCollide().radius(function(d){ return 0.8*d.radius }))
 			.force("manyBody", d3.forceManyBody().strength(-1))
 			.stop();
   		for (var i = 0; i < 2000; ++i) simulation.tick();
@@ -508,7 +512,9 @@ class CircularView extends Component {
 				// var min_width = d3.min(data, (d) => {console.log(d); return d.data.width});
 				// var max_width = d3.max(data, (d) => d.data.width);
 
-				var color_threshold = d3.scaleQuantize()
+				// var color_threshold = d3.scaleQuantize()
+				// 	.domain([0, 1]).range([0, 1]);
+				var color_threshold = d3.scaleLinear()
 					.domain([0, 1]).range([0, 1]);
 
 				// width => similarity
@@ -546,8 +552,8 @@ class CircularView extends Component {
 
 			var min_coords = [d3.min(itemEmbeddingAll_original, (d) => d[0]), d3.min(itemEmbeddingAll_original, (d) => d[1])];
 			var max_coords = [d3.max(itemEmbeddingAll_original, (d) => d[0]), d3.max(itemEmbeddingAll_original, (d) => d[1])];
-			var circle_position_x_item = d3.scaleLinear().domain([min_coords[0],max_coords[0]]).range([- 0 - _self.innerCircleRadius*2, + innerRadius - _self.innerCircleRadius*2]);
-			var circle_position_y_item = d3.scaleLinear().domain([min_coords[1],max_coords[1]]).range([- 0 - _self.innerCircleRadius*2, + innerRadius - _self.innerCircleRadius*2]);
+			var circle_position_x_item = d3.scaleLinear().domain([min_coords[0],max_coords[0]]).range([- 0 - _self.innerCircleRadius*2, + innerRadius + _self.innerCircleRadius*2]);
+			var circle_position_y_item = d3.scaleLinear().domain([min_coords[1],max_coords[1]]).range([- 0 - _self.innerCircleRadius*2, + innerRadius + _self.innerCircleRadius*2]);
 
 			// Cast my values as numbers and determine ranges.
 			var minmax = {p1: {min:0, max:0}, p2: {min:0, max:0}}
@@ -560,6 +566,15 @@ class CircularView extends Component {
 					radius: 10
 				}
 			});
+
+			var simulationItem = d3.forceSimulation(itemData)
+				.force("x", d3.forceX(function(d) { return d.x; }).strength(0.1))
+				.force("y", d3.forceY(function(d) { return d.y; }).strength(0.1))
+				.force("collide", d3.forceCollide().radius(function(d){ return 0.8*d.radius }))
+				.force("manyBody", d3.forceManyBody().strength(-1))
+				.stop();
+	  		for (var i = 0; i < 2000; ++i) simulationItem.tick();
+
 
 			var item_group = gFlowers.selectAll('g')
 									.data(itemData)
