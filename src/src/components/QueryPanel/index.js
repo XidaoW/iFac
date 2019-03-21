@@ -9,7 +9,7 @@ class QueryPanel extends Component {
 	constructor(props) {
 		super(props);	
 		this.color_list_petal = props.color_list_petal;		
-	}	
+	}		
 	state = {
 		tags: this.props.queries,
 		inputVisible: false,
@@ -49,7 +49,7 @@ class QueryPanel extends Component {
 
 	handleOnSelect = (idx, value) => {
 		const state = this.state;
-		let tags = state.tags;
+		let tags = this.props.queries;
 		let inputValue = value;
 		d3.select('#query_bar_' + idx+ '_'+ value).attr("stroke", "black");
 		d3.select('#query_bar_' + idx+ '_'+ value).classed('queried', true);
@@ -62,7 +62,7 @@ class QueryPanel extends Component {
 			tags[idx] = [...tags[idx], inputValue];
 		}
 		this.setState({
-			tags,
+			tags: tags,
 			inputValue: '',
 		});				
 		this.props.onQueryItem(tags, 5);	
