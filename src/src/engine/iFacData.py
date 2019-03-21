@@ -51,7 +51,7 @@ class iFacData():
 			hist[pos] = group.values[i1]
 			labels = [list(i) for i in index.levels]
 		for i in range(len(extractColumn)):
-			labels[i] = [str(each_one).replace('\'', '').replace('/', '').replace('-', '').replace('!', '').replace('&','').replace('(','').replace(')','').replace(' ','') for each_one in labels[i]]
+			labels[i] = [str(each_one).replace('\'', '').replace('/', '').replace('-', '').replace('!', '').replace('&','').replace('(','').replace(')','').replace(' ','').replace('gaming_plates_abortion','gaming_abortion_lottery').replace('drinking_bac_dui','drinking_driving_underage').replace('abortion_abortions_roe','abortion_parentage_child') for each_one in labels[i]]
 
 		return hist, labels
         		

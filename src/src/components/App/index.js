@@ -24,8 +24,8 @@ const domainSetting = {
 						// "nbaplayer1": {"modes": "3", "cnt": "50"},
 						"nbaplayershot": {"modes": "3", "cnt": "30"},
 						// "policyKeyword": {"modes": "4", "cnt": "40"},
-						"policyTopic": {"modes": "4", "cnt": "70"},
-						"purchase": {"modes": "5", "cnt": "20"}
+						"policyTopic": {"modes": "4", "cnt": "50"},
+						"purchase": {"modes": "5", "cnt": "30"}
 					};
 
 const item_projection_method = "mds";
@@ -530,7 +530,7 @@ class App extends Component {
 						return Object.values(each_d).slice(0, -1);
 					});
 				});	
-		const randomIdx = this.state.minErrorIdx[new_bar_data[0].length-start_index];
+		const randomIdx = this.state.minErrorIdx[components_cnt-start_index];
 		// console.log(this.state.minErrorIdx);
 		// console.log(this.state.randomIdx);
 		fetch('/dataset/ntf/', {
