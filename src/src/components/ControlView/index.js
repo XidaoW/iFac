@@ -43,7 +43,6 @@ class ControlView extends Component {
 		this.onCloseLegendDrawer = this.onCloseLegendDrawer.bind(this);
 		this.renderLegend = this.renderLegend.bind(this);
 	
-		console.log(props);
 	}
 
 	showLegendDrawer = () => {
@@ -291,6 +290,9 @@ class ControlView extends Component {
 	    					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
 	  					</Tooltip>																	
 					</div>
+					<Button onClick={this.showLegendDrawer} block>
+					Legend
+					</Button>					
 					<Dropdown className={styles.datasetDropdown}
 										isOpen={this.state.datasetDropdownOpen} 
 										toggle={this.toggleDatasetDropdown}>
@@ -300,7 +302,7 @@ class ControlView extends Component {
 						<DropdownMenu>
 							{this.renderDatasets()}
 						</DropdownMenu>
-					</Dropdown>
+					</Dropdown>					
 					<div className={styles.descriptionPattern}>Patterns: {components_cnt}</div>
 					<div className={styles.descriptionDescriptors}>
 						<div>Descriptors:</div>
@@ -313,10 +315,6 @@ class ControlView extends Component {
 								onClose={this.onCloseModelUpdateAlert}
 							/>
 							):<div></div>}	
-
-					<Button onClick={this.showLegendDrawer}>
-					Legend
-					</Button>
 					<Drawer
 						title="Legend"
 						placement="right"
