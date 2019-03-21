@@ -43,10 +43,16 @@ class PatternGlyph extends Component {
 			svg = new ReactFauxDOM.Element('svg'),
 			patternSize = this.miniPatternSize,
 			width = patternSize,
-			height = patternSize			
-		var min_relevance = d3.min(similarPatternToQueries, (d) => d.relevance_score);
-		var max_relevance = d3.max(similarPatternToQueries, (d) => d.relevance_score);
-		var fill_scale = d3.scaleLinear().domain([min_relevance, max_relevance]).range([0, 1]);
+			height = patternSize,
+			fill_scale,
+			min_relevance,
+			max_relevance;
+
+		if(similarPatternToQueries && similarPatternToQueries.length > 0){
+			min_relevance = d3.min(similarPatternToQueries, (d) => d.relevance_score);
+			max_relevance = d3.max(similarPatternToQueries, (d) => d.relevance_score);
+			fill_scale = d3.scaleLinear().domain([min_relevance, max_relevance]).range([0, 1]);
+		}
 
 		svg.setAttribute('width', width);
 		svg.setAttribute('height',width);
