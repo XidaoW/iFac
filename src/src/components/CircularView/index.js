@@ -12,7 +12,7 @@ import styles from './styles.scss';
 import index from '../../index.css';
 import gs from '../../config/_variables.scss'; // gs (=global style)
 import Circos, { SCATTER } from 'react-circos';
-import { Spin, message, Modal, Tag, Input, Tooltip, Icon, Button, Radio } from 'antd';
+import { Spin, Switch, message, Modal, Tag, Input, Tooltip, Icon, Button, Radio } from 'antd';
 import QueryPanel from 'components/QueryPanel';
 import scrollIntoView from 'scroll-into-view';
 
@@ -44,7 +44,9 @@ class CircularView extends Component {
 		this.svg;
 		this.circle_color;
 		this.circle_width;
+		this.query_flag;
 		this.compare_N = 2;
+		this.editable_flag = false;
 		this.color_list_petal = props.color_list_petal;
 		this.outerCircleRadius = parseInt(gs.outerCircleRadius);
 		this.innerCircleRadius = parseInt(gs.innerCircleRadius);
@@ -73,7 +75,31 @@ class CircularView extends Component {
 		this.renderSpinGlyph = this.renderSpinGlyph.bind(this);	
 		this.renderGlyph = this.renderGlyph.bind(this);		
 		this.renderSingleGlyph = this.renderSingleGlyph.bind(this);								
+		this.showButton = this.showButton.bind(this);	
+		this.handleSwithEdit = this.handleSwithEdit.bind(this);									
 
+	}
+
+	showButton(btn_index){
+		if(btn_index === 1){
+			// delete button / reset pattern selection
+			return (this.props.selectedPatterns.length > 0) ? false:true;
+		}else if(btn_index === 2){
+			// merge button
+			return (this.props.selectedPatterns.length > 1) ? false:true;
+		}else if(btn_index === 3){
+			// update model button
+			return (this.props.deletedPatternIdx.length > 0 || this.props.updateItemPostionsFlag ) ? false:true;
+		}else if(btn_index === 4){
+			//reset item selection
+			return (this.query_flag) ? false:true;
+		}					
+	
+	}
+
+
+	handleSwithEdit(checked){
+		this.props.onSwitchEdit(checked);
 	}
 
 	handleResetPatterns() {
@@ -240,7 +266,7 @@ class CircularView extends Component {
 
 		let	descriptor_size = Object.keys(bar_data).length,
 			descriptor_size_list = Object.keys(bar_data).map((d) => Object.keys(bar_data[d][0]).length),
-			color_list = ['#ffff99', '#beaed4'],
+			color_list = ['#FFD700', '#beaed4'],
 			used_color = '',
 			shift_size = 0.1,
 			label_flag = false,
@@ -270,7 +296,7 @@ class CircularView extends Component {
 						return queries[key].length;
 					}).reduce((a,b)=>a+b);			
 
-
+		this.query_flag = query_flag;
 		let g,
 			svg = new ReactFauxDOM.Element('svg');
 		svg.setAttribute('width', width+200);
@@ -284,8 +310,10 @@ class CircularView extends Component {
 		this.circle_position_y = d3.scaleLinear().domain([min_tsne[1],max_tsne[1]]).range([+ 5 - this.innerCircleRadius*2, + innerRadius + this.innerCircleRadius*2]);
 
 		for(var i = 0; i < selectedPatterns.length; i++){
-			used_color = d3.select('#pattern_' + selectedPatterns[i]).attr('stroke');   
-			color_list.splice( color_list.indexOf(used_color), 1 );
+			if(!d3.select('#pattern_' + selectedPatterns[i]).empty()){
+				used_color = d3.select('#pattern_' + selectedPatterns[i]).attr('stroke');   
+				color_list.splice( color_list.indexOf(used_color), 1 );				
+			}
 		}
 
 		data.forEach((d, i) => {			
@@ -851,6 +879,7 @@ class CircularView extends Component {
 			// 			.map((d) => d[0]);
 
 			if(reorder_item){
+
 				let zero_items;
 				zero_items = Object.keys(bar_data[descriptor_index][components_cnt]).filter((d) => d !== 'id').filter((key) => {
 					return (bar_data[descriptor_index][selectedPatterns[0]][key] < 1e-3 && bar_data[descriptor_index][selectedPatterns[1]][key] < 1e-3)
@@ -967,10 +996,13 @@ class CircularView extends Component {
 						// _self.props.onMouseOutItem();
 					});		
 	
+			g.selectAll('.query_bar').attr("stroke", "none");							
+			g.selectAll('.query_bar').classed('queried', false);							
+
 			Object.keys(queries).map((d) => {
 				queries[d].map((key) => {
-					d3.select('#query_bar_' + d+ '_'+ key).attr("stroke", "black");							
-					d3.select('#query_bar_' + d+ '_'+ key).classed('queried', true);							
+					g.selectAll('#query_bar_' + d+ '_'+ key).attr("stroke", "black");							
+					g.selectAll('#query_bar_' + d+ '_'+ key).classed('queried', true);							
 				})
 			})
 
@@ -1040,6 +1072,12 @@ class CircularView extends Component {
 				});
 		}
 
+		function onSwithEdit(checked) {
+			// console.log(checked);
+			// _self.editable_flag = checked;
+			// console.log(_self.editable_flag);
+			_self.handleSwithEdit(checked);
+		}
 
 		function axisStroke(i, descriptor_size) {
 			// var _self.color_list_petal = ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"];
@@ -1099,8 +1137,7 @@ class CircularView extends Component {
 			return (d.id >= components_cnt)? barFillOpacityConst : 1;
 		};
 
-	
-
+		console.log(_self.props.editable_flag);
 		return (
 			<div className={styles.CircularOverview}>					
 				<div className={index.title}>Circular View
@@ -1110,45 +1147,43 @@ class CircularView extends Component {
 				</div>
 				<div>
 					<div>
-					<RadioGroup 
-						onChange={this.handleChangeProjection}
-						defaultValue={-1} 
-						size="small">
-						<Radio shape="circle" value={-1}>Pattern</Radio>	
-						{this.renderRadioButton()}				
-					</RadioGroup>																								
+						<RadioGroup
+							onChange={this.handleChangeProjection}							
+							defaultValue={-1} 
+							size="small">
+							<Radio shape="circle" value={-1}>Pattern</Radio>	
+							{this.renderRadioButton()}				
+						</RadioGroup>																							
+					    <Switch style={{ float: "right" }} onChange={onSwithEdit} checkedChildren="lock" unCheckedChildren="unlock" />					
 					</div>
-					<div>
-					<ButtonGroup size="small">
-						{(this.props.selectedPatterns.length > 0) ? (
-							<Button onClick={showConfirmDelete}>
+					
+						{_self.props.editable_flag? 					
+							<div>
+							<Button size="small" onClick={showConfirmDelete}  disabled={this.showButton(1)}>
 								Delete
 							</Button>							
-						) : ''}
-						{(this.props.selectedPatterns.length > 1) ? (
-							<Button onClick={showConfirmMerge}>
+							<Button size="small" onClick={showConfirmMerge} disabled={this.showButton(2)}>
 								Merge
 							</Button>	
-						) : ''}	
-						{(this.props.deletedPatternIdx.length > 0 || this.props.updateItemPostionsFlag ) ? (
-							<Button onClick={showConfirmUpdate}>
-								Update
-							</Button>						
-						) :''}												
-					</ButtonGroup>
-					<ButtonGroup size="small">
-						{(this.props.selectedPatterns.length > 0) ? (
-							<Button onClick={this.handleResetPatterns}>
+							<Button size="small" onClick={this.handleResetPatterns} disabled={this.showButton(1)}>
 								Reset Pattern Selection
-							</Button>
-						) : ''}
-						{query_flag ? (
-							<Button onClick={this.handleResetItems}>
+							</Button>							
+							<Button size="small" onClick={this.handleResetItems} disabled={this.showButton(4)}>
 								Reset Item Selection
 							</Button>
-						) : ''}							
-					</ButtonGroup>		
-					</div>								
+							<Button size="small" onClick={showConfirmUpdate} disabled={this.showButton(3)}>
+								Update
+							</Button>
+							</div>:
+							<div>
+								<Button size="small" onClick={this.handleResetPatterns} disabled={this.showButton(1)}>
+									Reset Pattern Selection
+								</Button>							
+								<Button size="small" onClick={this.handleResetItems} disabled={this.showButton(4)}>
+									Reset Item Selection
+								</Button>
+							</div>}		
+													
 				</div>				
 				{!this.props.updatingFlag ? svg.toReact() : this.renderSpinGlyph()}
 			</div>

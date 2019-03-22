@@ -228,7 +228,10 @@ class NTF():
 		similarity_error = 0
 		# similarity_error = sum([np.trace(X_itr[i].T.dot(L_matrix[i]).dot(X_itr[i])) for i in range(len(L_matrix))])
 		# similarity_error = similarity_error / len(L_matrix)
+		
+
 		for i in range(len(L_matrix)):			
+			# _log.info(X_itr[i])
 			similarity_error += np.trace(X_itr[i].T.dot(L_matrix[i]).dot(X_itr[i]))
 			# similarity_error += np.linalg.norm(L_matrix[i] - X_itr[i].dot(X_itr[i].T)) 
 			reference_error += np.linalg.norm(X_itr[i] - reference_matrix[i])
@@ -238,10 +241,11 @@ class NTF():
 		return error, similarity_error, reference_error
 
 
-	def factorize(self, x, iterations=200, showProgress=False, default=True, 
+	def factorize(self, x, iterations=100, showProgress=False, default=True, 
 		reference_matrix=[], L_matrix = [], lambda_0 = 0.0, lambda_1 = 0.0):
 		if not default:
 			x = dtensor(x)
+
 			num_ways = len(self.factor[0])
 			X_itr = []
 			R = len(self.factor)
@@ -250,6 +254,8 @@ class NTF():
 				for r in range(R):
 					X_cur.append(self.factor[r][way_index].tolist())
 				X_itr.append(np.array(X_cur).T)
+			import copy
+			X_itr = copy.deepcopy(reference_matrix)
 			error, similarity_error, reference_error = self.computeError(x, 
 				X_itr, reference_matrix, L_matrix)
 			print("start: {}/{}. reconstruct: {}; item: {}; pattern: {} ".format(
@@ -319,7 +325,6 @@ class NTF():
 					) / (X_FF_iter[way_index][l,l] + EPS)
 
 				X_itr[way_index][:,l][X_itr[way_index][:,l] < EPS] = EPS
-
 		X_itr = [normalize_column(each_factor, by_norm='2')[0] if way_index < (num_ways - 1) else each_factor for way_index, each_factor in enumerate(X_itr)]
 		return X_itr				
 

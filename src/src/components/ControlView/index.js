@@ -290,7 +290,7 @@ class ControlView extends Component {
 	    					<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
 	  					</Tooltip>																	
 					</div>
-					<Button onClick={this.showLegendDrawer} block>
+					<Button onClick={this.showLegendDrawer} block size={"small"}>
 					Legend
 					</Button>					
 					<Dropdown className={styles.datasetDropdown}

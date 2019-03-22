@@ -73,6 +73,7 @@ class App extends Component {
 			display_projection: -1,
 			updateItemPostionsFlag: false,
 			updateModelFlag: false,
+			editable_flag: false,
 			minErrorIdx: metrics.min_error_index,			
 			clickedPatternIdx: [], /* listview */
 			color_list_petal: ["#85D4E3", "#F4B5BD", "#20B2AA", "#CDC08C", "#FAD77B"]				
@@ -96,6 +97,7 @@ class App extends Component {
 		this.handleUpdatePatterns = this.handleUpdatePatterns.bind(this);	
 		this.handleAddingPattern = this.handleAddingPattern.bind(this);	
 		this.handleChangeProjection = this.handleChangeProjection.bind(this);	
+		this.handleSwitchEdit = this.handleSwitchEdit.bind(this);	
 		this.loadDefaultDataset = this.loadDefaultDataset.bind(this);
 		this.loadDatasetOnClickPoint = this.loadDatasetOnClickPoint.bind(this);
 		this.loadDatasetOnUpdateModel = this.loadDatasetOnUpdateModel.bind(this);
@@ -267,7 +269,8 @@ class App extends Component {
 			minErrorIdx: screeData.min_error_index,	
 			updateItemPostionsFlag: false,
 			updatingFlag: false,
-			start_index: start_index,
+			start_index: 2,
+			editable_flag: true,
 			similarPatternToQueries:[]
 		});    
 	}
@@ -293,6 +296,14 @@ class App extends Component {
 			updateModelFlag: false
 		}));		
 	}
+	handleSwitchEdit(checked){
+		this.setState(prevState => ({
+			editable_flag: checked
+		}));		
+	}
+
+
+
 
 	// depricated
 	handleMouseOverPattern(idx){
@@ -516,7 +527,7 @@ class App extends Component {
 			deletedIdx = this.state.deletedPatternIdx,			
 			components_cnt = bar_data[0].length - 1,
 			screeData = this.state.screeData,
-			start_index = this.state.start_index,
+			start_index = 2,
 			itemEmbeddings_2d = this.state.itemEmbeddings_2d;
 			
 
@@ -1047,6 +1058,7 @@ class App extends Component {
 			itemEmbeddings_1d: itemEmbeddings_1d,
 			itemEmbeddings_2d: itemEmbeddings_2d,
 			patternEmbeddings: patternEmbeddings,
+			start_index: 2,
 			metricAggregated: metricAggregated
 		});
 	}
@@ -1064,7 +1076,7 @@ class App extends Component {
 			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricAggregated,
 			itemEmbeddings_1d, itemEmbeddings_2d, clickedPatternIdx, patternEmbeddings,
 			deletedPatternIdx, mergePatternIdx, display_projection, updateItemPostionsFlag,
-			updateModelFlag, updatingFlag,color_list_petal
+			updateModelFlag, updatingFlag,color_list_petal,editable_flag
 		} = this.state;
 
 
@@ -1135,9 +1147,11 @@ class App extends Component {
 						onUpdatePatterns={this.handleUpdatePatterns}
 						onChangeProjection={this.handleChangeProjection}
 						onUpdateItemPositions={this.handleUpdateItemPositions}
+						onSwitchEdit={this.handleSwitchEdit}
 						leastSimilarPatternToSelectedPatternIdx={leastSimilarPatternToSelectedPatternIdx}              
 						mostSimilarPatternToSelectedPatternIdx={mostSimilarPatternToSelectedPatternIdx}          
 						bar_data={bar_data}     
+						editable_flag={editable_flag}
 						max_pattern_item={max_pattern_item}             
 						selectedPatterns={selectedPatterns}
 						components_cnt={components_cnt}

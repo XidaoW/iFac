@@ -67,7 +67,7 @@ class iFacData():
 			hist[pos] = group.values[i1]
 			labels = [list(i) for i in index.levels]
 		for i in range(len(extractColumn)):
-			labels[i] = [str(each_one).replace('\'', '').replace('/', '').replace('-', '').replace('!', '').replace('&','').replace('(','').replace(')','').replace(' ','') for each_one in labels[i]]
+			labels[i] = [str(each_one).replace('\'', '').replace('/', '').replace('-', '').replace('!', '').replace('&','').replace('(','').replace(')','').replace(' ','').replace('gaming_plates_abortion','gaming_abortion_lottery').replace('drinking_bac_dui','drinking_driving_underage').replace('abortion_abortions_roe','abortion_parentage_child') for each_one in labels[i]]
 
 		return hist, labels
         		
@@ -426,7 +426,7 @@ class iFacData():
 		_log.info("Start factorization: ")
 		# _log.info("Random Seed: {}; Bases: {}; reference_matrix: {}; L_matrix: {}; lambda_0: {}; lambda_1: {}; ".format(
 		# 		random_seed, self.cur_base, self.reference_matrix, self.L_matrix, self.lambda_0, self.lambda_1
-		# 	) )
+		# 	) )		
 		self.ntfInstance = ntf.NTF(self.cur_base, self.hist, parallelCalc=True, ones = ones, random_seed = random_seed)
 		self.ntfInstance.factorize(self.hist, showProgress=True, default = False, 
 			reference_matrix = self.reference_matrix, L_matrix = self.L_matrix,
@@ -646,10 +646,10 @@ class iFacData():
 		self.readData(domain = self.domain)
 		self.column_cnt = len(self.column)	
 		parameter_config = {
-			"picso1": {"lambda_0": 0, "lambda_1": 0},
-			"nbaplayer1": {"lambda_0": 0.01, "lambda_1": 0.01, "s": 0.1},
-			"nbaplayershot": {"lambda_0": 0.05, "lambda_1": 0.1, "s": 0.1},
-			"policyKeyword1": {"lambda_0": 0, "lambda_1": 0},
+			# "picso1": {"lambda_0": 0, "lambda_1": 0},
+			# "nbaplayer1": {"lambda_0": 0.01, "lambda_1": 0.01, "s": 0.1},
+			"nbaplayershot": {"lambda_0": 0.05, "lambda_1": 0.01, "s": 0.1},
+			# "policyKeyword1": {"lambda_0": 0, "lambda_1": 0},
 			"policyTopic": {"lambda_0": 0.01, "lambda_1": 0.01, "s": 0.1},
 			"purchase": {"lambda_0": 0.01, "lambda_1": 0.01, "s": 0.01},
 		}
