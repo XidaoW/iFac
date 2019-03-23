@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import * as d3 from 'd3';
 
 
-import {AutoComplete, Tag, Input, Tooltip, Icon} from 'antd';
+import {AutoComplete, Tag, Input, Tooltip, Button, Icon} from 'antd';
 
 class QueryPanel extends Component {
 
@@ -45,6 +45,10 @@ class QueryPanel extends Component {
 				value + value + value,
 			],
 		});
+	}
+
+	handleSaveQuery(){
+		this.props.onSaveQuery();
 	}
 
 	handleOnSelect = (idx, value) => {
@@ -130,14 +134,23 @@ class QueryPanel extends Component {
 
 			));
   	}
+  	renderSaveButton(){
+  		var new_queries = this.props.queries;
+		const query_flag = (Object.keys(new_queries).length == 0)? false: Object.keys(new_queries).map(function(key){			
+			return new_queries[key].length;
+		}).reduce((a,b)=>a+b);
 
-
+  		return (query_flag) ? (<span>
+  			<Button size="small" onClick={(event) => {this.handleSaveQuery()}} icon="save" />
+  		</span>):'';
+  	}
 
 	render() {
 		return (
 			<div>
 				{this.renderExistingTags()}
 				{this.renderNewTags()}
+				{this.renderSaveButton()}
 			</div>
 		);
 	}

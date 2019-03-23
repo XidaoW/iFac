@@ -18,10 +18,10 @@ class TreeMapView extends Component {
 
 		this.layout = {
 			width: 250,
-			height: 450,
+			height: 250,
 			svg: {
 				width: 250, // 90% of whole layout
-				height: 450 // 100% of whole layout
+				height: 250 // 100% of whole layout
 			},
 			detailView: {
 				margin: {
@@ -334,37 +334,30 @@ class TreeMapView extends Component {
 
 			}
 		}
+
+					// <div className={index.title}>
+					// 	Multi-Faceted Pattern Query
+					// 	<Tooltip title="Input item">
+					// 		<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
+					// 	</Tooltip>																							
+					// </div>	
+					// <div className={styles.queryPanel} >			
+					// 	<QueryPanel
+					// 		onQueryItem={this.props.onClickItem}
+					// 		onResetItem={this.handleResetItems}
+					// 		color_list_petal={this.props.color_list_petal}
+					// 		descriptors={descriptors}
+					// 		components_cnt={components_cnt}
+					// 		modes={modes}
+					// 		queries={this.props.queries}
+					// 	/>	
+					// </div>				
+
 		  
 
 		return (
-				<div className={styles.DetailView}>
-					<div className={index.title}>
-						Multi-Faceted Pattern Query
-						<Tooltip title="Input item">
-							<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
-						</Tooltip>																							
-					</div>	
-					<div className={styles.queryPanel} >			
-						<QueryPanel
-							onQueryItem={this.props.onClickItem}
-							onResetItem={this.handleResetItems}
-							color_list_petal={this.props.color_list_petal}
-							descriptors={descriptors}
-							components_cnt={components_cnt}
-							modes={modes}
-							queries={this.props.queries}
-						/>	
-					</div>				
-					<div className={index.title}>
-						Content
-						<Tooltip title="Pattern narrative as word clouds">
-							<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
-						</Tooltip>																							
-					</div>
-					  <div id="content" className={styles.treeMap}>
-					  
+					  <div id="content" className={styles.treeMap}>					  
 					  </div>					
-				</div>
 		);
 
 	}

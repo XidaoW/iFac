@@ -570,6 +570,7 @@ class CircularView extends Component {
 							.style('fill', (d, i) => axisStroke(i, descriptor_size))
 							.style('fill-opacity', (d) => color_threshold(d.data.width));
 			}
+			// https://bl.ocks.org/puzzler10/49f13307e818ea9a909ba5adba5b6ed9		
 
 		}
 		
@@ -1022,6 +1023,8 @@ class CircularView extends Component {
 			}
 
 		}	
+
+
 
 		function showConfirmDelete() {
 			var title1 = '',

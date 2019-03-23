@@ -5,7 +5,9 @@ import Overview from 'components/Overview';
 import CircularView from 'components/CircularView';
 import EmbeddingView from 'components/EmbeddingView';
 import TreeMapView from 'components/TreeMapView';
+import SnapShotListView from 'components/SnapShotListView';
 import ListView from 'components/ListView';
+import SnapShot from 'components/SnapShot';
 
 // import InspectionView from 'components/InspectionView';
 import ControlView from 'components/ControlView';
@@ -74,6 +76,7 @@ class App extends Component {
 			updateItemPostionsFlag: false,
 			updateModelFlag: false,
 			editable_flag: false,
+			query_list: [],
 			minErrorIdx: metrics.min_error_index,			
 			clickedPatternIdx: [], /* listview */
 			color_list_petal: ["#85D4E3", "#F4B5BD", "#20B2AA", "#CDC08C", "#FAD77B"]				
@@ -104,7 +107,12 @@ class App extends Component {
 		this.updateStateOnDataChange = this.updateStateOnDataChange.bind(this);
 		this.handleUpdateItemPositions = this.handleUpdateItemPositions.bind(this);
 		this.closeUpdateModelAlert = this.closeUpdateModelAlert.bind(this);
+		this.handleDeleteQuery = this.handleDeleteQuery.bind(this);
+		this.handleSaveQuery = this.handleSaveQuery.bind(this);
+		this.handleLoadQuery = this.handleLoadQuery.bind(this);
+
 		
+				
 	}
 
 
@@ -302,7 +310,25 @@ class App extends Component {
 		}));		
 	}
 
+	handleDeleteQuery(queryToDelete){
+		this.setState(prevState => ({
+			query_list: prevState.query_list.filter((d) => d !== queryToDelete)
+		}));
+	}
+	handleSaveQuery(){
+		// var cur_query_list = this.prevState.query_list.filter((d) => d !== query)
+		// console.log(this.state.queries);
+		const cur_query = Object.assign({}, this.state.queries)
+		this.setState(prevState => ({
+			query_list: [...prevState.query_list.filter((d) => d !== cur_query), cur_query]
+		}));
+	}
 
+	handleLoadQuery(query){
+		this.setState(prevState => ({
+			queries: query
+		}))
+	}
 
 
 	// depricated
@@ -1076,8 +1102,37 @@ class App extends Component {
 			gini_data, theil_data, pctnonzeros_data, datasets, domain, weights,metricAggregated,
 			itemEmbeddings_1d, itemEmbeddings_2d, clickedPatternIdx, patternEmbeddings,
 			deletedPatternIdx, mergePatternIdx, display_projection, updateItemPostionsFlag,
-			updateModelFlag, updatingFlag,color_list_petal,editable_flag
+			updateModelFlag, updatingFlag,color_list_petal,editable_flag, query_list
 		} = this.state;
+
+				// <SnapShotListView
+				// 	bar_data={bar_data}		
+				// 	data={factors_data}		
+				// 	patternEmbeddings={patternEmbeddings}
+				// 	similarPatternToQueries={similarPatternToQueries}
+				// 	components_cnt={components_cnt}
+				// 	descriptors={descriptors}
+				// 	modes={modes}
+				// 	query_list={query_list}
+				// 	color_list_petal={color_list_petal}
+				// 	display_projection={display_projection}
+				// />						  
+
+
+				// <TreeMapView
+				// 	bar_data={bar_data}		
+				// 	data={factors_data}		
+				// 	selectedPatterns={selectedPatterns}
+				// 	components_cnt={components_cnt}
+				// 	descriptors={descriptors}
+				// 	modes={modes}
+				// 	queries={queries}
+				// 	color_list_petal={color_list_petal}
+				// 	onClickItem={this.handleClickItem}
+				// 	onResetPatterns={this.handleResetPatterns}
+				// 	onResetItems={this.handleResetItems}					
+				// />			
+
 
 
 	const components_cnt = factors_data.length;
@@ -1175,19 +1230,26 @@ class App extends Component {
 						display_projection={display_projection}
 						onAddingPattern={this.handleAddingPattern}					
 			  />  
-				<TreeMapView
+				<SnapShotListView
 					bar_data={bar_data}		
 					data={factors_data}		
-					selectedPatterns={selectedPatterns}
+					patternEmbeddings={patternEmbeddings}
+					similarPatternToQueries={similarPatternToQueries}
 					components_cnt={components_cnt}
 					descriptors={descriptors}
 					modes={modes}
 					queries={queries}
-					color_list_petal={color_list_petal}
+					query_list={query_list}
+					selectedPatterns={selectedPatterns}					
+					onDeleteQuery={this.handleDeleteQuery}
 					onClickItem={this.handleClickItem}
 					onResetPatterns={this.handleResetPatterns}
-					onResetItems={this.handleResetItems}					
-				/>						  
+					onResetItems={this.handleResetItems}
+					onSaveQuery={this.handleSaveQuery}	
+					onLoadQuery={this.handleLoadQuery}				
+					color_list_petal={color_list_petal}
+					display_projection={display_projection}
+				/>				
 			</div>
 		</div>
 	  </div>
