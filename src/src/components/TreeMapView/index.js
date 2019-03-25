@@ -79,7 +79,7 @@ class TreeMapView extends Component {
 		})};
 		const tooltip = d3tooltip(d3);
 
-		var margin = { top: 1, right: 3, bottom: 25, left: 1 }
+		var margin = { top: 0, right: 3, bottom: 15, left: 1 }
 		var width = this.layout.svg.width - margin.left - margin.right
 		var height = this.layout.svg.height - margin.top - margin.bottom
 		d3.select("div#content").selectAll('svg').remove()
@@ -272,7 +272,9 @@ class TreeMapView extends Component {
 	        			.text(function(d) { 
 	        				var curLabelText = d.data.item.split('_');
 	        				curLabelText.shift();
-	        				return curLabelText.join("_"); 
+	        				var newText = curLabelText.join("_");
+	        				var lenMax = 15;
+	        				return (newText.length > lenMax)? newText.slice(0, lenMax) + '...' : newText;	        				
 	        			})				        
 	        			.call(text2);
 				
@@ -325,33 +327,15 @@ class TreeMapView extends Component {
 				function text2(text) {
 					text.attr("x", function(d) { return d.x0; })
 						.attr("y", function(d) { return d.y0; })
-						.style("font-size", function(d) { return  Math.pow((d.y1 - d.y0),0.9) * Math.pow((d.x1 - d.x0), 1.1)*1.5 / this.getComputedTextLength() / 20  + "px"; })
+						.style("font-size", function(d) { return  Math.pow((d.y1 - d.y0),1) * Math.pow((d.x1 - d.x0), 1)*1.5 / this.getComputedTextLength() / 18  + "px"; })
 						// .style("font-size", function(d) { return  Math.pow((d.x1 - d.x0), 1)*5 / this.getComputedTextLength()  + "px"; })
 						.attr("dy", ".8em")						
-						.style("opacity", function(d) { return 0.4; });
+						.style("opacity", function(d) { return 0.3; });
 				}        			
 					
 
 			}
 		}
-
-					// <div className={index.title}>
-					// 	Multi-Faceted Pattern Query
-					// 	<Tooltip title="Input item">
-					// 		<Icon style={{ fontSize: '12px', float: "right" }} type="info-circle" />
-					// 	</Tooltip>																							
-					// </div>	
-					// <div className={styles.queryPanel} >			
-					// 	<QueryPanel
-					// 		onQueryItem={this.props.onClickItem}
-					// 		onResetItem={this.handleResetItems}
-					// 		color_list_petal={this.props.color_list_petal}
-					// 		descriptors={descriptors}
-					// 		components_cnt={components_cnt}
-					// 		modes={modes}
-					// 		queries={this.props.queries}
-					// 	/>	
-					// </div>				
 
 		  
 

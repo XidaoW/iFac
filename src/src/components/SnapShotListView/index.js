@@ -58,11 +58,11 @@ class SnapShotListView extends Component {
 
 
 	handleDeleteQuery(Query){
-		this.props.onLoadQuery(Query);
+		this.props.onDeleteQuery(Query);
 	}
 
 	handleLoadQuery(Query){
-		this.props.onDeleteQuery(Query);
+		this.props.onLoadQuery(Query);
 	}
 
 
@@ -168,8 +168,8 @@ class SnapShotListView extends Component {
 			  render: Query => (
 			    <span>
 					<ButtonGroup>
-					      <Button size="small" onClick={(event) => {this.handleDeleteQuery(Query)}} shape="circle" icon="read" />
-					      <Button size="small" onClick={(event) => {this.handleLoadQuery(Query)}} shape="circle" icon="close" />
+					      <Button size="small" onClick={(event) => {this.handleLoadQuery(Query)}} shape="circle" icon="read" />
+					      <Button size="small" onClick={(event) => {this.handleDeleteQuery(Query)}} shape="circle" icon="close" />
 					</ButtonGroup>			    
 			    </span>
 			  ),		  
@@ -208,19 +208,17 @@ class SnapShotListView extends Component {
 						<Table					
 							onRow={(record, rowIndex) => {
 								return {
-									onClick: (event) => {this.handleOnClick(record.ID)},
-									onMouseEnter: (event) => {this.handleOnMouseEnter(record.ID)},
-									onMouseLeave: (event) => {this.handleOnMouseLeave(record.ID)},
+									onClick: (event) => {this.handleLoadQuery(record.Query)},
 								};
 							}}
-							rowClassName={(record, rowIndex) => 'pattern_row_' + record.ID}
+							rowClassName={(record, rowIndex) => 'query_row_' + record.ID}
 							columns={columns} 
 							size={"small"}
-							scroll={{ y: 240 }}
+							scroll={{ y: 200 }}
 							showHeader={false}
 							pagination={false} 
 							dataSource={data_} 
-							locale={{emptyText:'No Query'}}
+							locale={{emptyText:<Tooltip title="Save your query for a quick retrieval">Query Book</Tooltip>}}
 						/>
 					</div>
 					<div className={index.title}>

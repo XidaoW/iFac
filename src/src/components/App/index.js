@@ -328,6 +328,8 @@ class App extends Component {
 		this.setState(prevState => ({
 			queries: query
 		}))
+
+		this.handleClickItem(query)
 	}
 
 
@@ -1085,6 +1087,7 @@ class App extends Component {
 			itemEmbeddings_2d: itemEmbeddings_2d,
 			patternEmbeddings: patternEmbeddings,
 			start_index: 2,
+			query_list: [],
 			metricAggregated: metricAggregated
 		});
 	}
@@ -1241,10 +1244,10 @@ class App extends Component {
 					queries={queries}
 					query_list={query_list}
 					selectedPatterns={selectedPatterns}					
-					onDeleteQuery={this.handleDeleteQuery}
 					onClickItem={this.handleClickItem}
 					onResetPatterns={this.handleResetPatterns}
 					onResetItems={this.handleResetItems}
+					onDeleteQuery={this.handleDeleteQuery}					
 					onSaveQuery={this.handleSaveQuery}	
 					onLoadQuery={this.handleLoadQuery}				
 					color_list_petal={color_list_petal}
