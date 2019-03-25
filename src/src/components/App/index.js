@@ -352,7 +352,8 @@ class App extends Component {
 
 	handleChangeProjection(projectionID){
 		this.setState(prevState => ({
-			display_projection: projectionID
+			display_projection: projectionID,
+			selectedPatterns:[]
 		}));
 	}
 
@@ -1144,7 +1145,7 @@ class App extends Component {
 	return (
 	  <div className={styles.App}>
 		<header className={styles.header}>
-		  <div className={styles.title}>iTnFac</div>
+		  <div className={styles.title}>FacIt</div>
 			<div>Tensor Pattern Exploration</div>
 		</header>
 		<div>

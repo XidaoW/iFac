@@ -219,6 +219,7 @@ class CircularView extends Component {
 			 (<Radio 
 			 	shape={"circle"}			 	
 			 	defaultChecked={false}
+			 	checked={false}
 			 	style={{color: color_list_petal[i]}} 
 			 	value={i}>
 					{d}
@@ -650,11 +651,12 @@ class CircularView extends Component {
 							.attr("font-size", "8px")							
 							
 							// .attr("display", "none");
-
-			item_group.call(d3.drag()
-							.on("start", dragstarted)
-							.on("drag", dragged)
-							.on("end", dragended));			            			
+			if(_self.props.editable_flag){
+				item_group.call(d3.drag()
+								.on("start", dragstarted)
+								.on("drag", dragged)
+								.on("end", dragended));			            							
+			}
 			function dragstarted(d, i) {
 				d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label).classed("drag_active", true);
 				// d3.select("text#item_text_" + descriptor_index+ '_'+ d.label).classed("drag_active", true);				
