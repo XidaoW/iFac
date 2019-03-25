@@ -104,9 +104,9 @@ class CircularView extends Component {
 
 	handleResetPatterns() {
 		d3.selectAll('.pattern_circles').attr('stroke-opacity', 0.3);
-		d3.selectAll('.pattern_mini_circles').attr('stroke-opacity', 0.3);
+		d3.selectAll('.pattern_circles_mini').attr('stroke-opacity', 0.3);
 		d3.selectAll('.pattern_circles').attr('stroke', 'grey');
-		d3.selectAll('.pattern_mini_circles').attr('stroke', 'grey');
+		d3.selectAll('.pattern_circles_mini').attr('stroke', 'grey');
 
 		this.props.onResetPatterns();
 	}
@@ -130,8 +130,8 @@ class CircularView extends Component {
 		});
 		d3.selectAll('.pattern_circles').attr('stroke', 'grey');                                      
 		d3.selectAll('.pattern_circles').attr('stroke-opacity', 0.3);
-		d3.selectAll('.pattern_mini_circles').attr('stroke', 'grey');
-		d3.selectAll('.pattern_mini_circles').attr('stroke-opacity', 0.3);		
+		d3.selectAll('.pattern_circles_mini').attr('stroke', 'grey');
+		d3.selectAll('.pattern_circles_mini').attr('stroke-opacity', 0.3);		
 
 		this.props.onDeletePatterns(deletedPatternsIdx);
 	}
@@ -141,13 +141,11 @@ class CircularView extends Component {
 	}	
 
 	handleUpdatePattern() {
+		this.props.onUpdatePatterns();
 		d3.selectAll('.pattern_circles').attr('stroke', 'grey');                                      
 		d3.selectAll('.pattern_circles').attr('stroke-opacity', 0.3);
-		d3.selectAll('.pattern_mini_circles').attr('stroke', 'grey');
-		d3.selectAll('.pattern_mini_circles').attr('stroke-opacity', 0.3);		
-		this.props.onUpdatePatterns();
-		// message.loading('Model Update in Progress..', 20)
-		// .then(() => message.success('Loading finished', 2.5))
+		d3.selectAll('.pattern_circles_mini').attr('stroke', 'grey');
+		d3.selectAll('.pattern_circles_mini').attr('stroke-opacity', 0.3);
 	}
 
 	handleMergePattern(mergePatternIdx) {
@@ -158,8 +156,8 @@ class CircularView extends Component {
 
 		d3.selectAll('.pattern_circles').attr('stroke', 'grey');                                      
 		d3.selectAll('.pattern_circles').attr('stroke-opacity', 0.3);
-		d3.selectAll('.pattern_mini_circles').attr('stroke', 'grey');
-		d3.selectAll('.pattern_mini_circles').attr('stroke-opacity', 0.3);		
+		d3.selectAll('.pattern_circles_mini').attr('stroke', 'grey');
+		d3.selectAll('.pattern_circles_mini').attr('stroke-opacity', 0.3);		
 		[mergePatternIdx[1]].map((idx) => {
 			d3.select('.pattern_circles#pattern_' + idx).transition(t).style("display", "none");
 			d3.select('.flower#flower_' + idx).transition(t).style("display", "none");
@@ -827,20 +825,27 @@ class CircularView extends Component {
 
 			// var draw_label = true;
 			const label_length = 12;
-
-			if(draw_label){
+			var draw_flag = true;
+			// if(patterns.length == 2){
+			// 	draw_flag = d3.selectAll('text.compare').empty() ? true:false;
+			// }
+			if(draw_label && draw_flag){
 				descriptor_arcs.append('g')
 					.attr('class', 'descriptor_text' + descriptor_index)
 					.attr('text-anchor', (d) => (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'end' : 'start')
 					.attr('transform', (d) => 'rotate(' + ((x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length) * 180 / Math.PI - 90) + ')'+'translate(' + (y(d.value)+20) + ',0)')
 					.append('text')
 					.text((d) => {
-						return (d.key.length > label_length) ? d.key.slice(0, label_length)+"..." : d.key;
+						if(d.index == 0){
+							return (d.key.length > label_length) ? d.key.slice(0, label_length)+"..." : d.key;	
+						}else{
+							return '';
+						}						
 					})
 					.attr('transform', (d) => (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'rotate(180)' : 'rotate(0)')
 					.style('font-size', '6px')
 					.attr('id', (d) => 'label_' + descriptor_index + '_' + d.key)
-					.attr('class', 'label_bar' + descriptor_index)					
+					.attr('class', 'label_bar' + descriptor_index + (reorder_item)? ' compare':'')					
 					.attr('alignment-baseline', 'middle')
 					.on("mouseover", function(d){
 						tooltip.html('<span>' + d.key + '</span>');
