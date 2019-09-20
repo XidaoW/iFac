@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
 import ntf
 from myutil.histogram import createHistogram, translateLabel
 from myutil.plotter import showFactorValue, showHistDistribution
@@ -143,6 +145,14 @@ class iFacData():
 			harvard = harvard[self.column]
 			harvard_group = harvard.groupby(self.column[:3])['certified'].sum()			
 			self.hist, self.labels = self.createDataHistogram(harvard_group, self.column[:3])
+
+		elif self.domain in ["biomarker","biomarker_gastric"]:
+			patients = pd.read_csv("data/biomarker_gastric_complete.csv")
+			columns = ['age', 'gender', 'type', 'biomarker','value']
+			patients.columns = columns
+			self.column = columns[:4]
+			patients_group = patients.groupby(self.column[:4])['value'].sum()			
+			self.hist, self.labels = self.createDataHistogram(patients_group, self.column[:4])
 
 		elif self.domain in ["picso","picso1"]:
 			policy = pd.read_csv("data/picso.csv", header=None)
