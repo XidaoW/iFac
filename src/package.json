@@ -43,7 +43,7 @@
     "raf": "3.4.0",
     "react": "^16.4.1",
     "react-circos": "^1.0.0",
-    "react-dev-utils": "^5.0.1",
+    "react-dev-utils": "^5.0.2",
     "react-dom": "^16.4.1",
     "react-faux-dom": "^4.2.0",
     "react-svg-tooltip": "0.0.10",
