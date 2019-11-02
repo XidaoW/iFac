@@ -267,7 +267,7 @@ class CircularView extends Component {
 			descriptor_size_list = Object.keys(bar_data).map((d) => Object.keys(bar_data[d][0]).length),
 			color_list = ['#FFD700', '#beaed4'],
 			used_color = '',
-			shift_size = 0.1,
+			shift_size = 0.,
 			label_flag = false,
 			reorder_item = false,
 			translate_x = 0,
@@ -504,8 +504,9 @@ class CircularView extends Component {
 							.on("mouseout", function(d){
 								tooltip.hide();
 							})
-							.attr('transform', (d) => {var coords = petal.polarToCartesian(d.endAngle, _self.outerCircleRadius); return 'translate(' +coords.x + ',' 
-											+ coords.y + ')';})
+							// .attr('transform', (d) => {var coords = petal.polarToCartesian(d.endAngle, _self.outerCircleRadius); return 'translate(' +coords.x + ',' 
+							// 				+ coords.y + ')';})
+							.attr('transform', (d) => petal.rotateTransform((d.startAngle + d.endAngle) / 2 , _self.outerCircleRadius))													
 							.attr('r', (d) => size_petal_radius(d.data.length))
 							.style('stroke', (d, i) => 'gray')
 							.style('fill', (d, i) => axisStroke(i, descriptor_size))
@@ -765,13 +766,15 @@ class CircularView extends Component {
 				items = items1.map((key) => key[0]);	
 			}
 			// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
+			console.log(items);
+			console.log(computeDescriptorRange(descriptor_index, descriptor_size, descriptor_size_list, shift_size));
 			const x = d3.scaleBand()
-							.range(computeDescriptorRange(descriptor_index, descriptor_size, descriptor_size_list, 0.1))    
+							.range(computeDescriptorRange(descriptor_index, descriptor_size, descriptor_size_list, shift_size))    
 							.domain(items) // The domain of the X axis is the list of states.
 							.paddingInner(0.05),
 						y = scaleRadial()
 							.range([innerRadius, outerRadius])   // Domain will be define later.
-							.domain([0, 3]), // Domain of Y is from 0 to the max seen in the data
+							.domain([0, 5]), // Domain of Y is from 0 to the max seen in the data
 						bar_opacity = d3.scaleLinear()
 							.range([0, 0.8])
 							.domain([0, d3.max(patterns, (d) =>
@@ -835,7 +838,7 @@ class CircularView extends Component {
 				descriptor_arcs.append('g')
 					.attr('class', 'descriptor_text' + descriptor_index)
 					.attr('text-anchor', (d) => (x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length + Math.PI) % (2 * Math.PI) < Math.PI ? 'end' : 'start')
-					.attr('transform', (d) => 'rotate(' + ((x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length) * 180 / Math.PI - 90) + ')'+'translate(' + (y(d.value)+20) + ',0)')
+					.attr('transform', (d) => 'rotate(' + ((x(d.key) + x.bandwidth()*(d.index+0.5)/patterns.length) * 180 / Math.PI - 90) + ')'+'translate(' + (y(d.value)+10) + ',0)')
 					.append('text')
 					.text((d) => {
 						if(d.index == 0){
@@ -901,7 +904,7 @@ class CircularView extends Component {
 			}	
 			// X axis goes from 0 to 2pi = all around the circle. If I stop at 1Pi, it will be around a half circle
 			const x = d3.scaleBand()
-							.range(computeDescriptorRange(descriptor_index, descriptor_size, descriptor_size_list, 0.1))    
+							.range(computeDescriptorRange(descriptor_index, descriptor_size, descriptor_size_list, shift_size))    
 							.domain(items) // The domain of the X axis is the list of states.
 							.paddingInner(0.05),
 						y = scaleRadial()
@@ -1133,7 +1136,12 @@ class CircularView extends Component {
 			// 	end_value,
 			// 	start_value = (2*Math.PI*new_array[descriptor_index])/total_item_size,
 			// 	end_value = (2*Math.PI*new_array[descriptor_index+1])/total_item_size;
-			return [start_value,  end_value];	
+			if(start_value > end_value){				
+				return [end_value, start_value];
+			}else{
+				return [start_value, end_value];
+			}
+			
 		}  
 
 		function barFill(d, descriptor_index, descriptor_size, bar_opacity) {

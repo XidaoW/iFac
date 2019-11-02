@@ -293,7 +293,7 @@ class TreeMapView extends Component {
 	        				curLabelText.shift();
 
 							// console.log(descriptors[Object.keys(descriptors)[d.parent.data.descriptor]]);
-							tooltip.html('<div>' + Object.keys(descriptors)[d.parent.data.descriptor] + ": " + curLabelText.join("_") +"(" + d3.format(".0%")(d.data.value/descriptors[Object.keys(descriptors)[d.parent.data.descriptor]].length) + ")"+ '</div>');
+							tooltip.html('<div>' + Object.keys(descriptors)[d.parent.data.descriptor] + ": " + curLabelText.join("_") +"(" + d3.format(".2%")(d.data.value*1.0/descriptors[Object.keys(descriptors)[d.parent.data.descriptor]].length) + ")"+ '</div>');
 							tooltip.show();
 							d3.selectAll('path#bar_' + d.parent.data.descriptor+ '_'+ d.data.item).attr("stroke-width", "2px");
 							return e.data.item === d.data.item

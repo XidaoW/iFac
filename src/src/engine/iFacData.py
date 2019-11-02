@@ -17,7 +17,7 @@ from scipy import stats
 # from scipy.special import entr
 from scipy import spatial
 import pdb
-import sys
+import sys, os
 import json
 from pyspark import SparkConf, SparkContext
 import itertools
@@ -62,6 +62,9 @@ class iFacData():
 		read in the data and create labels
 		"""
 		self.domain = domain
+		directory = '/home/xidao/project/thesis/iFac/src/src/data/'+self.domain
+		if not os.path.exists(directory):
+			os.makedirs(directory)
 		if self.domain == "nba":
 			shots = pd.read_csv("data/NBA_shots_201415.csv")
 			shots = shots[['PLAYER_ID','PLAYER_NAME','TEAM_ID','TEAM_NAME','ZoneName','PERIOD','SHOT_ATTEMPTED_FLAG','SHOT_MADE_FLAG']]
@@ -146,13 +149,82 @@ class iFacData():
 			harvard_group = harvard.groupby(self.column[:3])['certified'].sum()			
 			self.hist, self.labels = self.createDataHistogram(harvard_group, self.column[:3])
 
-		elif self.domain in ["biomarker","biomarker_gastric"]:
-			patients = pd.read_csv("data/biomarker_gastric_complete.csv")
+		elif self.domain in ["biomarker","biomarker_colorectal","biomarker_gastric_Age_Gender_type"]:
+			# patients = pd.read_csv("data/biomarker_gastric_Age_Gender_type.csv")
+			patients = pd.read_csv("data/biomarker_colorectal_healthy_Age_Gender_Group_abs.csv")
 			columns = ['age', 'gender', 'type', 'biomarker','value']
 			patients.columns = columns
 			self.column = columns[:4]
-			patients_group = patients.groupby(self.column[:4])['value'].sum()			
+			patients_group = patients.groupby(self.column[:4])['value'].mean()			
 			self.hist, self.labels = self.createDataHistogram(patients_group, self.column[:4])
+
+		elif self.domain in ["snp_breast"]:
+			patients = pd.read_csv("data/biomarker_breast_snp.csv")
+			# patients = pd.read_csv("data/biomarker_gastric_complete.csv")
+			columns = ['gene', 'start', 'end','cnt']
+			patients.columns = columns
+			self.column = columns[:3]
+			# patients_group = patients.groupby(self.column[:3])['cnt'].sum()			
+			self.hist, self.labels = self.createDataHistogram(patients, self.column[:3])
+
+		elif self.domain in ["snp_rad_breast"]:
+			patients = pd.read_csv("data/biomarker_breast_snp_RAD.csv")
+			# patients = pd.read_csv("data/biomarker_gastric_complete.csv")
+			columns = ['BIRAD','gene', 'start', 'end','cnt']
+			patients.columns = columns
+			self.column = columns[:4]
+			# patients_group = patients.groupby(self.column[:3])['cnt'].sum()			
+			self.hist, self.labels = self.createDataHistogram(patients, self.column[:4])
+
+		elif self.domain in ["snp_luminal"]:
+			patients = pd.read_csv("data/biomarker_breast_snp_luminal.csv")
+			# patients = pd.read_csv("data/biomarker_gastric_complete.csv")
+			columns = ['ID','Group', 'Age', 'BMI_class','snp','mutation']
+			patients.columns = columns
+			self.column = ['snp', 'mutation'] + columns[1:4]
+			patients_group = patients.groupby(self.column).size()
+			print(patients_group.iloc[:3])
+			self.hist, self.labels = self.createDataHistogram(patients_group, self.column)
+
+		elif self.domain in ["snp_age_bmi"]:
+			# patients = pd.read_csv("data/biomarker_breast_snp_age_bmi.csv")
+			# # patients = pd.read_csv("data/biomarker_gastric_complete.csv")
+			# columns = ['Age', 'BMI_class','snp','mutation']
+			patients = pd.read_csv("data/biomarker_breast_snp_luminal.csv")
+			# patients = pd.read_csv("data/biomarker_gastric_complete.csv")
+			columns = ['ID','Group', 'Age', 'BMI_class','snp','mutation']			
+			patients.columns = columns
+			self.column = ['snp', 'mutation'] + columns[2:4]
+			patients_group = patients.groupby(self.column).size()
+			print(patients_group.iloc[:3])
+			self.hist, self.labels = self.createDataHistogram(patients_group, self.column)
+
+		elif self.domain in ["cancer_gc"]:
+			# patients = pd.read_csv("data/biomarker_breast_snp_age_bmi.csv")
+			# # patients = pd.read_csv("data/biomarker_gastric_complete.csv")
+			# columns = ['Age', 'BMI_class','snp','mutation']
+			patients = pd.read_csv("data/biomarker_cancer_gc.csv")
+			# patients = pd.read_csv("data/biomarker_gastric_complete.csv")
+			columns = ['Group', 'Age', 'Gender','biomarker','value']			
+			patients.columns = columns
+			self.column = columns[:4]
+			patients_group = patients.groupby(self.column)['value'].mean()
+			print(patients_group.iloc[:3])
+			self.hist, self.labels = self.createDataHistogram(patients_group, self.column)			
+
+
+		elif self.domain in ["snp_age_bmi_patient"]:
+			# patients = pd.read_csv("data/biomarker_breast_snp_age_bmi.csv")
+			# # patients = pd.read_csv("data/biomarker_gastric_complete.csv")
+			# columns = ['Age', 'BMI_class','snp','mutation']
+			patients = pd.read_csv("data/biomarker_breast_snp_age_bmi_patient.csv")
+			# patients = pd.read_csv("data/biomarker_gastric_complete.csv")
+			columns = ['ID', 'Age', 'BMI_class','snp','mutation']		
+			patients.columns = columns
+			self.column = columns
+			patients_group = patients.groupby(self.column).size()
+			print(patients_group.iloc[:3])
+			self.hist, self.labels = self.createDataHistogram(patients_group, self.column)
 
 		elif self.domain in ["picso","picso1"]:
 			policy = pd.read_csv("data/picso.csv", header=None)
@@ -188,6 +260,47 @@ class iFacData():
 
 			self.labels = [[translateLabel(p.sub('', each_label).strip()).replace('prefecture', '').replace('Prefecture', '').strip().replace(' ', '').replace('\\\"over\\\"','over').replace('\\\"under\\\"','over') for each_label in each_d] for each_d in label]
 
+
+	def project_tensor_latent(self, X, P_X):
+		"""
+		project the tensor X to U_X and U_Y
+		:parame X: <sptensor> sparse tensor
+		:parame P_X: <list> patterns from X
+		:return s: <vector> latent representation of X
+		"""
+
+		_, R = P_X[0].shape
+		# G_ = X.ttm(P_X[0].T,0).ttm(P_X[1].T,1).ttm(P_X[2].T,2)
+		# vec = ktensor(G).tovec().v        
+		import scipy.linalg as SL
+		from numpy.linalg import inv
+		from numpy.linalg import pinv
+
+		U_0, s_0, Vh_0 = SL.svd(P_X[0], full_matrices = False)
+		U_1, s_1, Vh_1 = SL.svd(P_X[1], full_matrices = False)
+		U_2, s_2, Vh_2 = SL.svd(P_X[2], full_matrices = False)
+		s_0 = np.diag(s_0)
+		s_1 = np.diag(s_1)
+		s_2 = np.diag(s_2)
+		# pdb.set_trace()
+
+		y = X.ttm(U_0.T,0).ttm(U_1.T,1).ttm(U_2.T,2)
+		z = y.ttm(inv(s_0),0).ttm(inv(s_1),1).ttm(inv(s_2),2)
+		G = z.ttm(Vh_0.T,0).ttm(Vh_1.T,1).ttm(Vh_2.T,2)
+
+		s1 = [G[i,i,i] for i in range(R)]
+		# s2 = np.asarray(G.ravel()).tolist()
+		# s3 = [G_[i,i,i]/1000000. for i in range(R)]
+
+		return s1, s1
+
+	def normalize_value(self, x):
+
+		normalized = x
+		# normalized = (x-min(x))/(max(x)-min(x))
+		# normalized = normalized / sum(normalized)
+		normalized = [0. if math.isnan(a) else a for a in normalized]
+		return normalized		
 	def computeReconstructionError(self, ntfInstance, hist):    
 		"""
 		compute the reconstruction error
@@ -688,7 +801,7 @@ def generateData():
 		iFac.generatePatternEmbedding()
 
 	measures = ["error", "fit", "stability", "entropy", "normalized_entropy", "pctnonzeros", "gini", "theil", "min_error_index"]        
-	start_metrics = iFac.readMetricJSON(base_cnt=iFac.start_index-1, domain = domain, ndims = iFac.column_cnt)
+	start_metrics = iFac.readMetricJSON(base_cnt=iFac.start_index-1 if iFac.start_index > 2 else 2, domain = domain, ndims = iFac.column_cnt)
 	for i in range(iFac.start_index, base+1):
 		cur_metrics = iFac.readMetricJSON(base_cnt=i, domain = domain, ndims = iFac.column_cnt)
 		for m in measures:

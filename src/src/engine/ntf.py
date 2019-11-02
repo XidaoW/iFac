@@ -275,14 +275,19 @@ class NTF():
 				factor_gradient = -XtW_iter[way_index][:,l] + X_itr[way_index].dot(X_FF_iter[way_index])[:,l]
 				X_itr[way_index][:,l] = (
 						X_itr[way_index][:,l] * (X_FF_iter[way_index][l,l]) - 
+						# X_itr[way_index][:,l] - (
 						(
 							factor_gradient  + 2*lambda_0 * similarity_reg + lambda_1 * reference_reg
 						)
 					) / (X_FF_iter[way_index][l,l] + EPS)
+					# )
 
 				X_itr[way_index][:,l][X_itr[way_index][:,l] < EPS] = EPS
-
+				# if way_index < (num_ways - 1):
+				# 	X_itr[way_index][:,l] = normalize_column(X_itr[way_index][:,l], by_norm='2')[0]
+		# print(X_itr[0])
 		X_itr = [normalize_column(each_factor, by_norm='2')[0] if way_index < (num_ways - 1) else each_factor for way_index, each_factor in enumerate(X_itr)]
+		# print(X_itr[1])
 		return X_itr
 				
 
