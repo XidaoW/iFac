@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import _ from 'lodash';
 import Overview from 'components/Overview';
 import CircularView from 'components/CircularView';
-import EmbeddingView from 'components/EmbeddingView';
+// import EmbeddingView from 'components/EmbeddingView';
 import TreeMapView from 'components/TreeMapView';
 import SnapShotListView from 'components/SnapShotListView';
 import ListView from 'components/ListView';
@@ -24,18 +24,19 @@ const domainSetting = {
 						// "picso1": {"modes": "3", "cnt": "30"},
 						// "nbaplayer": {"modes": "3", "cnt": "20"},
 						// "nbaplayer1": {"modes": "3", "cnt": "50"},
-						"nbaplayershot": {"modes": "3", "cnt": "30"},
-						"biomarker": {"modes": "4", "cnt": "10"},
-						"snp_breast": {"modes": "3", "cnt": "20"},
+						// "nbaplayershot": {"modes": "3", "cnt": "30"},
+						// "biomarker": {"modes": "4", "cnt": "10"},
+						// "snp_breast": {"modes": "3", "cnt": "20"},
 						"cancer_gc": {"modes": "4", "cnt": "20"},
-						"snp_rad_breast": {"modes": "4", "cnt": "20"},
-						"snp_luminal": {"modes": "5", "cnt": "40"},
-						"snp_age_bmi": {"modes": "4", "cnt": "10"},
-						"biomarker_colorectal": {"modes": "4", "cnt": "20"},
-						"biomarker_gastric_Age_Gender_type": {"modes": "4", "cnt": "10"},
+						"biomarker_colorectal_age_group": {"modes": "5", "cnt": "30"},						
+						// "snp_rad_breast": {"modes": "4", "cnt": "20"},
+						// "snp_luminal": {"modes": "5", "cnt": "40"},
+						"minsheng": {"modes": "7", "cnt": "30"},
+						"biomarker_colorectal": {"modes": "4", "cnt": "30"},
+						"biomarker_gastric_Age_Gender_type": {"modes": "4", "cnt": "10"}
 						// "policyKeyword": {"modes": "4", "cnt": "40"},
-						"policyTopic": {"modes": "4", "cnt": "50"},
-						"purchase": {"modes": "5", "cnt": "30"}
+						// "policyTopic": {"modes": "4", "cnt": "50"},
+						// "purchase": {"modes": "5", "cnt": "30"}
 					};
 
 const item_projection_method = "mds";
@@ -43,7 +44,7 @@ const item_projection_method = "mds";
 class App extends Component {
 	constructor(props) {
 		super(props);
-		const domain = "biomarker";
+		const domain = "minsheng";
 		const [factors_data, metrics, itemEmbeddings_1d, itemEmbeddings_2d, patternEmbeddings] = this.loadDefaultDataset(domain);
 		this.state = {
 			factors_data: factors_data.data,
@@ -87,7 +88,7 @@ class App extends Component {
 			query_list: [],
 			minErrorIdx: metrics.min_error_index,			
 			clickedPatternIdx: [], /* listview */
-			color_list_petal: ["#85D4E3", "#F4B5BD", "#20B2AA", "#CDC08C", "#FAD77B"]				
+			color_list_petal: ["#85D4E3", "#F4B5BD", "#20B2AA", "#CDC08C", "#FAD77B", "#c51b7d","#762a83"]				
 			// color_list_petal: ["#85D4E3", "#F4B5BD", "#9C964A", "#CDC08C", "#FAD77B"]				
 		};
 

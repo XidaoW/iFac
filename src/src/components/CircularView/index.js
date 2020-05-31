@@ -623,7 +623,7 @@ class CircularView extends Component {
 			item_group.append("circle")
 							.attr("class", "dot")
 							.attr("r", (d) => d.radius)
-							.attr("id", (d, i) => "item_circle_" + descriptor_index + "_"+ d.label)
+							.attr("id", (d, i) => "item_circle_" + descriptor_index + "_"+ d.label.replace(/\./g, '\\.'))
 							.attr("cx", function(d) { return d.x; })
 							.attr("cy", function(d) { return d.y; })
 							.attr('fill', axisStroke(descriptor_index))
@@ -632,20 +632,20 @@ class CircularView extends Component {
 							.attr('fill-opacity', barFillOpacityConst)						
 							.attr('stroke-opacity', 0.4)
 							.on('mouseover', function (d) {								
-								d3.selectAll('path#bar_' + descriptor_index+ '_'+ d.label).attr("stroke-width", "2px");
-								d3.selectAll('circle#item_circle_' + descriptor_index+ '_'+ d.label).attr("stroke", "black");
+								d3.selectAll('path#bar_' + descriptor_index+ '_'+ d.label.replace(/\./g, '\\.')).attr("stroke-width", "2px");
+								d3.selectAll('circle#item_circle_' + descriptor_index+ '_'+ d.label.replace(/\./g, '\\.')).attr("stroke", "black");
 
 							})
 							.on('mouseout', function (d) {                
-								d3.selectAll('path#bar_' + descriptor_index+ '_'+ d.label).attr("stroke-width", "0px");
-								d3.selectAll('circle#item_circle_' + descriptor_index+ '_'+ d.label).attr("stroke", "grey");
+								d3.selectAll('path#bar_' + descriptor_index+ '_'+ d.label.replace(/\./g, '\\.')).attr("stroke-width", "0px");
+								d3.selectAll('circle#item_circle_' + descriptor_index+ '_'+ d.label.replace(/\./g, '\\.')).attr("stroke", "grey");
 							});
 
 			  
 			item_group.append("text")
 							.attr('class', 'labeltext')		
-							.attr("id", (d, i) => "item_text_" + descriptor_index + "_"+ d.label)																
-							.text((d) => {return d.label})
+							.attr("id", (d, i) => "item_text_" + descriptor_index + "_"+ d.label.replace(/\./g, '\\.'))																
+							.text((d) => {return d.label.replace(/\./g, '\\.')})
 							.attr("x", function(d) { 								
 								return d.x-2; })
 							.attr("y", function(d) { return d.y+2; })							
@@ -659,7 +659,7 @@ class CircularView extends Component {
 								.on("end", dragended));			            							
 			}
 			function dragstarted(d, i) {
-				d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label).classed("drag_active", true);
+				d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label.replace(/\./g, '\\.')).classed("drag_active", true);
 				// d3.select("text#item_text_" + descriptor_index+ '_'+ d.label).classed("drag_active", true);				
 				// d3.selectAll(".labeltext").attr("display", "inline");
 			}
@@ -667,21 +667,21 @@ class CircularView extends Component {
 			function dragged(d, i) {
 				var cur_x = d3.event.sourceEvent.offsetX - ((width)/2-(innerRadius)/2) - 100;
 				var cur_y = d3.event.sourceEvent.offsetY - ((height)/2-( innerRadius)/2) - 100;				 
-				d3.select("text#item_text_" + descriptor_index+ '_'+ d.label)
+				d3.select("text#item_text_" + descriptor_index+ '_'+ d.label.replace(/\./g, '\\.'))
 						.attr("x", cur_x)
 						.attr("y", cur_y);
-				d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label)
+				d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label.replace(/\./g, '\\.'))
 						.attr("cx", cur_x)
 						.attr("cy", cur_y);
 				// d3.selectAll(".labeltext").attr("opacity", 1);
 			}
 
 			function dragended(d, i) {
-				d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label).classed("drag_active", false);
+				d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label.replace(/\./g, '\\.')).classed("drag_active", false);
 				// d3.select("text#item_text_" + descriptor_index+ '_'+ d.label).classed("drag_active", false);
 				_self.handleMoveItemPosition(i, descriptor_index,
-					[circle_position_x_item.invert(d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label).attr("cx")), 
-					circle_position_y_item.invert(d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label).attr("cy"))]);
+					[circle_position_x_item.invert(d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label.replace(/\./g, '\\.')).attr("cx")), 
+					circle_position_y_item.invert(d3.select("circle#item_circle_" + descriptor_index+ '_'+ d.label.replace(/\./g, '\\.')).attr("cy"))]);
 				// d3.selectAll(".labeltext").attr("display", "none");
 			}
 		}

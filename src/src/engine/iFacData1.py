@@ -44,8 +44,7 @@ class iFacData():
 		self.cur_base = 0
 		self.hist = None
 		self.itemSimilarity = {}
-		self.data_mean_descriptor = {}
-
+		
 
 	def createDataHistogram(self, dataFrame, extractColumn):
 		group = dataFrame.groupby(extractColumn).size()
@@ -539,10 +538,10 @@ class iFacData():
 
 		for self.base_cnt in range(self.start_index, self.base+1):
 			try:
-				_log.info("Current Rank: {}".format(self.base_cnt))
+				# _log.info("Current Rank: {}".format(self.base_cnt))
 				each_rank_trials = []
 				for random_seed in range(self.trials):
-					_log.info("Current Trial: {}".format(random_seed))
+					# _log.info("Current Trial: {}".format(random_seed))
 					ntfInstance = ntf.NTF(self.base_cnt, self.hist, parallelCalc=True, ones = False, random_seed = random_seed)
 					ntfInstance.factorize(self.hist, showProgress=True, default = False, 
 										reference_matrix = self.reference_matrix, S_matrix = self.S_matrix,
@@ -550,7 +549,7 @@ class iFacData():
 					each_rank_trials.append(ntfInstance)
 
 				self.all_trials.append(each_rank_trials)
-				_log.info("Getting Metric for rank: {}".format(self.base_cnt))
+				# _log.info("Getting Metric for rank: {}".format(self.base_cnt))
 				self.metrics["error"][self.base_cnt-self.start_index] = []
 				self.metrics["fit"][self.base_cnt-self.start_index] = []
 				self.metrics["stability"][self.base_cnt-self.start_index] = []
@@ -885,7 +884,7 @@ def generateData():
 	base = 30
 	iFac.start_index = 2
 	domain = "policy"	
-	nb_trials = 1
+	nb_trials = 2
 
 	base = int(sys.argv[1])
 	iFac.start_index = int(sys.argv[2])
